@@ -1,0 +1,81 @@
+## TEMPLATE FILE - update this file based on the individual project!
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "lk-common"  ## FIXME Set the project name
+authors = [
+    ## FIXME Set the author name(s)
+    {name = "Michael Ekstrand", email = "michaelekstrand@boisestate.edu"}
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent",
+]
+readme = "README.md"
+license = { file = "LICENSE.md" }
+dynamic = ['version', 'description']
+requires-python = ">= 3.8"
+## FIXME Add this project's dependencies
+dependencies = [
+]
+
+[project.urls]
+## FIXME Correct the URLs
+homepage = "https://lkpy.lenskit.org"
+source = "https://github.com/lenskit/lk-common"
+
+[project.optional-dependencies]
+# These are the dev dependencies we use across LensKit projects.
+# Add additional ones as needed.
+dev = [
+    # tooling support
+    "flit >=3.2",
+    "conda-lock",
+    "invoke >=1",
+    "requests >=2",
+    "sphinx-autobuild >= 2021",
+
+    # quality control
+    "flake8",
+    "rstcheck",
+
+    # test coverage
+    "coverage >= 5",
+    "pytest-cov >= 2.12",
+]
+# These are the test dependencies used for most LensKit projects.
+# Add additional dependencies here as needed.
+test = [
+    "pytest >= 5",
+]
+# Common doc dependencies.
+doc = [
+    "sphinx >= 4.2",
+    "sphinxcontrib-bibtex >= 2.0",
+]
+
+# Configure Flit to include test sources, and exclude extra directories
+[tools.flit.sdist]
+include = ["tests/*"]
+exclude = [
+    ".github",
+    "*.ipynb",
+    "docs",
+    "data",
+    "examples",
+    "build-tools",
+    "lkbuild",
+    "tasks.py",
+]
+
+# We always use conda-forge for our documentation
+[tool.conda-lock]
+channels = [
+    "conda-forge"
+]
