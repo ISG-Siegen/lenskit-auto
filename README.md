@@ -31,6 +31,9 @@ Here are the steps to create a project:
 
 Then create your Python package directory and start working on code!
 
+This project does **not** set up the CI infrastructure - that currently varies
+too much from project to project.
+
 ## Updating Common Files
 
 To make sure you have the current version of the common files, run:
