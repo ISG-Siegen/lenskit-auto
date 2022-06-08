@@ -2,8 +2,10 @@ import numpy as np
 from smac.facade.smac_hpo_facade import SMAC4HPO
 from smac.scenario.scenario import Scenario
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
-from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs
+from lkauto.implicit.implicit_evaler import ImplicitEvaler
+from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs, get_implicit_recommender_from_cs
 from lkauto.explicit.explicit_default_config_space import get_explicit_default_configuration_space
+from lkauto.implicit.implicit_default_config_space import get_implicit_default_configuration_space
 
 
 def find_best_explicit_configuration(train,
@@ -44,5 +46,40 @@ def find_best_explicit_configuration(train,
     return model, incumbent
 
 
-def find_best_implicit_configuration(train, cs=None, time_limit_in_sec=2700, random_state=None):
-    raise NotImplementedError
+def find_best_implicit_configuration(train,
+                                     cs=None,
+                                     time_limit_in_sec=2700,
+                                     random_state=None,
+                                     folds=5,
+                                     output_dir=None):
+
+    if cs is None:
+        cs = get_implicit_default_configuration_space()
+
+    if random_state is None:
+        random_state = np.random.RandomState()
+
+    evaler = ImplicitEvaler(train=train,
+                            random_state=random_state,
+                            folds=folds)
+
+    scenario = Scenario({
+        'run_obj': 'quality',
+        'wallclock_limit': time_limit_in_sec,
+        'cs': cs,
+        'deterministic': False,
+        'abort_on_first_run_crash': False,
+        'output_dir': output_dir
+    })
+
+    smac = SMAC4HPO(scenario=scenario,
+                    rng=random_state,
+                    tae_runner=evaler.evaluate_implicit)
+
+    try:
+        smac.optimize()
+    finally:
+        incumbent = smac.solver.incumbent
+
+    model = get_implicit_recommender_from_cs(incumbent)
+    return model
