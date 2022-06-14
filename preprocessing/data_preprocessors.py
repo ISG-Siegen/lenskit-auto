@@ -1,16 +1,18 @@
 import os
 import pandas as pd
-from utils.yelp_dataset_utils import get_superset_of_column_names_from_file, read_and_write_file
-from utils.netflix_dataset_utils import read_netflix_data
+from preprocessing.utils.yelp_dataset_utils import get_superset_of_column_names_from_file, read_and_write_file
+from preprocessing.utils.netflix_dataset_utils import read_netflix_data
 
 
 def get_all_preprocess_functions(to_preprocess):
     to_preprocess_list = []
     # Maps names of datasets to preprocess function for dataset
     name_to_function_map = {
-        "yelp": preprocess_yelp,
-        "netflix": preprocess_netflix,
-        "food": preprocess_food
+        "rekko": preprocess_rekko,
+        "epinions": preprocess_epinions,
+        "modCloth": preprocess_mod_cloth,
+        "rentTheRunway": preprocess_rent_the_runway,
+        "jester": preprocess_jester
     }
 
     # Add amazon functions (which are dynamic objects)
@@ -117,10 +119,7 @@ def build_amazon_load_functions():
     # List of Amazon Dataset Meta-info needed to build loader
     amazon_dataset_info = [
         ('All_Beauty', 'amazon-all-beauty'),
-        ('Digital_Music', 'amazon-digital-music'),
-        ('AMAZON_FASHION', 'amazon-fashion'),
         ('Gift_Cards', 'amazon-gift-cards'),
-        ('Books', 'amazon-books'),
         ('Software', 'amazon-software')
     ]
 
@@ -134,4 +133,63 @@ def build_amazon_load_functions():
 
     return load_functions_list
 
+
+def preprocess_rekko(base_path):
+    data = pd.read_csv(os.path.join(base_path, 'rekko_challenge_rekko_challenge_2019', 'ratings.csv'))
+
+    data = data.rename(columns={'user_uid': 'user',
+                                       'element_uid': 'item',
+                                       'ts': 'timestamp'})
+
+    data = data.drop(['timestamp'], axis=1)
+
+    return 'rekko', data
+
+
+def preprocess_epinions(base_path):
+    data = pd.read_csv(os.path.join(base_path, 'Epinions', 'ratings_data.txt'), sep=' ')
+    data.columns = ['user', 'item', 'rating']
+
+    return 'epinions', data
+
+
+def preprocess_mod_cloth(base_path):
+    data = pd.read_json(os.path.join(base_path, 'ModCloth', 'modcloth_final_data.json'), lines=True)
+
+    data = data.rename(columns={'user_id': 'user',
+                                'item_id': 'item',
+                                'quality': 'rating'})
+
+    data = data.drop(['waist', 'size', 'cup size', 'hips', 'bra size', 'category', 'bust', 'height', 'user_name',
+                      'length', 'fit', 'shoe size', 'shoe width', 'review_summary', 'review_text'], axis=1)
+
+    return 'modCloth', data
+
+
+def preprocess_rent_the_runway(base_path):
+    data = pd.read_json(os.path.join(base_path, 'RentTheRunway', 'renttherunway_final_data.json'), lines=True)
+
+    data = data.rename(columns={'user_id': 'user',
+                                'item_id': 'item'})
+
+    data = data.drop(['fit', 'bust size', 'weight', 'rented for', 'review_text', 'body type', 'review_summary',
+                      'category', 'height', 'size', 'age', 'review_date'], axis=1)
+
+    return 'rentTheRunway', data
+
+
+def preprocess_jester(base_path):
+    data_sheet_1 = pd.read_excel(io=os.path.join(base_path, 'Jester', 'jester-data-1.xls'), sheet_name=0, header=None)
+    data_sheet_2 = pd.read_excel(io=os.path.join(base_path, 'Jester', 'jester-data-2.xls'), sheet_name=0, header=None)
+    data_sheet_3 = pd.read_excel(io=os.path.join(base_path, 'Jester', 'jester-data-3.xls'), sheet_name=0, header=None)
+
+    data = pd.concat([data_sheet_1, data_sheet_2, data_sheet_3], axis=0)
+
+    # Drop first column that includes the number of ratings per user
+    data = data.iloc[:, 1:]
+    data["user"] = [i for i in range(len(data))]
+    data = data.melt(id_vars="user", var_name="item", value_name="rating")
+    data = data[data["rating"] != 99]
+
+    return 'jester', data
 
