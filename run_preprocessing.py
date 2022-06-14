@@ -7,13 +7,11 @@ from preprocessing.data_handler import preprocess_all_datasets
 #
 #   For local usage, the script needs to be executed with an environment that has all requirements of the
 #   mgmt_requirements.txt
-preprocess_all_datasets('data/', ['yelp',
-                                  'netflix',
-                                  'food',
-                                  'amazon-all-beauty',
-                                  'amazon-digital-music',
-                                  'amazon-fashion',
+preprocess_all_datasets('data/', ['amazon-all-beauty',
                                   'amazon-gift-cards',
-                                  'amazon-books',
                                   'amazon-software',
-                                  'rekko'])
+                                  'rekko',
+                                  "epinions",
+                                  "modCloth",
+                                  "rentTheRunway",
+                                  "jester"])
