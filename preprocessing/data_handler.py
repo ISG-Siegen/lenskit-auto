@@ -9,6 +9,11 @@ from preprocessing.data_preprocessors import get_all_preprocess_functions
 def save_to_files(base_path, name, data_df):
     print("######## Store Datasets {} to CSV ########".format(name))
 
+    # drop None values
+    pre_drop_len = len(data_df)
+    data_df = data_df.dropna()
+    print("Dropped {} None".format(pre_drop_len - len(data_df)))
+
     # drop duplicates
     pre_drop_len = len(data_df)
     data_df = data_df.drop_duplicates(ignore_index=True)
