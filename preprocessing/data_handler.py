@@ -19,6 +19,11 @@ def save_to_files(base_path, name, data_df):
     data_df = data_df.drop_duplicates(ignore_index=True)
     print("Dropped {} duplicates".format(pre_drop_len - len(data_df)))
 
+    # drop multiple ratings of a user on a single item
+    pre_drop_len = len(data_df)
+    data_df = data_df.drop_duplicates(subset=['user', 'item'], keep='first')
+    print("Dropped {} duplicate ratings".format(pre_drop_len - len(data_df)))
+
     # print dataset_length
     print("Number of Reviews {}".format(len(data_df)))
 
