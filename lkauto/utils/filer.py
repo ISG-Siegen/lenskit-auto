@@ -73,6 +73,9 @@ class Filer:
             dictionary = json.load(f)
         return dictionary
 
+    def get_numpy_array_from_txt_file(self, path_to_file: str) -> np.array:
+        return np.loadtxt(fname=os.path.join(self.get_output_directory_path(), path_to_file))
+
     def append_dataframe_to_csv(self, dataframe: pd.DataFrame, output_path: str, name: str) -> None:
         self.__check_if_folder_structure_exist(output_path=output_path)
         data_path = os.path.join(self.get_output_directory_path(), output_path, '{}.csv'.format(name))
