@@ -6,7 +6,7 @@ from preprocessing.data_preprocessors import get_all_preprocess_functions
 
 
 # --- Utils
-def save_to_files(base_path, name, data_df):
+def save_to_files(base_path, name, data_df, prune=0):
     print("######## Store Datasets {} to CSV ########".format(name))
 
     # drop None values
@@ -24,6 +24,11 @@ def save_to_files(base_path, name, data_df):
     data_df = data_df.drop_duplicates(subset=['user', 'item'], keep='first')
     print("Dropped {} duplicate ratings".format(pre_drop_len - len(data_df)))
 
+    # prune dataset
+    count_dict = data_df.groupby('user').count().to_dict()['rating']
+    prunable_users = [k for k, v in count_dict.items() if v < prune]
+    data_df = data_df.drop(data_df[data_df['user'].isin(prunable_users)].index)
+
     # print dataset_length
     print("Number of Reviews {}".format(len(data_df)))
 
@@ -34,7 +39,7 @@ def save_to_files(base_path, name, data_df):
     data_df.to_csv(path_or_buf=file_path_csv, sep=',', header=True, index=False)
 
 
-def preprocess_all_datasets(path, to_preprocess):
+def preprocess_all_datasets(path, to_preprocess, prune):
     preprocessors = get_all_preprocess_functions(to_preprocess)
 
     n_preprocessors = len(preprocessors)
@@ -42,4 +47,4 @@ def preprocess_all_datasets(path, to_preprocess):
     for idx, fn in enumerate(preprocessors, 1):
         print("Start Preprocessing: {} [{}/{}]".format(fn.__name__, idx, n_preprocessors))
         # Preprocess and save results to csv
-        save_to_files(path, *fn(path))
+        save_to_files(path, *fn(path), prune)

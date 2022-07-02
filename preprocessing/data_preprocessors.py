@@ -12,7 +12,10 @@ def get_all_preprocess_functions(to_preprocess):
         "epinions": preprocess_epinions,
         "modCloth": preprocess_mod_cloth,
         "rentTheRunway": preprocess_rent_the_runway,
-        "jester": preprocess_jester
+        "jester": preprocess_jester,
+        "yelp": preprocess_yelp,
+        "netflix": preprocess_netflix,
+        "foodCom": preprocess_food,
     }
 
     # Add amazon functions (which are dynamic objects)
@@ -120,7 +123,10 @@ def build_amazon_load_functions():
     amazon_dataset_info = [
         ('All_Beauty', 'amazon-all-beauty'),
         ('Gift_Cards', 'amazon-gift-cards'),
-        ('Software', 'amazon-software')
+        ('Software', 'amazon-software'),
+        ('AMAZON_FASHION', 'amazon-fashion'),
+        ('Books', 'amazon-books'),
+        ('Digital_Music', 'amazon-digital-music')
     ]
 
     # For saving function
