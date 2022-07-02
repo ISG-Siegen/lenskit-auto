@@ -6,7 +6,7 @@ import numpy as np
 
 class ExplicitEvaler:
 
-    def __init__(self, train, filer, random_seed=None, folds=None):
+    def __init__(self, train, filer, random_seed=42, folds=None):
         self.train = train
         self.filer = filer
         self.random_seed = random_seed
