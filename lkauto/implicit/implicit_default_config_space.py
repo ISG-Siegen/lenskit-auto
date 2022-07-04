@@ -8,7 +8,10 @@ from lenskit.algorithms.als import ImplicitMF
 from lenskit.algorithms.svd import BiasedSVD
 
 
-def get_implicit_default_configuration_space():
+def get_implicit_default_configuration_space() -> ConfigurationSpace:
+    """
+           returns the default configuration space for all included Top-N ranking predictions algorithms
+    """
     cs = ConfigurationSpace()
     regressor = CategoricalHyperparameter('regressor', ['ItemItem',
                                                         'FunkSVD',
