@@ -1,58 +1,130 @@
+from ConfigSpace import ConfigurationSpace
 from lenskit.algorithms.user_knn import UserUser
 from lenskit.algorithms.item_knn import ItemItem
 from lenskit.algorithms.als import BiasedMF as ALSBiasedMF
 from lenskit.algorithms.bias import Bias
 from lenskit.algorithms.funksvd import FunkSVD
 from lenskit.algorithms.svd import BiasedSVD
+from lenskit.algorithms.als import ImplicitMF
 from lenskit.algorithms.basic import Fallback
+from lenskit.algorithms import Predictor
+from lenskit import Recommender
 
 
-def get_explicit_model_from_cs(config_space):
-    model = None
+def get_explicit_model_from_cs(config_space: ConfigurationSpace) -> Predictor:
+    """ builds a Predictor model defined in ConfigurationSpace
 
-    current_model = config_space.get('regressor')
+        Parameters
+        ----------
+        config_space : ConfigurationSpace
+            configuration space containing information to build a model
+    """
+    algo = None
+
+    current_algo = config_space.get('regressor')
 
     # ItemItem
-    if current_model == 'ItemItem':
-        model = ItemItem(nnbrs=10000,
-                         min_nbrs=config_space['item_item_min_nbrs'],
-                         min_sim=config_space['item_item_min_sim'],
-                         feedback='explicit')
+    if current_algo == 'ItemItem':
+        algo = ItemItem(nnbrs=10000,
+                        min_nbrs=config_space['item_item_min_nbrs'],
+                        min_sim=config_space['item_item_min_sim'],
+                        feedback='explicit')
     # UserUser
-    if current_model == 'UserUser':
-        model = UserUser(nnbrs=10000,
-                         min_nbrs=config_space['user_user_min_nbrs'],
-                         min_sim=config_space['user_user_min_sim'],
-                         feedback='explicit')
+    if current_algo == 'UserUser':
+        algo = UserUser(nnbrs=10000,
+                        min_nbrs=config_space['user_user_min_nbrs'],
+                        min_sim=config_space['user_user_min_sim'],
+                        feedback='explicit')
     # ALSBiasedMF
-    if current_model == 'ALSBiasedMF':
+    if current_algo == 'ALSBiasedMF':
         ureg = config_space['biased_mf_ureg']
         ireg = config_space['biased_mf_ireg']
         reg_touple = (ureg, ireg)
-        model = ALSBiasedMF(features=config_space['biased_mf_features'],
-                            reg=reg_touple,
-                            damping=config_space['biaseed_mf_damping'])
+        algo = ALSBiasedMF(features=config_space['biased_mf_features'],
+                           reg=reg_touple,
+                           damping=config_space['biaseed_mf_damping'],
+                           rng_spec=42)
 
     # Biased
-    if current_model == 'Bias':
+    if current_algo == 'Bias':
         items_damping = config_space['bias_item_damping']
         users_damping = config_space['bias_user_damping']
         damping_touple = (users_damping, items_damping)
-        model = Bias(damping=damping_touple)
+        algo = Bias(damping=damping_touple)
 
     # FunkSVD
-    if current_model == 'FunkSVD':
-        model = FunkSVD(features=config_space['funk_svd_features'],
-                        lrate=config_space['funk_svd_lrate'],
-                        reg=config_space['funk_svd_reg'],
-                        damping=config_space['funk_svd_damping'])
+    if current_algo == 'FunkSVD':
+        algo = FunkSVD(features=config_space['funk_svd_features'],
+                       lrate=config_space['funk_svd_lrate'],
+                       reg=config_space['funk_svd_reg'],
+                       damping=config_space['funk_svd_damping'],
+                       random_state=42)
 
     # BiasedSVD
-    if current_model == 'BiasedSVD':
-        model = BiasedSVD(features=1000,
-                          damping=config_space['bias_svd_damping'])
+    if current_algo == 'BiasedSVD':
+        algo = BiasedSVD(features=1000,
+                         damping=config_space['bias_svd_damping'])
 
+    # define fallback algorithm
     fallback = Bias()
-    fallback_model = Fallback(model, fallback)
+    fallback_algo = Fallback(algo, fallback)
 
-    return fallback_model
+    return fallback_algo
+
+
+def get_implicit_recommender_from_cs(config_space: ConfigurationSpace, random_state=None) -> Recommender:
+    """ builds a Recommender model defined in ConfigurationSpace
+
+           Parameters
+           ----------
+           config_space : ConfigurationSpace
+               configuration space containing information to build a model
+       """
+    algo = None
+
+    current_algo = config_space.get('regressor')
+
+    # ItemItem
+    if current_algo == 'ItemItem':
+        algo = ItemItem(nnbrs=10000,
+                        min_nbrs=config_space['item_item_min_nbrs'],
+                        min_sim=config_space['item_item_min_sim'],
+                        feedback='implicit')
+
+    # UserUser
+    if current_algo == 'UserUser':
+        algo = UserUser(nnbrs=10000,
+                        min_nbrs=config_space['user_user_min_nbrs'],
+                        min_sim=config_space['user_user_min_sim'],
+                        feedback='implicit')
+
+    # FunkSVD
+    if current_algo == 'FunkSVD':
+        algo = FunkSVD(features=config_space['funk_svd_features'],
+                       lrate=config_space['funk_svd_lrate'],
+                       reg=config_space['funk_svd_reg'],
+                       damping=config_space['funk_svd_damping'],
+                       random_state=random_state)
+
+    # ImplicitMF
+    if current_algo == 'ImplicitMF':
+        ureg = config_space['implicit_mf_ureg']
+        ireg = config_space['implicit_mf_ireg']
+        reg_touple = (ureg, ireg)
+        algo = ImplicitMF(features=config_space['implicit_mf_features'],
+                          reg=reg_touple,
+                          weight=config_space['implicit_mf_weight'])
+
+    # BiasedSVD
+    if current_algo == 'BiasedSVD':
+        algo = BiasedSVD(features=config_space[' bias_svd_features'],
+                         damping=config_space['bias_svd_damping'])
+
+    # define fallback algorithm
+    fallback = Bias()
+    fallback_algo = Fallback(algo, fallback)
+
+    # transorm Predictor to Recommender
+    recommender_algo = Recommender.adapt(fallback_algo)
+
+    return recommender_algo

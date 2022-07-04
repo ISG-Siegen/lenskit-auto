@@ -1,5 +1,5 @@
 from pathlib import Path
-from ConfigSpace import Configuration
+from ConfigSpace import ConfigurationSpace
 import pandas as pd
 import numpy as np
 import os
@@ -11,10 +11,30 @@ class Filer:
 
         This filer supports to structure the LensKit-Auto output in the file system
 
-        Parameters
+        Attributes
         ----------
         output_directory_path: path to the output directory
             path that leads to the output directory of LensKit-Auto
+
+        Methods
+        ----------
+        get_output_directory_path() -> str
+        get_smac_output_directory_path() -> str
+        set_output_directory_path(output_directory_path: str) -> None
+        save_dataframe_as_csv(self, dataframe: pd.DataFrame, output_path: str, name: str) -> None
+        save_dictionary_to_json(self, dictionary: dict, output_path: str, name: str) -> None
+        save_metric_scores_to_txt(self, metric_scores: np.array, output_path: str, name: str) -> None:
+        get_dataframe_from_csv(self, path_to_file: str, index_column=None) -> pd.DataFrame:
+        get_series_from_csv(self, path_to_file: str, index_column=None) -> pd.Series
+        get_dict_from_json_file(self, path_to_file: str) -> dict
+        get_numpy_array_from_txt_file(self, path_to_file: str) -> np.array
+        append_dataframe_to_csv(self, dataframe: pd.DataFrame, output_path: str, name: str) -> None
+        save_validataion_data(self,
+                              config_space: ConfigurationSpace,
+                              predictions: pd.DataFrame,
+                              metric_scores: np.array,
+                              output_path: str,
+                              run_id: int) -> None
     """
     def __init__(self, output_directory_path='output/'):
         self.output_directory_path = output_directory_path
@@ -83,7 +103,7 @@ class Filer:
         dataframe.to_csv(data_path, mode='a', header=False, index=False)
 
     def save_validataion_data(self,
-                              config_space: Configuration,
+                              config_space: ConfigurationSpace,
                               predictions: pd.DataFrame,
                               metric_scores: np.array,
                               output_path: str,
@@ -96,13 +116,18 @@ class Filer:
 
                 Parameters
                 ----------
-                config_space: configuraiton space of run
-                predictions: dataframe containing raw predictions
-                metric_scores: numpy array containing metric values
+                config_space : ConfigurationSpace
+                    configuraiton space of run
+                predictions : pd.Dataframe
+                    dataframe containing raw predictions
+                metric_scores : np.array
+                    numpy array containing metric values
                     Depending on the metric, differnet kind of metric values can be stored
                     in the metric scores array
-                output_path: path to output folder
-                run_id: id of smac search iteration
+                output_path : str
+                    path to output folder
+                run_id : int
+                    id of smac search iteration
             """
         output_path = os.path.join(output_path, str(run_id))
         dictionary = config_space.get_dictionary()

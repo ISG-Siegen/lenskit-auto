@@ -9,7 +9,10 @@ from lkpy.lenskit.algorithms.bias import Bias
 from lkpy.lenskit.algorithms.svd import BiasedSVD
 
 
-def get_explicit_default_configuration_space():
+def get_explicit_default_configuration_space() -> ConfigurationSpace:
+    """
+        returns the default configuration space for all included rating predictions algorithms
+    """
     cs = ConfigurationSpace()
     regressor = CategoricalHyperparameter('regressor', ['ItemItem',
                                                         'UserUser',

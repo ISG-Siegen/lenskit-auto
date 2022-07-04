@@ -1,83 +1,76 @@
 import numpy as np
 import pandas as pd
+from ConfigSpace import ConfigurationSpace
 from smac.facade.smac_hpo_facade import SMAC4HPO
 from smac.scenario.scenario import Scenario
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs
 from lkauto.explicit.explicit_default_config_space import get_explicit_default_configuration_space
 from lkauto.utils.filer import Filer
-from lenskit.metrics.predict import rmse
-from lkauto.ensembles.ensemble_selection import EnsembleSelection
+from lenskit.algorithms import Predictor
 
 
-def build_ensemble(train: pd.DataFrame,
-                   evaler: ExplicitEvaler,
-                   filer: Filer,
-                   ensemble_size: int,
-                   lenskit_metric,
-                   maximize_metric: bool):
-    config_ids = evaler.top_50_runs.sort_values(by='error', ascending=True)['run_id']
-    ensemble_y = train['rating']
-    ensemble_X = []
-    val_indices = None
-    bm_cs_list = []
-
-    for config_id in config_ids:
-        # Load predictions file for config id, sort and append to ensemble_X
-        bm_pred = filer.get_dataframe_from_csv(path_to_file='smac_runs/{}/predictions.csv'.format(config_id))
-        bm_cs = filer.get_dict_from_json_file(path_to_file='smac_runs/{}/config_space.json'.format(config_id))
-
-        bm_cs_list.append(bm_cs)
-
-        # Get Validation indices (overwrite for now but should be the same for each base model)
-        bm_pred = bm_pred.sort_values(by=list(bm_pred)[0])
-        val_indices = bm_pred[list(bm_pred)[0]]
-
-        # Append predictions to ensemble train X
-        ensemble_X.append(np.array(bm_pred[list(bm_pred)[1]]))
-
-    ensemble_y = np.array(ensemble_y.loc[val_indices])
-
-    es = EnsembleSelection(ensemble_size=ensemble_size, lenskit_metric=lenskit_metric, maximize_metric=maximize_metric)
-    es.ensemble_fit(ensemble_X, ensemble_y)
-    es.base_models = [get_explicit_model_from_cs(cs) for cs, weight in zip(bm_cs_list, es.weights_) if weight > 0]
-    es.old_to_new_idx = {old_i: new_i for new_i, old_i in enumerate([idx for idx, weight in enumerate(es.weights_) if weight > 0])}
-
-    incumbent = {"model": str(es),
-                 "top_50_models": list(bm_cs_list),
-                 "trajectory": list(es.trajectory_),
-                 "ensamble_size": es.ensemble_size,
-                 "train_loss": es.train_loss_,
-                 "weights": list(es.weights_)}
-
-    return es, incumbent
-
-
-def find_best_explicit_configuration(train,
-                                     cs=None,
-                                     time_limit_in_sec=2700,
+def find_best_explicit_configuration(train: pd.DataFrame,
+                                     cs: ConfigurationSpace = None,
+                                     time_limit_in_sec: int = 2700,
                                      random_state=None,
-                                     folds=5,
-                                     filer=None,
-                                     ensemble_size=1,
-                                     lenskit_metric=rmse,
-                                     maximize_metric=False):
+                                     folds: int = 5,
+                                     filer: Filer = None) -> tuple[Predictor, dict]:
+    """ returns the best Predictor found in the defined search time
 
+         the find_best_explicit_configuration method will search the ConfigurationSpace
+         for the best Predictor model configuration.
+         Depending on the ConfigurationSpace parameter provided by the developer,
+         performs three different use-cases.
+         1. combined algorithm selection and hyperparameter configuration
+         2. combined algorthm selection and hyperparameter configuration for a specific subset
+            of algorithms and/or different parameter ranges
+         3. hyperparameter selection for a specific algorithm.
+
+        Parameters
+        ----------
+        train : pd.DataFrame
+            Pandas Dataframe train split.
+        cs : ConfigurationSpace
+            ConfigurationSpace with all algorithms and parameter ranges defined.
+        time_limit_in_sec : int
+            search time limit.
+        random_state
+            The random number generator or seed (see :py:func:`lenskit.util.rng`).
+        folds : int
+            number of folds of the inner split
+        filer : Filer
+            filer to manage LensKit-Auto output
+
+        Returns
+        -------
+        model : Predictor
+            the best suited (untrained) predictor for the train dataset, cs parameters.
+        incumbent : dict
+            a dictionary containing the algorithm name and hyperparameter configuration of the returned model
+   """
+
+    # initialize filer if none is provided
     if filer is None:
         filer = Filer()
 
+    # get SMAC output directory
     output_dir = filer.get_smac_output_directory_path()
 
+    # initialize ExplicitEvaler for SMAC evaluations
     evaler = ExplicitEvaler(train=train,
                             folds=folds,
                             filer=filer)
 
+    # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
         cs = get_explicit_default_configuration_space()
 
+    # set RandomState if none is provided
     if random_state is None:
         random_state = np.random.RandomState()
 
+    # define SMAC Scenario for algorithm selection and hyperparameter optimization
     scenario = Scenario({
         'run_obj': 'quality',
         'wallclock_limit': time_limit_in_sec,
@@ -87,25 +80,24 @@ def find_best_explicit_configuration(train,
         'output_dir': output_dir
     })
 
+    # define SMAC facade for combined algorithm selection and hyperparameter optimization
     smac = SMAC4HPO(scenario=scenario,
                     rng=random_state,
                     tae_runner=evaler.evaluate_explicit)
 
     try:
+        # start optimizing
         smac.optimize()
     finally:
+        # get best model configuration
         incumbent = smac.solver.incumbent
 
-    filer.save_dataframe_as_csv(evaler.top_50_runs, '', 'top_50_runs')
+    # build model from best model configuration found by SMAC
+    model = get_explicit_model_from_cs(incumbent)
+    incumbent = incumbent.get_dictionary()
 
-    if ensemble_size > 1:
-        model, incumbent = build_ensemble(train, evaler, filer, ensemble_size, lenskit_metric, maximize_metric)
-    else:
-        model = get_explicit_model_from_cs(incumbent)
-        incumbent.get_dictionary()
-
+    # return model and model configuration
     return model, incumbent
-
 
 def find_best_implicit_configuration(train, cs=None, time_limit_in_sec=2700, random_state=None):
     raise NotImplementedError
