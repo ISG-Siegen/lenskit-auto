@@ -7,7 +7,8 @@ from lenskit.algorithms.funksvd import FunkSVD
 from lenskit.algorithms.svd import BiasedSVD
 from lenskit.algorithms.als import ImplicitMF
 from lenskit.algorithms.basic import Fallback
-
+from lenskit.algorithms import Predictor
+from lenskit.algorithms import Recommender
 
 
 def get_explicit_model_from_cs(config_space: ConfigurationSpace) -> Predictor:
@@ -17,6 +18,11 @@ def get_explicit_model_from_cs(config_space: ConfigurationSpace) -> Predictor:
         ----------
         config_space : ConfigurationSpace
             configuration space containing information to build a model
+
+        Returns
+        ----------
+        fallback_algo : Predictor
+            Predictor build with the config_space information
     """
     algo = None
 
@@ -78,6 +84,11 @@ def get_implicit_recommender_from_cs(config_space: ConfigurationSpace, random_st
            ----------
            config_space : ConfigurationSpace
                configuration space containing information to build a model
+
+            Returns
+            ----------
+            fallback_algo : Recommender
+                Recommender build with the config_space information
        """
     algo = None
 
