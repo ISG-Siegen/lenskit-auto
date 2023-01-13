@@ -3,6 +3,7 @@ import pandas as pd
 from ConfigSpace import ConfigurationSpace
 from smac.facade.smac_hpo_facade import SMAC4HPO
 from smac.scenario.scenario import Scenario
+from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs, get_implicit_recommender_from_cs
 from lkauto.explicit.explicit_default_config_space import get_explicit_default_configuration_space
@@ -73,6 +74,9 @@ def find_best_explicit_configuration(train: pd.DataFrame,
     if random_state is None:
         random_state = np.random.RandomState()
 
+    # set initial configuraiton
+    initial_configuraition = get_default_configurations(cs)
+
     # define SMAC Scenario for algorithm selection and hyperparameter optimization
     scenario = Scenario({
         'run_obj': 'quality',
@@ -86,7 +90,9 @@ def find_best_explicit_configuration(train: pd.DataFrame,
     # define SMAC facade for combined algorithm selection and hyperparameter optimization
     smac = SMAC4HPO(scenario=scenario,
                     rng=random_state,
-                    tae_runner=evaler.evaluate_explicit)
+                    tae_runner=evaler.evaluate_explicit,
+                    initial_configurations=initial_configuraition,
+                    initial_design=None)
 
     try:
         # start optimizing
@@ -105,7 +111,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
 def find_best_implicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
-                                     time_limit_in_sec: int = 60,
+                                     time_limit_in_sec: int = 300,
                                      random_state=None,
                                      folds: int = 1,
                                      filer: Filer = None) -> tuple[Recommender, dict]:
@@ -156,6 +162,9 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     if random_state is None:
         random_state = np.random.RandomState()
 
+    # set initial configuraiton
+    initial_configuraition = get_default_configurations(cs)
+
     # initialize ImplicitEvaler for SMAC evaluations
     evaler = ImplicitEvaler(train=train,
                             random_state=random_state,
@@ -175,7 +184,9 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     # define SMAC facade for combined algorithm selection and hyperparameter optimization
     smac = SMAC4HPO(scenario=scenario,
                     rng=random_state,
-                    tae_runner=evaler.evaluate_implicit)
+                    initial_configurations=initial_configuraition,
+                    tae_runner=evaler.evaluate_implicit,
+                    initial_design=None)
 
     try:
         # start optimizing

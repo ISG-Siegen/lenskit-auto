@@ -171,7 +171,7 @@ def get_implicit_recommender_from_cs(config_space, random_state=None):
         reg_touple = (ureg, ireg)
         model = ImplicitMF(features=config_space['implicit_mf_features'],
                            reg=reg_touple,
-                           weight=config_space['implicit_mf_damping'])
+                           weight=config_space['implicit_mf_weight'])
 
     if current_model == 'BiasedSVD':
         model = BiasedSVD(features=config_space['bias_svd_features'],
