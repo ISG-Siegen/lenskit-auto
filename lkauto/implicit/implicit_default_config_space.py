@@ -1,12 +1,11 @@
 from ConfigSpace import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter
 from ConfigSpace.conditions import InCondition
-# FIXME: Remove lkpy.*
-from lkpy.lenskit.algorithms.user_knn import UserUser
-from lkpy.lenskit.algorithms.item_knn import ItemItem
-from lkpy.lenskit.algorithms.funksvd import FunkSVD
-from lkpy.lenskit.algorithms.als import ImplicitMF
-from lkpy.lenskit.algorithms.svd import BiasedSVD
+from lkauto.algorithms.user_knn import UserUser
+from lkauto.algorithms.item_knn import ItemItem
+from lkauto.algorithms.funksvd import FunkSVD
+from lkauto.algorithms.als import ImplicitMF
+from lkauto.algorithms.svd import BiasedSVD
 
 
 def get_implicit_default_configuration_space() -> ConfigurationSpace:
