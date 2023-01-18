@@ -11,7 +11,7 @@ class UserUser(user_knn.UserUser):
         """
             return default configuration spaces for hyperparameter
         """
-        user_user_min_nbrs = UniformIntegerHyperparameter('user_user_min_nbrs', lower=1, upper=50, default_value=1)
-        user_user_min_sim = UniformFloatHyperparameter('user_user_min_sim', lower=0, upper=0.1, default_value=0)
+        user_user_min_nbrs = UniformIntegerHyperparameter('min_nbrs', lower=1, upper=50, default_value=1)
+        user_user_min_sim = UniformFloatHyperparameter('min_sim', lower=0, upper=0.1, default_value=0)
 
         return [user_user_min_nbrs, user_user_min_sim]
