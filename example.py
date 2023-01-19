@@ -41,7 +41,7 @@ if __name__ == '__main__':
     y_test = test[['rating']].iloc[:, 0]
 
     # LensKit-Auto function call
-    model, config = find_best_explicit_configuration(train)
+    model, config = find_best_explicit_configuration(train, optimization_strategie='random_search', number_of_evaluations=10)
 
     model.fit(train)
     predictions = model.predict(x_test)

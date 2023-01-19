@@ -10,6 +10,8 @@ from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 from lenskit.metrics.predict import rmse
 from lenskit.metrics.topn import ndcg
+from lkauto.implicit.implicit_default_config_space import get_implicit_default_configuration_space
+from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
 from lenskit.algorithms import Predictor
 from lenskit import Recommender
@@ -18,9 +20,10 @@ from lenskit import Recommender
 def find_best_explicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
                                      optimization_metric=rmse,
+                                     optimization_strategie: str = 'bayesian',
                                      time_limit_in_sec: int = 2700,
-                                     n_trials: int = None,
                                      initial_configuration: list[Configuration] = None,
+                                     n_trials: int = 100,
                                      random_state=None,
                                      folds: int = 5,
                                      filer: Filer = None) -> tuple[Predictor, dict]:
@@ -85,42 +88,49 @@ def find_best_explicit_configuration(train: pd.DataFrame,
                             folds=folds,
                             filer=filer)
 
-    # get pre-defined ConfiguraitonSpace if none is provided
-    if cs is None:
-        cs = get_default_configuration_space(feedback='explicit')
-
     # set RandomState if none is provided
     if random_state is None:
         random_state = np.random.RandomState()
 
-    # set initial configuraiton
-    if initial_configuration is None:
+    # get pre-defined ConfiguraitonSpace if none is provided
+    if cs is None:
+        cs = get_explicit_default_configuration_space()
+
+    if optimization_strategie == 'bayesian':
+        # set initial configuraiton
         initial_configuraition = get_default_configurations(cs)
 
-    # define SMAC Scenario for algorithm selection and hyperparameter optimization
-    scenario = Scenario({
-        'run_obj': 'quality',
-        'wallclock_limit': time_limit_in_sec,
-        'ta_run_limit': n_trials,
-        'cs': cs,
-        'deterministic': True,
-        'abort_on_first_run_crash': False,
-        'output_dir': output_dir
-    })
+        # define SMAC Scenario for algorithm selection and hyperparameter optimization
+        scenario = Scenario({
+            'run_obj': 'quality',
+            'wallclock_limit': time_limit_in_sec,
+            'cs': cs,
+            'deterministic': True,
+            'abort_on_first_run_crash': False,
+            'output_dir': output_dir
+        })
 
-    # define SMAC facade for combined algorithm selection and hyperparameter optimization
-    smac = SMAC4HPO(scenario=scenario,
-                    rng=random_state,
-                    tae_runner=evaler.evaluate_explicit,
-                    initial_configurations=initial_configuraition,
-                    initial_design=None)
+        # define SMAC facade for combined algorithm selection and hyperparameter optimization
+        smac = SMAC4HPO(scenario=scenario,
+                        rng=random_state,
+                        tae_runner=evaler.evaluate_explicit,
+                        initial_configurations=initial_configuraition,
+                        initial_design=None)
 
-    try:
-        # start optimizing
-        smac.optimize()
-    finally:
-        # get best model configuration
-        incumbent = smac.solver.incumbent
+        try:
+            # start optimizing
+            smac.optimize()
+        finally:
+            # get best model configuration
+            incumbent = smac.solver.incumbent
+    elif optimization_strategie == 'random_search':
+        incumbent, val_error = random_search(cs=cs,
+                                             train=train,
+                                             n_samples=number_of_evaluations,
+                                             minimize_error_metric_val=True,
+                                             user_feedback='explicit')
+    else:
+        raise ValueError('optimization_strategie must be either bayesian or random_search')
 
     # build model from best model configuration found by SMAC
     model = get_model_from_cs(incumbent, feedback='explicit')
@@ -132,10 +142,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
 def find_best_implicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
-                                     optimization_metric=ndcg,
                                      time_limit_in_sec: int = 300,
-                                     n_trials: int = None,
-                                     initial_configuration: list[Configuration] = None,
                                      random_state=None,
                                      folds: int = 1,
                                      filer: Filer = None) -> tuple[Recommender, dict]:
@@ -198,41 +205,47 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     if random_state is None:
         random_state = np.random.RandomState()
 
-    # set initial configuraiton
-    if initial_configuration is None:
+    if optimization_strategie == 'bayesian':
+        # set initial configuraiton
         initial_configuraition = get_default_configurations(cs)
 
-    # initialize ImplicitEvaler for SMAC evaluations
-    evaler = ImplicitEvaler(train=train,
-                            optimization_metric=optimization_metric,
-                            random_state=random_state,
-                            folds=folds,
-                            filer=filer)
+        # initialize ImplicitEvaler for SMAC evaluations
+        evaler = ImplicitEvaler(train=train,
+                                random_state=random_state,
+                                folds=folds,
+                                filer=filer)
 
-    # define SMAC Scenario for algorithm selection and hyperparameter optimization
-    scenario = Scenario({
-        'run_obj': 'quality',
-        'wallclock_limit': time_limit_in_sec,
-        'ta_run_limit': n_trials,
-        'cs': cs,
-        'deterministic': True,
-        'abort_on_first_run_crash': False,
-        'output_dir': output_dir
-    })
+        # define SMAC Scenario for algorithm selection and hyperparameter optimization
+        scenario = Scenario({
+            'run_obj': 'quality',
+            'wallclock_limit': time_limit_in_sec,
+            'cs': cs,
+            'deterministic': True,
+            'abort_on_first_run_crash': False,
+            'output_dir': output_dir
+        })
 
-    # define SMAC facade for combined algorithm selection and hyperparameter optimization
-    smac = SMAC4HPO(scenario=scenario,
-                    rng=random_state,
-                    initial_configurations=initial_configuraition,
-                    tae_runner=evaler.evaluate_implicit,
-                    initial_design=None)
+        # define SMAC facade for combined algorithm selection and hyperparameter optimization
+        smac = SMAC4HPO(scenario=scenario,
+                        rng=random_state,
+                        initial_configurations=initial_configuraition,
+                        tae_runner=evaler.evaluate_implicit,
+                        initial_design=None)
 
-    try:
-        # start optimizing
-        smac.optimize()
-    finally:
-        # get best model configuration
-        incumbent = smac.solver.incumbent
+        try:
+            # start optimizing
+            smac.optimize()
+        finally:
+            # get best model configuration
+            incumbent = smac.solver.incumbent
+    elif optimization_strategie == 'random_search':
+        incumbent, val_error = random_search(cs=cs,
+                                             train=train,
+                                             n_samples=number_of_evaluations,
+                                             minimize_error_metric_val=True,
+                                             user_feedback='implicit')
+    else:
+        raise ValueError('optimization_strategie must be either bayesian or random_search')
 
     # build model from best model configuration found by SMAC
     model = get_model_from_cs(incumbent, feedback='implicit')
