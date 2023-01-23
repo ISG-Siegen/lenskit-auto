@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from ConfigSpace import ConfigurationSpace
+from ConfigSpace import ConfigurationSpace, Configuration
 from smac.facade.smac_hpo_facade import SMAC4HPO
 from smac.scenario.scenario import Scenario
 from lkauto.utils.get_default_configurations import get_default_configurations
@@ -19,6 +19,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
                                      optimization_metric=rmse,
                                      time_limit_in_sec: int = 2700,
+                                     n_trials: int = None,
+                                     initial_configuration: list[Configuration] = None,
                                      random_state=None,
                                      folds: int = 5,
                                      filer: Filer = None) -> tuple[Predictor, dict]:
@@ -32,6 +34,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
          2. combined algorthm selection and hyperparameter configuration for a specific subset
             of algorithms and/or different parameter ranges
          3. hyperparameter selection for a specific algorithm.
+         The hyperparameter and/or model selection process will be stopped after the time_limit_in_sec or (if set) after
+         n_trials. The first one to be reached will stop the optimization.
 
         Parameters
         ----------
@@ -42,7 +46,13 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         optimization_metric : function
             LensKit prediction accuracy metric to optimize for (either rmse or mae)
         time_limit_in_sec : int
-            search time limit.
+            optimization search time limit in sec.
+        n_trials : int
+                number of samples to be used for optimization_strategy. Value can not be smaller than 6
+                if no no initial configuration is provided.
+        initial_configuration: list[Configuration]
+                list of configurations that should be evaluated first. This parameter can be used to warmstart
+                the optimization process.
         random_state
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         folds : int
@@ -57,6 +67,9 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         incumbent : dict
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
    """
+
+    if n_trials is None:
+        n_trials = np.inf
 
     # initialize filer if none is provided
     if filer is None:
@@ -80,12 +93,14 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         random_state = np.random.RandomState()
 
     # set initial configuraiton
-    initial_configuraition = get_default_configurations(cs)
+    if initial_configuration is None:
+        initial_configuraition = get_default_configurations(cs)
 
     # define SMAC Scenario for algorithm selection and hyperparameter optimization
     scenario = Scenario({
         'run_obj': 'quality',
         'wallclock_limit': time_limit_in_sec,
+        'ta_run_limit': n_trials,
         'cs': cs,
         'deterministic': True,
         'abort_on_first_run_crash': False,
@@ -118,6 +133,8 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
                                      optimization_metric=ndcg,
                                      time_limit_in_sec: int = 300,
+                                     n_trials: int = None,
+                                     initial_configuration: list[Configuration] = None,
                                      random_state=None,
                                      folds: int = 1,
                                      filer: Filer = None) -> tuple[Recommender, dict]:
@@ -131,6 +148,8 @@ def find_best_implicit_configuration(train: pd.DataFrame,
              2. combined algorthm selection and hyperparameter configuration for a specific subset
                 of algorithms and/or different parameter ranges
              3. hyperparameter selection for a specific algorithm.
+             The hyperparameter and/or model selection process will be stopped after the time_limit_in_sec or (if set) after
+             n_trials. The first one to be reached will stop the optimization.
 
             Parameters
             ----------
@@ -141,7 +160,13 @@ def find_best_implicit_configuration(train: pd.DataFrame,
             optimization_metric : function
                 LensKit top-n metric to optimize for
             time_limit_in_sec : int
-                search time limit.
+                optimization search time limit in sec.
+            n_trials : int
+                number of samples to be used for optimization_strategy. Value can not be smaller than 6
+                if no no initial configuration is provided.
+            initial_configuration : list[Configuration]
+                list of configurations that should be evaluated first. This parameter can be used to warmstart
+                the optimization process.
             random_state
                 The random number generator or seed (see :py:func:`lenskit.util.rng`).
             folds : int
@@ -171,7 +196,8 @@ def find_best_implicit_configuration(train: pd.DataFrame,
         random_state = np.random.RandomState()
 
     # set initial configuraiton
-    initial_configuraition = get_default_configurations(cs)
+    if initial_configuration is None:
+        initial_configuraition = get_default_configurations(cs)
 
     # initialize ImplicitEvaler for SMAC evaluations
     evaler = ImplicitEvaler(train=train,
@@ -184,6 +210,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     scenario = Scenario({
         'run_obj': 'quality',
         'wallclock_limit': time_limit_in_sec,
+        'ta_run_limit': n_trials,
         'cs': cs,
         'deterministic': True,
         'abort_on_first_run_crash': False,
