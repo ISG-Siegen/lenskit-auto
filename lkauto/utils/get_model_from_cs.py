@@ -30,12 +30,16 @@ def get_explicit_model_from_cs(config_space: ConfigurationSpace) -> Predictor:
 
     # ItemItem
     if current_algo == 'ItemItem':
-        algo = ItemItem(nnbrs=10000, **dict(config_space), feedback='explicit')
-
+        algo = ItemItem(nnbrs=10000,
+                        min_nbrs=config_space['item_item_min_nbrs'],
+                        min_sim=config_space['item_item_min_sim'],
+                        feedback='explicit')
     # UserUser
     if current_algo == 'UserUser':
-        algo = UserUser(nnbrs=10000, **dict(config_space), feedback='explicit')
-
+        algo = UserUser(nnbrs=10000,
+                        min_nbrs=config_space['user_user_min_nbrs'],
+                        min_sim=config_space['user_user_min_sim'],
+                        feedback='explicit')
     # ALSBiasedMF
     if current_algo == 'ALSBiasedMF':
         ureg = config_space['biased_mf_ureg']
@@ -92,7 +96,10 @@ def get_implicit_recommender_from_cs(config_space: ConfigurationSpace, random_st
 
     # ItemItem
     if current_algo == 'ItemItem':
-        algo = ItemItem(nnbrs=10000, **dict(config_space))
+        algo = ItemItem(nnbrs=10000,
+                        min_nbrs=config_space['item_item_min_nbrs'],
+                        min_sim=config_space['item_item_min_sim'],
+                        feedback='implicit')
 
     # UserUser
     if current_algo == 'UserUser':
