@@ -2,7 +2,7 @@ from ConfigSpace import ConfigurationSpace
 from lkauto.utils.filer import Filer
 import pandas as pd
 from lenskit.metrics.predict import rmse
-from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs
+from lkauto.utils.get_model_from_cs import get_model_from_cs
 import numpy as np
 
 
@@ -58,7 +58,7 @@ class ExplicitEvaler:
         validation_data = pd.DataFrame()
 
         # get model from configuration space
-        model = get_explicit_model_from_cs(config_space)
+        model = get_model_from_cs(config_space, feedback='explicit')
 
         # holdout split using pandas and numpy random seed
         validation_train = self.train.sample(frac=0.75, random_state=self.random_state)  # random state is a seed value

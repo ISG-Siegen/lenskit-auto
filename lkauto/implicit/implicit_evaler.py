@@ -1,4 +1,4 @@
-from lkauto.utils.get_model_from_cs import get_implicit_recommender_from_cs
+from lkauto.utils.get_model_from_cs import get_model_from_cs
 import lenskit.crossfold as xf
 from ConfigSpace import ConfigurationSpace
 from lenskit import topn, batch
@@ -57,7 +57,7 @@ class ImplicitEvaler:
         validation_data = pd.DataFrame()
 
         # get model form configuration space
-        model = get_implicit_recommender_from_cs(config_space)
+        model = get_model_from_cs(config_space, feedback='implicit')
 
         # validation split based on users
         for i, tp in enumerate(xf.partition_users(self.train, self.folds, xf.SampleN(5))):
@@ -85,6 +85,7 @@ class ImplicitEvaler:
                                          output_path=output_path,
                                          run_id=self.run_id)
 
+        # FIXME: is this correct? I guess the evaluation takes just the last fold into account
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         validation_error = 1 - scores['precision'].mean()
 

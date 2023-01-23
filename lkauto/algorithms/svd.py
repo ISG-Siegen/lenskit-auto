@@ -1,5 +1,5 @@
 from lenskit.algorithms import svd
-from ConfigSpace import UniformIntegerHyperparameter, UniformFloatHyperparameter
+from ConfigSpace import Integer, Float, ConfigurationSpace
 
 
 class BiasedSVD(svd.BiasedSVD):
@@ -7,11 +7,14 @@ class BiasedSVD(svd.BiasedSVD):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace_hyperparameters():
+    def get_default_configspace():
         """
-               return default configuration spaces for hyperparameter
+               return default configurationspace
         """
-        bias_svd_features = UniformIntegerHyperparameter('bias_svd_features', lower=5, upper=500)
-        bias_svd_damping = UniformFloatHyperparameter('bias_svd_damping', lower=0.0, upper=25.5, default_value=5)
+        features = Integer('features', bounds=(5, 500), default=100)
+        damping = Float('damping', bounds=(0.0, 25.5), default=5.0)
 
-        return [bias_svd_features, bias_svd_damping]
+        cs = ConfigurationSpace()
+        cs.add_hyperparameters([features, damping])
+
+        return cs

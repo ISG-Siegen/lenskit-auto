@@ -1,5 +1,5 @@
 from lenskit.algorithms import als
-from ConfigSpace import UniformIntegerHyperparameter, UniformFloatHyperparameter
+from ConfigSpace import Integer, Float, ConfigurationSpace
 
 
 class ImplicitMF(als.ImplicitMF):
@@ -7,19 +7,19 @@ class ImplicitMF(als.ImplicitMF):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace_hyperparameters():
+    def get_default_configspace():
         """
-              return default configuration spaces for hyperparameter
+              return default configurationspace
         """
-        implicit_mf_features = UniformIntegerHyperparameter('implicit_mf_features', lower=5, upper=300)
-        implicit_mf_ureg = UniformFloatHyperparameter('implicit_mf_ureg', lower=1.0e-6, upper=5,
-                                                      default_value=0.1)
-        implicit_mf_ireg = UniformFloatHyperparameter('implicit_mf_ireg', lower=1.0e-6, upper=5,
-                                                      default_value=0.1)
-        implicit_mf_weight = UniformFloatHyperparameter('implicit_mf_weight', lower=10.0, upper=200.0,
-                                                        default_value=40.0)
+        features = Integer('features', bounds=(5, 300), default=100)
+        ureg = Float('ureg', bounds=(1.0e-6, 5), default=0.1)
+        ireg = Float('ireg', bounds=(1.0e-6, 5), default=0.1)
+        weight = Float('weight', bounds=(10.0, 200.0), default=40.0)
 
-        return [implicit_mf_features, implicit_mf_ureg, implicit_mf_ireg, implicit_mf_weight]
+        cs = ConfigurationSpace()
+        cs.add_hyperparameters([features, ureg, ireg, weight])
+
+        return cs
 
 
 class BiasedMF(als.BiasedMF):
@@ -27,14 +27,17 @@ class BiasedMF(als.BiasedMF):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace_hyperparameters():
+    def get_default_configspace():
         """
                return default configuration spaces for hyperparameter
         """
 
-        biased_mf_features = UniformIntegerHyperparameter('biased_mf_features', lower=5, upper=300)
-        biased_mf_ureg = UniformFloatHyperparameter('biased_mf_ureg', lower=1.0e-6, upper=5, default_value=0.1)
-        biased_mf_ireg = UniformFloatHyperparameter('biased_mf_ireg', lower=1.0e-6, upper=5, default_value=0.1)
-        biaseed_mf_damping = UniformFloatHyperparameter('biaseed_mf_damping', lower=0.0, upper=25.0, default_value=5.0)
+        features = Integer('features', bounds=(5, 300), default=100)
+        ureg = Float('ureg', bounds=(1.0e-6, 5), default=0.1)
+        ireg = Float('ireg', bounds=(1.0e-6, 5), default=0.1)
+        damping = Float('damping', bounds=(0.0, 25.0), default=5.0)
 
-        return [biased_mf_features, biased_mf_ureg, biased_mf_ireg, biaseed_mf_damping]
+        cs = ConfigurationSpace()
+        cs.add_hyperparameters([features, ureg, ireg, damping])
+
+        return cs

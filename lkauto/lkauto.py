@@ -5,10 +5,9 @@ from smac.facade.smac_hpo_facade import SMAC4HPO
 from smac.scenario.scenario import Scenario
 from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
-from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs, get_implicit_recommender_from_cs
-from lkauto.explicit.explicit_default_config_space import get_explicit_default_configuration_space
+from lkauto.utils.get_model_from_cs import get_model_from_cs
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
-from lkauto.implicit.implicit_default_config_space import get_implicit_default_configuration_space
+from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 from lkauto.utils.filer import Filer
 from lenskit.algorithms import Predictor
 from lenskit import Recommender
@@ -68,7 +67,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
     # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
-        cs = get_explicit_default_configuration_space()
+        cs = get_default_configuration_space()
 
     # set RandomState if none is provided
     if random_state is None:
@@ -102,7 +101,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         incumbent = smac.solver.incumbent
 
     # build model from best model configuration found by SMAC
-    model = get_explicit_model_from_cs(incumbent)
+    model = get_model_from_cs(incumbent, feedback='explicit')
     incumbent = incumbent.get_dictionary()
 
     # return model and model configuration
@@ -157,7 +156,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     output_dir = filer.get_smac_output_directory_path()
 
     if cs is None:
-        cs = get_implicit_default_configuration_space()
+        cs = get_default_configuration_space()
 
     if random_state is None:
         random_state = np.random.RandomState()
@@ -196,7 +195,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
         incumbent = smac.solver.incumbent
 
     # build model from best model configuration found by SMAC
-    model = get_implicit_recommender_from_cs(incumbent)
+    model = get_model_from_cs(incumbent, feedback='implicit')
     incumbent = incumbent.get_dictionary()
 
     # return model and model configuration

@@ -1,5 +1,6 @@
 from lenskit.algorithms import user_knn
-from ConfigSpace import UniformIntegerHyperparameter, UniformFloatHyperparameter
+from ConfigSpace import Integer, Float
+from ConfigSpace import ConfigurationSpace
 
 
 class UserUser(user_knn.UserUser):
@@ -7,11 +8,14 @@ class UserUser(user_knn.UserUser):
         super().__init__(nnbrs=nnbrs, **kwargs)
 
     @staticmethod
-    def get_default_configspace_hyperparameters():
+    def get_default_configspace():
         """
             return default configuration spaces for hyperparameter
         """
-        user_user_min_nbrs = UniformIntegerHyperparameter('user_user_min_nbrs', lower=1, upper=50, default_value=1)
-        user_user_min_sim = UniformFloatHyperparameter('user_user_min_sim', lower=0, upper=0.1, default_value=0)
+        min_nbrs = Integer('min_nbrs', bounds=(1, 50), default=1)
+        min_sim = Float('min_sim', bounds=(0, 0.1), default=0)
 
-        return [user_user_min_nbrs, user_user_min_sim]
+        cs = ConfigurationSpace()
+        cs.add_hyperparameters([min_nbrs, min_sim])
+
+        return cs
