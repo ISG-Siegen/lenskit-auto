@@ -17,7 +17,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
                       fallback_model=Bias(),
                       random_state=42) -> Union[Recommender, Predictor]:
     """ builds a Predictor model defined in ConfigurationSpace
-
         Parameters
         ----------
         cs : ConfigurationSpace
@@ -28,7 +27,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
             fallback algorithm to use in case of missing values
         random_state: int
             random state to use
-
         Returns
         ----------
         fallback_algo : Predictor
@@ -78,6 +76,10 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # define fallback algorithm
     fallback = fallback_model
-    fallback_algo = Fallback(model, fallback)
 
-    return fallback_algo
+    if feedback == 'explicit':
+        final_model = Fallback(fallback, model)
+    if feedback == 'implicit':
+        final_model = Recommender.adapt(model)
+
+    return final_model

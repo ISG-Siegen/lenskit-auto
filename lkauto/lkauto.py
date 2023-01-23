@@ -67,7 +67,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
     # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
-        cs = get_default_configuration_space()
+        cs = get_default_configuration_space(feedback='explicit')
 
     # set RandomState if none is provided
     if random_state is None:
@@ -156,7 +156,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     output_dir = filer.get_smac_output_directory_path()
 
     if cs is None:
-        cs = get_default_configuration_space()
+        cs = get_default_configuration_space(feedback='implicit')
 
     if random_state is None:
         random_state = np.random.RandomState()
