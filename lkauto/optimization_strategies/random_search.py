@@ -3,11 +3,12 @@ from ConfigSpace import ConfigurationSpace, Configuration
 from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs, get_implicit_recommender_from_cs
 from lenskit.metrics.predict import rmse
 import numpy as np
+from typing import Tuple
 
 
 def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
                   minimize_error_metric_val: bool = True, user_feedback: str = "explicit",
-                  random_state=42) -> (Configuration, float):
+                  random_state=42) -> Tuple[Configuration, float]:
     """ returns the best configuration found by random search
 
          The random_search method randomly will search through the ConfigurationSpace to find the
@@ -38,9 +39,12 @@ def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
     best_configuraiton = None
     best_error_score = np.inf
 
-    for i in range(n_samples):
-        config = cs.sample_configuration()
-        print(config)
+    # random sample n_samples configurations from the ConfigurationSpace. Store them in a set to avoid duplicates.
+    configuration_set = set()
+    while len(configuration_set) < n_samples:
+        configuration_set.add(cs.sample_configuration())
+
+    for config in configuration_set:
 
         if user_feedback == "explicit":
             model = get_explicit_model_from_cs(config)
