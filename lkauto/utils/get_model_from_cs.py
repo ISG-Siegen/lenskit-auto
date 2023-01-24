@@ -35,7 +35,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
         fallback_algo : Predictor
             Predictor build with the config_space information
     """
-    algo = None
 
     # check if feedback value is valid
     if (feedback != 'explicit') and (feedback != 'implicit'):
