@@ -15,7 +15,7 @@ from lenskit.algorithms import Recommender
 def get_model_from_cs(cs: ConfigurationSpace,
                       feedback: str,
                       fallback_model=Bias(),
-                      random_state=42) -> Union[Recommender, Predictor]:
+                      random_state: int = 42) -> Union[Recommender, Predictor]:
     """ builds a Predictor model defined in ConfigurationSpace
 
         Parameters
@@ -45,10 +45,10 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # ItemItem
     if algo_name == 'ItemItem':
-        model = ItemItem(nnbrs=10000, feedback=feedback, **config)
+        model = ItemItem(feedback=feedback, **config)
     # UserUser
     elif algo_name == 'UserUser':
-        model = UserUser(nnbrs=10000, feedback=feedback, **config)
+        model = UserUser(feedback=feedback, **config)
     # FunkSVD
     elif algo_name == 'FunkSVD':
         model = FunkSVD(random_state=random_state, **config)
@@ -60,7 +60,10 @@ def get_model_from_cs(cs: ConfigurationSpace,
         reg_touple = (float(config['ureg']), float(config['ireg']))
         del config['ureg']
         del config['ireg']
-        model = ALSBiasedMF(reg=reg_touple, rng_spec=random_state, **config)
+        damping_touple = (float(config['user_damping']), float(config['item_damping']))
+        del config['user_damping']
+        del config['item_damping']
+        model = ALSBiasedMF(reg=reg_touple, damping=damping_touple, rng_spec=random_state, **config)
     # Biased
     elif algo_name == 'Bias':
         damping_touple = (config['user_damping'], config['item_damping'])
