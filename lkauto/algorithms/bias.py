@@ -11,8 +11,8 @@ class Bias(bias.Bias):
         """
             return default configurationspace
         """
-        item_damping = UniformFloatHyperparameter('item_damping', lower=1.0, upper=25, default_value=5)
-        user_damping = UniformFloatHyperparameter('user_damping', lower=1.0, upper=25, default_value=5)
+        item_damping = UniformFloatHyperparameter('item_damping', lower=0, upper=1.0e+6, default_value=0, log=True)
+        user_damping = UniformFloatHyperparameter('user_damping', lower=0, upper=1.0e+6, default_value=0, log=True)
 
         cs = ConfigurationSpace()
         cs.add_hyperparameters([item_damping, user_damping])
