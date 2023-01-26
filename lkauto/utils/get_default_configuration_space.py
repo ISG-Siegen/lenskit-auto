@@ -12,6 +12,13 @@ from lkauto.algorithms.als import ImplicitMF
 def get_default_configuration_space(feedback: str, random_state=42) -> ConfigurationSpace:
     """
         returns the default configuration space for all included rating predictions algorithms
+
+        Parameters
+        ----------
+        feedback : str
+            feedback type, either 'explicit' or 'implicit'
+        random_state: int
+            random state to use
     """
 
     if feedback == 'explicit':
