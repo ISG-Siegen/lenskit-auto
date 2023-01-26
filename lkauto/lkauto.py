@@ -24,7 +24,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
                                      random_state=None,
                                      folds: int = 5,
                                      filer: Filer = None) -> tuple[Predictor, dict]:
-    """ returns the best Predictor found in the defined search time
+    """
+        returns the best Predictor found in the defined search time
 
          the find_best_explicit_configuration method will search the ConfigurationSpace
          for the best Predictor model configuration.
@@ -49,7 +50,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
             optimization search time limit in sec.
         n_trials : int
                 number of samples to be used for optimization_strategy. Value can not be smaller than 6
-                if no no initial configuration is provided.
+                if no initial configuration is provided.
         initial_configuration: list[Configuration]
                 list of configurations that should be evaluated first. This parameter can be used to warmstart
                 the optimization process.
@@ -138,49 +139,51 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                      random_state=None,
                                      folds: int = 1,
                                      filer: Filer = None) -> tuple[Recommender, dict]:
-    """ returns the best Recommender found in the defined search time
 
-             the find_best_implicit_configuration method will search the ConfigurationSpace
-             for the best Recommender model configuration.
-             Depending on the ConfigurationSpace parameter provided by the developer,
-             performs three different use-cases.
-             1. combined algorithm selection and hyperparameter configuration
-             2. combined algorthm selection and hyperparameter configuration for a specific subset
-                of algorithms and/or different parameter ranges
-             3. hyperparameter selection for a specific algorithm.
-             The hyperparameter and/or model selection process will be stopped after the time_limit_in_sec or (if set) after
-             n_trials. The first one to be reached will stop the optimization.
+    """
+        returns the best Recommender found in the defined search time
 
-            Parameters
-            ----------
-            train : pd.DataFrame
-                Pandas Dataframe train split.
-            cs : ConfigurationSpace
-                ConfigurationSpace with all algorithms and parameter ranges defined.
-            optimization_metric : function
-                LensKit top-n metric to optimize for
-            time_limit_in_sec : int
-                optimization search time limit in sec.
-            n_trials : int
-                number of samples to be used for optimization_strategy. Value can not be smaller than 6
-                if no no initial configuration is provided.
-            initial_configuration : list[Configuration]
-                list of configurations that should be evaluated first. This parameter can be used to warmstart
-                the optimization process.
-            random_state
-                The random number generator or seed (see :py:func:`lenskit.util.rng`).
-            folds : int
-                number of folds of the inner split
-            filer : Filer
-                filer to manage LensKit-Auto output
+         the find_best_implicit_configuration method will search the ConfigurationSpace
+         for the best Recommender model configuration.
+         Depending on the ConfigurationSpace parameter provided by the developer,
+         performs three different use-cases.
+         1. combined algorithm selection and hyperparameter configuration
+         2. combined algorthm selection and hyperparameter configuration for a specific subset
+            of algorithms and/or different parameter ranges
+         3. hyperparameter selection for a specific algorithm.
+         The hyperparameter and/or model selection process will be stopped after the time_limit_in_sec or (if set) after
+         n_trials. The first one to be reached will stop the optimization.
 
-            Returns
-            -------
-            model : Predictor
-                the best suited (untrained) predictor for the train dataset, cs parameters.
-            incumbent : dict
-                a dictionary containing the algorithm name and hyperparameter configuration of the returned model
-       """
+        Parameters
+        ----------
+        train : pd.DataFrame
+            Pandas Dataframe train split.
+        cs : ConfigurationSpace
+            ConfigurationSpace with all algorithms and parameter ranges defined.
+        optimization_metric : function
+            LensKit prediction accuracy metric to optimize for (either rmse or mae)
+        time_limit_in_sec : int
+            optimization search time limit in sec.
+        n_trials : int
+            number of samples to be used for optimization_strategy. Value can not be smaller than 6
+            if no no initial configuration is provided.
+        initial_configuration : list[Configuration]
+            list of configurations that should be evaluated first. This parameter can be used to warmstart
+            the optimization process.
+        random_state
+            The random number generator or seed (see :py:func:`lenskit.util.rng`).
+        folds : int
+            number of folds of the inner split
+        filer : Filer
+            filer to manage LensKit-Auto output
+
+        Returns
+        -------
+        model : Predictor
+            the best suited (untrained) predictor for the train dataset, cs parameters.
+        incumbent : dict
+            a dictionary containing the algorithm name and hyperparameter configuration of the returned model
+    """
 
     # initialize filer if none is provided
     if filer is None:
