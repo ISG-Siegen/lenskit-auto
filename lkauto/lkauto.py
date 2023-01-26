@@ -156,7 +156,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
             optimization search time limit in sec.
         n_trials : int
             number of samples to be used for optimization_strategy. Value can not be smaller than 6
-            if no no initial configuration is provided.
+            if no initial configuration is provided.
         initial_configuration : list[Configuration]
             list of configurations that should be evaluated first. This parameter can be used to warmstart
             the optimization process.
