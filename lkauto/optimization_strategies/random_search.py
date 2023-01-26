@@ -8,11 +8,11 @@ from typing import Tuple
 
 def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
                   minimize_error_metric_val: bool = True, user_feedback: str = "explicit",
-                  random_state=42) -> Tuple[Configuration, float]:
+                  random_state=42) -> Configuration:
     """ returns the best configuration found by random search
 
-         The random_search method randomly will search through the ConfigurationSpace to find the
-         best perorming configuration for the given train split. The ConfigurationSpace can consist of
+         The random_search method will randomly search through the ConfigurationSpace to find the
+         best performing configuration for the given train split. The ConfigurationSpace can consist of
          hyperparameters for a single algorithm or a combination of algorithms.
 
         Parameters
@@ -80,6 +80,4 @@ def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
                 best_error_score = error
                 best_configuraiton = config
 
-    val_error_score = best_error_score
-
-    return best_configuraiton, val_error_score
+    return best_configuraiton
