@@ -8,6 +8,8 @@ from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.utils.get_model_from_cs import get_model_from_cs
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
+from lenskit.metrics.predict import rmse
+from lenskit.metrics.topn import ndcg
 from lkauto.utils.filer import Filer
 from lenskit.algorithms import Predictor
 from lenskit import Recommender
@@ -15,6 +17,7 @@ from lenskit import Recommender
 
 def find_best_explicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
+                                     optimization_metric=rmse,
                                      time_limit_in_sec: int = 2700,
                                      random_state=None,
                                      folds: int = 5,
@@ -36,6 +39,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
             Pandas Dataframe train split.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
+        optimization_metric : function
+            LensKit prediction accuracy metric to optimize for (either rmse or mae)
         time_limit_in_sec : int
             search time limit.
         random_state
@@ -62,6 +67,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
     # initialize ExplicitEvaler for SMAC evaluations
     evaler = ExplicitEvaler(train=train,
+                            optimization_metric=optimization_metric,
                             folds=folds,
                             filer=filer)
 
@@ -110,6 +116,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
 def find_best_implicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
+                                     optimization_metric=ndcg,
                                      time_limit_in_sec: int = 300,
                                      random_state=None,
                                      folds: int = 1,
@@ -131,6 +138,8 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                 Pandas Dataframe train split.
             cs : ConfigurationSpace
                 ConfigurationSpace with all algorithms and parameter ranges defined.
+            optimization_metric : function
+                LensKit top-n metric to optimize for
             time_limit_in_sec : int
                 search time limit.
             random_state
@@ -166,6 +175,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
 
     # initialize ImplicitEvaler for SMAC evaluations
     evaler = ImplicitEvaler(train=train,
+                            optimization_metric=optimization_metric,
                             random_state=random_state,
                             folds=folds,
                             filer=filer)

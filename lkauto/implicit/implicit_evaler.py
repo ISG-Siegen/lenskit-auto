@@ -17,6 +17,8 @@ class ImplicitEvaler:
             ----------
             train : pd.DataFrame
                 pandas dataset containing the train split.
+            optimization_metric: function
+                LensKit top-n metric used to evaluate the model
             filer : Filer
                 filer to organize the output.
             random_state :
@@ -28,8 +30,9 @@ class ImplicitEvaler:
             ----------
             evaluate_explicit(config_space: ConfigurationSpace) -> float
         """
-    def __init__(self, train: pd.DataFrame, filer: Filer, random_state=42, folds: int = 1) -> None:
+    def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42, folds: int = 1) -> None:
         self.train = train
+        self.optimization_metric = optimization_metric
         self.random_seed = random_state
         self.folds = folds
         self.filer = filer
@@ -53,8 +56,9 @@ class ImplicitEvaler:
         """
         output_path = 'smac_runs/'
         self.run_id += 1
-        precisions = np.array([])
+        metric_scores = np.array([])
         validation_data = pd.DataFrame()
+        scores = None
 
         # get model form configuration space
         model = get_model_from_cs(config_space, feedback='implicit')
@@ -69,25 +73,25 @@ class ImplicitEvaler:
             recs = batch.recommend(algo=model, users=validation_test['user'].unique(), n=5)
 
             rla = topn.RecListAnalysis()
-            rla.add_metric(topn.precision)
+            rla.add_metric(self.optimization_metric)
 
             # compute scores
             scores = rla.compute(recs, validation_test, include_missing=True)
 
             # store data
             validation_data = pd.concat([validation_data, recs], axis=0)
-            precisions = np.append(precisions, scores['precision'].mean())
+            metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
                                          predictions=validation_data,
-                                         metric_scores=precisions,
+                                         metric_scores=metric_scores,
                                          output_path=output_path,
                                          run_id=self.run_id)
 
         # FIXME: is this correct? I guess the evaluation takes just the last fold into account
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
-        validation_error = 1 - scores['precision'].mean()
+        validation_error = 1 - scores[self.optimization_metric.__name__].mean()
 
         return validation_error
 

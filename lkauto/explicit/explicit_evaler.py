@@ -1,7 +1,6 @@
 from ConfigSpace import ConfigurationSpace
 from lkauto.utils.filer import Filer
 import pandas as pd
-from lenskit.metrics.predict import rmse
 from lkauto.utils.get_model_from_cs import get_model_from_cs
 import numpy as np
 
@@ -16,6 +15,8 @@ class ExplicitEvaler:
         ----------
         train : pd.DataFrame
             pandas dataset containing the train split.
+        optimization_metric: function
+            LensKit prediction accuracy metric used to evaluate the model (either rmse or mae)
         filer : Filer
             filer to organize the output.
         random_state :
@@ -28,11 +29,12 @@ class ExplicitEvaler:
         evaluate_explicit(config_space: ConfigurationSpace) -> float
     """
 
-    def __init__(self, train: pd.DataFrame, filer: Filer, random_state=42, folds: int = None) -> None:
+    def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42, folds: int = None) -> None:
         self.train = train
         self.filer = filer
         self.random_state = random_state
         self.folds = folds
+        self.optimization_metric = optimization_metric
         self.run_id = 0
         self.top_50_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
 
@@ -76,7 +78,8 @@ class ExplicitEvaler:
         predictions.index = X_validation_test.index
 
         # calculate error_metric and append to numpy array
-        error_metric = np.append(error_metric, rmse(predictions, y_validation_test, missing='ignore'))
+        error_metric = np.append(error_metric,
+                                 self.optimization_metric(predictions, y_validation_test, missing='ignore'))
 
         validation_data = pd.concat([validation_data, predictions], axis=0)
 
