@@ -13,6 +13,7 @@ from lkauto.implicit.implicit_evaler import ImplicitEvaler
 def bayesian_optimization(train: pd.DataFrame,
                           feedback: str,
                           cs: ConfigurationSpace = None,
+                          optimization_metric=None,
                           time_limit_in_sec: int = 2700,
                           number_of_evaluations: int = 100,
                           random_state=None,
@@ -25,10 +26,12 @@ def bayesian_optimization(train: pd.DataFrame,
     if feedback == 'explicit':
         evaler = ExplicitEvaler(train=train,
                                 folds=folds,
+                                optimization_metric=optimization_metric,
                                 filer=filer,
                                 random_state=random_state)
     elif feedback == 'implicit':
         evaler = ImplicitEvaler(train=train,
+                                optimization_metric=optimization_metric,
                                 folds=folds,
                                 filer=filer,
                                 random_state=random_state)

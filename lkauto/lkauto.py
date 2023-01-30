@@ -14,11 +14,8 @@ from lenskit.metrics.topn import ndcg
 from ConfigSpace import ConfigurationSpace
 
 from lkauto.optimization_strategies.bayesian_optimization import bayesian_optimization
-from lkauto.explicit.explicit_default_config_space import get_explicit_default_configuration_space
-from lkauto.implicit.implicit_default_config_space import get_implicit_default_configuration_space
 from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
-from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs, get_implicit_recommender_from_cs
 
 from lenskit.algorithms import Predictor
 from lenskit import Recommender
@@ -56,6 +53,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
             ConfigurationSpace with all algorithms and parameter ranges defined.
         optimization_metric : function
             LensKit prediction accuracy metric to optimize for (either rmse or mae)
+        optimization_strategie: str
+            optimization strategie to use. Either bayesian or random_search
         time_limit_in_sec : int
             optimization search time limit in sec.
         n_trials : int
@@ -86,51 +85,25 @@ def find_best_explicit_configuration(train: pd.DataFrame,
     if filer is None:
         filer = Filer()
 
-    # get SMAC output directory
-    output_dir = filer.get_smac_output_directory_path()
-
-    # initialize ExplicitEvaler for SMAC evaluations
-    evaler = ExplicitEvaler(train=train,
-                            optimization_metric=optimization_metric,
-                            folds=folds,
-                            filer=filer)
-
-    # set RandomState if none is provided
-    if random_state is None:
-        random_state = np.random.RandomState()
-
     # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
-        cs = get_explicit_default_configuration_space()
+        cs = get_default_configurations()
 
     if optimization_strategie == 'bayesian':
         if optimization_strategie == 'bayesian':
             incumbent = bayesian_optimization(train=train,
                                               cs=cs,
                                               feedback='explicit',
+                                              optimization_metric=optimization_metric,
                                               time_limit_in_sec=time_limit_in_sec,
-                                              number_of_evaluations=number_of_evaluations,
+                                              number_of_evaluations=n_trials,
                                               random_state=random_state,
                                               folds=folds,
                                               filer=filer)
-
-        # define SMAC facade for combined algorithm selection and hyperparameter optimization
-        smac = SMAC4HPO(scenario=scenario,
-                        rng=random_state,
-                        tae_runner=evaler.evaluate_explicit,
-                        initial_configurations=initial_configuraition,
-                        initial_design=None)
-
-        try:
-            # start optimizing
-            smac.optimize()
-        finally:
-            # get best model configuration
-            incumbent = smac.solver.incumbent
     elif optimization_strategie == 'random_search':
         incumbent = random_search(cs=cs,
                                   train=train,
-                                  n_samples=number_of_evaluations,
+                                  n_samples=n_trials,
                                   minimize_error_metric_val=True,
                                   random_state=random_state,
                                   user_feedback='explicit')
@@ -149,7 +122,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
                                      optimization_strategie: str = 'bayesian',
                                      time_limit_in_sec: int = 300,
-                                     number_of_evaluations: int = 100,
+                                     n_trials: int = 100,
                                      random_state=None,
                                      folds: int = 1,
                                      filer: Filer = None) -> tuple[Recommender, dict]:
@@ -175,6 +148,8 @@ def find_best_implicit_configuration(train: pd.DataFrame,
             optimization strategie to use. Either bayesian or random_search
         time_limit_in_sec : int
             search time limit.
+        n_trials : int
+                number of samples to be used for optimization_strategy. Value can not be smaller than 6
         random_state
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         folds : int
@@ -205,7 +180,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                           cs=cs,
                                           feedback='implicit',
                                           time_limit_in_sec=time_limit_in_sec,
-                                          number_of_evaluations=number_of_evaluations,
+                                          number_of_evaluations=n_trials,
                                           random_state=random_state,
                                           folds=folds,
                                           filer=filer)
@@ -213,7 +188,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     elif optimization_strategie == 'random_search':
         incumbent = random_search(cs=cs,
                                   train=train,
-                                  n_samples=number_of_evaluations,
+                                  n_samples=n_trials,
                                   minimize_error_metric_val=True,
                                   user_feedback='implicit')
     else:
