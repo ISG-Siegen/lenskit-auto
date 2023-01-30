@@ -50,6 +50,23 @@ def get_model_from_cs(cs: ConfigurationSpace,
     # UserUser
     elif algo_name == 'UserUser':
         model = UserUser(nnbrs=10000, feedback=feedback, **config)
+    elif algo_name == 'UserUser':
+        algo = UserUser(nnbrs=10000, **dict(config_space), feedback='explicit')
+    # ALSBiasedMF
+    elif algo_name == 'ALSBiasedMF':
+        ureg = cs['ureg']
+        ireg = cs['ireg']
+        reg_touple = (ureg, ireg)
+        algo = ALSBiasedMF(features=cs['features'],
+                           reg=reg_touple,
+                           damping=cs['damping'],
+                           rng_spec=42)
+    # Biased
+    elif algo_name == 'Bias':
+        items_damping = cs['item_damping']
+        users_damping = cs['user_damping']
+        damping_touple = (users_damping, items_damping)
+        algo = Bias(damping=damping_touple)
     # FunkSVD
     elif algo_name == 'FunkSVD':
         model = FunkSVD(random_state=random_state, **config)
