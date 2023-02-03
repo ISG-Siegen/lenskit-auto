@@ -23,11 +23,10 @@ dynamic = ['version', 'description']
 requires-python = ">= 3.8"
 ##Add this project's dependencies
 dependencies = [
-smac
-matplotlib
-lenskit
-tables
-
+smac~=1.4
+matplotlib~=3.6
+lenskit~=0.14
+tables~=3.8
 ]
 
 [project.urls]
