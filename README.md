@@ -1,285 +1,183 @@
 # LensKit-Auto
 
-## Installing
+## Install
 
-Once LensKit-Auto is public, a conda installation will be provided
+TODO
 
-For now, we can install all dependencies using the provided environment.yml by calling
+## How To Use
 
-    conda env create -f environment.yml
+### Standard use-case
 
-## Examples
+In the standard use-case you just need to call a single function to get the best performing model for your dataset.
+It is either 
 
-LensKit-Auto allows three application scenarios: 
+    find_best_implicit_configuration(train=train_split)
 
-* **Scenario 1:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a provided dataset. 
-* **Scenario 2:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a specified 
-  set of algorithms and/or different value ranges for hyperparameters for the provided dataset.
-* **Scenario 3:** LensKit-Auto performs hyperparameter optimization on a single algorithm for a given dataset.
+for the recommendation use-case or
 
-All application scenarios apply to Top-N ranking prediction and rating prediction use-cases.
+    find_best_implicit_configuration(train=train_split)
+
+for the prediction use-case
+
+### Examples and Advanced Use-Cases
+
+LensKit-Auto allows three application scenarios:
+
+Note: All application scenarios apply to Top-N ranking prediction and rating prediction use-cases.
+
+* **Scenario 1:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a given
+  dataset.
+* **Scenario 2:** LensKit-Auto performs hyperparameter optimization on a single algorithm for a given dataset.
+* **Scenario 3:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a specified set
+  of algorithms and/or different hyperparameter ranges for the provided dataset.
 
 In order to take advantage of LensKit-Auto, a developer needs to read in a dataset.
 
-    mlsmall = MovieLens('data/ml-latest-small').ratings
-    mlsmall.name = 'ml_small'
+    from lenskit.datasets import ML100K
+    
+    ml100k = ML100K('ml-100k') 
+    ratings = ml100k.ratings
+    ml100k.name = 'ml_100k'
 
-Furthermore, it is suggested, that a developer takes advantage of the Filer to control the LensKit-Auto output
+Furthermore, it is suggested, that we take advantage of the Filer to control the LensKit-Auto output
+
+    from lkauto.utils.filer import Filer
     
     filer = Filer('output/')
 
 ### Top-N ranking prediction
 
-First, we need to split the data in a train and test split to evaluate our model.
-The train-test splits can be performed based on data rows or user data. For the rating prediction example we are
-splitting the data based on user data. 
+First, we need to split the data in a train and test split to evaluate our model. The train-test splits can be performed
+based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
 
     # User based data-split
     for i, tp in enumerate(xf.partition_users(mlsmall, 1, xf.SampleN(5))):
-        train = tp.train.copy()
-        test = tp.test.copy()
+        train_split = tp.train.copy()
+        test_split = tp.test.copy()
+
+    # Fixme: INSERT SCENARIO CODE HERE
+
+    # fit
+    model.fit(train)
+    # recommend
+    recs = batch.recommend(algo=model, users=test['user'].unique(), n=5)
+
+    # initialize RecListAnalysis
+    rla = topn.RecListAnalysis()
+    # add precision metric
+    rla.add_metric(topn.ndcg)
+
+    # compute scores
+    scores = rla.compute(recs, test, include_missing=True)
+
+#### Rating Prediction
+
+First, we need to split the data in a train and test split to evaluate our model. The train-test splits can be performed
+based on data rows or user data. For the rating prediction example we are splitting the data based on the data rows. The
+Top-N ranking predicion example showcases the data-split based on user data.
+
+    train_split, test_split = sample_rows(mlsmall, None, 25000)
+
+    # Fixme: INSERT SCENARIO CODE HERE
+
+    model.fit(train)
+    predictions = model.predict(x_test)
+    root_mean_square_error = rmse(predictions, y_test, missing='error')
 
 #### Scenario 1
 
-Scenario 1 describes the fully automated combined algorithm selection and hyperparameter optimization. This 
-application scenario is recommended for inexperienced developers who have no ixerience in setting up a 
-configuration space. 
+Scenario 1 describes the fully automated combined algorithm selection and hyperparameter optimization (CASH problem).
+This scenario is recommended for inexperienced developers who have no or little experience in model selection.
 
+LensKit-Auto performs the combined algorithm selection and hyperparameter optimization with a single function call.
 
-We perform combined algorithm selection and hyperparameter optimization with LensKit-Auto
+    model, config = find_best_implicit_configuration(train=train_split, filer=filer)
 
-    model, config = find_best_implicit_configuration(train, filer=filer)
-
-The developer will get a model and a configuration dictionary in return. The default search time is four hours. 
-Afterward, the developer can handle the returned model as any other LensKit Recommender model.
-
-    # fit
-    model.fit(train)
-    # recommend
-    recs = batch.recommend(algo=model, users=test['user'].unique(), n=5)
-
-    # initialize RecListAnalysis
-    rla = topn.RecListAnalysis()
-    # add precision metric
-    rla.add_metric(topn.precision)
-
-    # compute scores
-    scores = rla.compute(recs, test, include_missing=True)
+The *find_best_implicit_configuration()* function call will return the best performing model, with tuned hyperparameters
+and a configuration dictionary that contains all information about the model. In the Scenario 1 use-case the model is
+chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default  
+hyperparameter range. We can use the model in the exact same way like a regular LensKit model. 
 
 #### Scenario 2
 
-Scenario 2 describes the automated combined algorithm selection and hyperparameter optimization of a custom 
-configuration space. A developer that wants to use application Scenario 2 has to be able to define their own 
-custom configuration space in order to provide it as an input parameter. Apart from defining a custom 
-configuration space, the usage of LensKit-Auto is the same.
+In Senario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
+custom configuration space with just a single algorithm included.
 
-First, a configuration space needs to be initialized. All included algorithms need to be added to the regressor 
-list of the configuration space. 
+    from ConfigSpace import Constant
+    from lkauto.algorithms.item_knn import ItemItem
+    
+    # initialize ItemItem ConfigurationSpace
+    cs = ItemItem.get_default_configspace()
+    cs.add_hyperparameters([Constant("algo", "ItemItem")])
+    # set a random seed for reproducible results
+    cs.seed(42)
 
-    # initialize ConfigurationSpace
-    cs = ConfigurationSpace()
-    # define ItemItem and UserUser as set of algorithms
-    regressor = CategoricalHyperparameter('regressor', ['ItemItem', 'UserUser'])
-    # add the ItemItem and UserUser set to the ConfigurationSpace cs
-    cs.add_hyperparameter(regressor)
+    # Provide the ItemItem ConfigurationSpace to the find_best_implicit_configuraiton function. 
+    model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=cs)
 
-Afterward, we need to add the hyperparameters for each algorithm to the configuration space.
-We can use the pre defined configuration space of LensKit (Showcased on the ItemItem case):
-
-    # Get a list of all ItemItem parameters of the provided ItemItem.get_default_configspace_hyperparameters() function
-    hyperparameter_list = ItemItem.get_default_configspace_hyperparameters()
-    # add all hyperparameters of hyperparameterlist to the ConfigurationSpace
-    cs.add_hyperparameters(hyperparameter_list)
-    # Set the condition that all ItemItem hyperparameters are bound to the ItemItem algorithm
-    for hyperparameter in hyperparameter_list:
-        cs.add_condition(InCondition(hyperparameter, regressor, values=['ItemItem']))
-
-Or we can define the configuration space by ourselves (Showcased on the UserUser case): 
-
-    # Other than the ItemItem case, we can define the default_configspace_parameters by hand.
-    user_user_min_nbrs = UniformIntegerHyperparameter('user_user_min_nbrs', lower=1, upper=50, default_value=1)
-    user_user_min_sim = UniformFloatHyperparameter('user_user_min_sim', lower=0, upper=0.1, default_value=0)
-
-    # add the UserUser hyperparameters to the ConfigSpace cs
-    cs.add_hyperparameters([user_user_min_sim, user_user_min_nbrs])
-
-    # Set the condition that all UserUser hyperparameters are bound to the UserUser algorithm
-    cs.add_condition(InCondition(user_user_min_sim, regressor, values=['UserUser']))
-    cs.add_condition(InCondition(user_user_min_nbrs, regressor, values=['UserUser']))
-
-After setting up the custom configuration space, we can perform combined algorithm selection and hyperparameter 
-optimization on our custom configuraiton space using LensKit. This is done in the same way as Scenario 1. We just
-have to provide our custom configuration space as an additional parameter. 
-
-    # search for the best explicit configuration on the defined subset of algorithms
-    model, config = find_best_impllicit_configuration(train, cs, filer=filer)
-
-Once we got the best model returned, we can handle it like any other Recommender model.
-
-    # fit
-    model.fit(train)
-    # recommend
-    recs = batch.recommend(algo=model, users=test['user'].unique(), n=5)
-
-    # initialize RecListAnalysis
-    rla = topn.RecListAnalysis()
-    # add precision metric
-    rla.add_metric(topn.precision)
-
-    # compute scores
-    scores = rla.compute(recs, test, include_missing=True)
+The *find_best_implicit_configuration()* function call will return the best performing ItemItem model. Besides the
+model, the *find_best_implicit_configuration()* function returns a configuration dictionary with all information about
+the model.
 
 #### Scenario 3
 
-In Senario 3 we are going to perform hyperparameter optimization on a single algorithm. First we need to define
-our custom configuration space with just a single algorithm included.
+Scenario 3 describes the automated combined algorithm selection and hyperparameter optimization of a custom
+configuration space. A developer that wants to use Scenario 3 needs to provide hyperparameter ranges for the
+hyperparameter optimization process.
 
-    # initialize ConfigurationSpace
-    cs = ConfigurationSpace()
-    # define ItemItem as only regressor
-    regressor = CategoricalHyperparameter('regressor', ['ItemItem'])
-    # add regressor to ConfigurationSpace
-    cs.add_hyperparameter(regressor)
-    # Get a list of all ItemItem parameters of the provided ItemItem.get_default_configspace_hyperparameters() function
-    hyperparameter_list = ItemItem.get_default_configspace_hyperparameters()
-    # add all hyperparameters of hyperparameterlist to the ConfigurationSpace
-    cs.add_hyperparameters(hyperparameter_list)
-    # Set the condition that all ItemItem hyperparameters are bound to the ItemItem algorithm
-    for hyperparameter in hyperparameter_list:
-        cs.add_condition(InCondition(hyperparameter, regressor, values=['ItemItem']))
+First, a parent-ConfigurationSpace needs to be initialized. All algorithm names need to be added to the
+parent-ConfigurationSpace categorical *algo* hyperparameter.
 
-Then we can use LensKit-Auto like we did in Scenario 2.
-
-    # optimize the ItemItem algorithms' parameters for the given dataset with LensKit-Auto
-    model, config = find_best_implicit_configuration(train, cs, filer=filer)
-
-As in all other Scenarios, we can handle the returned optimized model as any other LensKit Predictor.
+    from ConfigSpace import ConfigurationSpace, Categorical
     
-    # fit
-    model.fit(train)
-    # recommend
-    recs = batch.recommend(algo=model, users=test['user'].unique(), n=5)
+    # initialize ItemItem ConfigurationSpace
+    parent_cs = ConfigurationSpace()
+    # set a random seed for reproducible results
+    parent_cs.seed(42)
+    # add algorithm names as a constant
+    parent_cs.add_hyperparameters([Categorical("algo", ["ItemItem", "UserUser"])])
 
-    # initialize RecListAnalysis
-    rla = topn.RecListAnalysis()
-    # add precision metric
-    rla.add_metric(topn.precision)
+Afterward, we need to build the *ItemItem* and *UserUser* sub-ConfigurationSpace.
 
-    # compute scores
-    scores = rla.compute(recs, test, include_missing=True)
+We can use the default sub-ConfigurationSpace from LensKit-Auto and add it to the parent-ConfigurationSpace:
 
-
-### Rating Prediction
-
-First, we need to split the data in a train and test split to evaluate our model.
-The train-test splits can be performed based on data rows or user data. For the rating prediction example we are
-splitting the data based on the data rows. The Top-N ranking predicion example showcases the data-split based 
-on user data. 
-
-    train, test = sample_rows(mlsmall, None, 25000)
-    x_test = test.copy()
-    x_test.drop('rating', inplace=True, axis=1)
-    y_test = test[['rating']].iloc[:, 0]
-
-#### Scenario 1
-
-Scenario 1 describes the fully automated combined algorithm selection and hyperparameter optimization. This 
-application scenario is recommended for inexperienced developers who have no ixerience in setting up a 
-configuration space. 
-
-
-We perform combined algorithm selection and hyperparameter optimization with LensKit-Auto
-
-    model, config = find_best_explicit_configuration(train, filer=filer)
-
-The developer will get a model and a configuration dictionary in return. The default search time is four hours. 
-Afterward, the developer can handle the returned model as any other LensKit Predictor model.
-
-    model.fit(train)
-    predictions = model.predict(x_test)
-    root_mean_square_error = rmse(predictions, y_test)
-
-#### Scenario 2
-
-Scenario 2 describes the automated combined algorithm selection and hyperparameter optimization of a custom 
-configuration space. A developer that wants to use application scenario 2 has to be able to define their own 
-custom configuration space in order to provide it as an input parameter. Apart from defining a custom 
-configuration space, the usage of LensKit-Auto is the same.
-
-First, a configuration space needs to be initialized. All included algorithms need to be added to the regressor 
-list of the configuration space. 
-
-    # initialize ConfigurationSpace
-    cs = ConfigurationSpace()
-    # define ItemItem and UserUser as set of algorithms
-    regressor = CategoricalHyperparameter('regressor', ['ItemItem', 'UserUser'])
-    # add the ItemItem and UserUser set to the ConfigurationSpace cs
-    cs.add_hyperparameter(regressor)
-
-Afterward, we need to add the hyperparameters for each algorithm to the configuration space.
-We can use the pre defined configuration space of LensKit (Showcased on the ItemItem case):
-
-    # Get a list of all ItemItem parameters of the provided ItemItem.get_default_configspace_hyperparameters() function
-    hyperparameter_list = ItemItem.get_default_configspace_hyperparameters()
-    # add all hyperparameters of hyperparameterlist to the ConfigurationSpace
-    cs.add_hyperparameters(hyperparameter_list)
-    # Set the condition that all ItemItem hyperparameters are bound to the ItemItem algorithm
-    for hyperparameter in hyperparameter_list:
-        cs.add_condition(InCondition(hyperparameter, regressor, values=['ItemItem']))
-
-Or we can define the configuration space by ourselves (Showcased on the UserUser case): 
-
-    # Other than the ItemItem case, we can define the default_configspace_parameters by hand.
-    user_user_min_nbrs = UniformIntegerHyperparameter('user_user_min_nbrs', lower=1, upper=50, default_value=1)
-    user_user_min_sim = UniformFloatHyperparameter('user_user_min_sim', lower=0, upper=0.1, default_value=0)
-
-    # add the UserUser hyperparameters to the ConfigSpace cs
-    cs.add_hyperparameters([user_user_min_sim, user_user_min_nbrs])
-
-    # Set the condition that all UserUser hyperparameters are bound to the UserUser algorithm
-    cs.add_condition(InCondition(user_user_min_sim, regressor, values=['UserUser']))
-    cs.add_condition(InCondition(user_user_min_nbrs, regressor, values=['UserUser']))
-
-After setting up the custom configuration space, we can perform combined algorithm selection and hyperparameter 
-optimization on our custom configuraiton space using LensKit. This is done in the same way as Scenario 1. We just
-have to provide our custom configuration space as an additional parameter. 
-
-    # search for the best explicit configuration on the defined subset of algorithms
-    model, config = find_best_explicit_configuration(train, cs, filer=filer)
-
-Once we got the best model returned, we can handle it like any other Predictor model.
-
-    model.fit(train)
-    predictions = model.predict(x_test)
-    root_mean_square_error = rmse(predictions, y_test)
-
-#### Scenario 3
-
-In Senario 3 we are going to perform hyperparameter optimization on a single algorithm. First we need to define
-our custom configuration space with just a single algorithm included.
-
-     # initialize ConfigurationSpace
-    cs = ConfigurationSpace()
-    # define ItemItem as only regressor
-    regressor = CategoricalHyperparameter('regressor', ['ItemItem'])
-    # add regressor to ConfigurationSpace
-    cs.add_hyperparameter(regressor)
-    # Get a list of all ItemItem parameters of the provided ItemItem.get_default_configspace_hyperparameters() function
-    hyperparameter_list = ItemItem.get_default_configspace_hyperparameters()
-    # add all hyperparameters of hyperparameterlist to the ConfigurationSpace
-    cs.add_hyperparameters(hyperparameter_list)
-    # Set the condition that all ItemItem hyperparameters are bound to the ItemItem algorithm
-    for hyperparameter in hyperparameter_list:
-        cs.add_condition(InCondition(hyperparameter, regressor, values=['ItemItem']))
-
-Then we can use LensKit-Auto like we did in Scenario 2.
-
-    # optimize the ItemItem algorithms' parameters for the given dataset with LensKit-Auto
-    model, config = find_best_explicit_configuration(train, cs, filer=filer)
-
-As in all other Scenarios, we can handle the returned optimized model as any other LensKit Predictor.
+    from lkauto.algorithms.item_knn import ItemItem
     
-    model.fit(train)
-    predictions = model.predict(x_test)
-    root_mean_square_error = rmse(predictions, y_test)
+    # get default ItemItem ConfigurationSpace
+    item_item_cs = ItemItem.get_default_configspace()
+    
+    # Add sub-ConfigurationSpace to parent-ConfigurationSpace
+    parent_cs.add_configuration_space(
+            prefix="ItemItem",
+            delimiter=":",
+            configuration_space=item_item_cs,
+            parent_hyperparameter={"parent": parent_cs["algo"], "value": "ItemItem"},
+        )
+
+Or we can build our own ConfigurationSpace for a specific algorithm.
+
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace import Integer, Float
+
+    # first we initialize hyperparameter objects for all hyperparameters that we want to optimize
+    min_nbrs = Integer('min_nbrs', bounds=(1, 50), default=1)
+    min_sim = Float('min_sim', bounds=(0, 0.1), default=0)
+
+    # Then, we initialize the sub-ConfigurationSpace and add the hyperparameters to it
+    user_user_cs = ConfigurationSpace()
+    user_user_cs.add_hyperparameters([min_nbrs, min_sim])
+
+    # Last, we add the user_user_cs to the parent-ConfigurationSpace 
+
+     parent_cs.add_configuration_space(
+            prefix="UserUser",
+            delimiter=":",
+            configuration_space=user_user_cs,
+            parent_hyperparameter={"parent": parent_cs["algo"], "value": "UserUser"},
+        )
+
+After creating the parent-ConfigurationSpace, we can use it in the same way like Scenario 2
+
+    # Provide the parent-ConfigurationSpace to the find_best_implicit_configuraiton function. 
+    model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=parent_cs)
 
