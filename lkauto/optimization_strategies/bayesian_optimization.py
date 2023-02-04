@@ -9,6 +9,8 @@ from lkauto.utils.filer import Filer
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
 
+from typing import Tuple
+
 
 def bayesian_optimization(train: pd.DataFrame,
                           feedback: str,
@@ -18,7 +20,7 @@ def bayesian_optimization(train: pd.DataFrame,
                           number_of_evaluations: int = 100,
                           random_state=None,
                           folds: int = 5,
-                          filer: Filer = None) -> tuple[Configuration, dict]:
+                          filer: Filer = None) -> Tuple[Configuration, dict]:
     # get SMAC output directory
     output_dir = filer.get_smac_output_directory_path()
 
