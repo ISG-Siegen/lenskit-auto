@@ -2,7 +2,15 @@
 
 ## Install
 
-TODO
+### Pip Install:
+
+    pip install git+ssh://git@github.com/ISG-Siegen/lenskit-auto.git
+
+### Conda Install
+
+1. Create conda environment
+2. Install pip
+3. Follow the Pip Install subchapter to install lenskit-Auto in you conda environment
 
 ## How To Use
 
@@ -15,7 +23,7 @@ It is either
 
 for the recommendation use-case or
 
-    find_best_implicit_configuration(train=train_split)
+    find_best_explicit_configuration(train=train_split)
 
 for the prediction use-case
 
@@ -35,7 +43,7 @@ In order to take advantage of LensKit-Auto, a developer needs to read in a datas
 
     from lenskit.datasets import ML100K
     
-    ml100k = ML100K('ml-100k') 
+    ml100k = ML100K('path_to_file') 
     ratings = ml100k.ratings
     ml100k.name = 'ml_100k'
 
@@ -49,18 +57,22 @@ Furthermore, it is suggested, that we take advantage of the Filer to control the
 
 First, we need to split the data in a train and test split to evaluate our model. The train-test splits can be performed
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
-
+    
+    import lenskit.crossfold as xf
+    from lenskit.batch import recommend
+    from lenskit.metrics import topn
+    
     # User based data-split
-    for i, tp in enumerate(xf.partition_users(mlsmall, 1, xf.SampleN(5))):
+    for i, tp in enumerate(xf.partition_users(ml100k, 1, xf.SampleN(5))):
         train_split = tp.train.copy()
         test_split = tp.test.copy()
 
     # Fixme: INSERT SCENARIO CODE HERE
 
     # fit
-    model.fit(train)
+    model.fit(train_split)
     # recommend
-    recs = batch.recommend(algo=model, users=test['user'].unique(), n=5)
+    recs = recommend(algo=model, users=test['user'].unique(), n=5)
 
     # initialize RecListAnalysis
     rla = topn.RecListAnalysis()
@@ -70,17 +82,20 @@ based on data rows or user data. For the rating prediction example we are splitt
     # compute scores
     scores = rla.compute(recs, test, include_missing=True)
 
-#### Rating Prediction
+### Rating Prediction
 
 First, we need to split the data in a train and test split to evaluate our model. The train-test splits can be performed
 based on data rows or user data. For the rating prediction example we are splitting the data based on the data rows. The
 Top-N ranking predicion example showcases the data-split based on user data.
 
-    train_split, test_split = sample_rows(mlsmall, None, 25000)
+    from lenskit.metrics.predict import rmse
+    from lenskit.crossfold import sample_rows
+
+    train_split, test_split = sample_rows(ml100k, None, 25000)
 
     # Fixme: INSERT SCENARIO CODE HERE
 
-    model.fit(train)
+    model.fit(train_split)
     predictions = model.predict(x_test)
     root_mean_square_error = rmse(predictions, y_test, missing='error')
 
@@ -93,7 +108,10 @@ LensKit-Auto performs the combined algorithm selection and hyperparameter optimi
 
     model, config = find_best_implicit_configuration(train=train_split, filer=filer)
 
-The *find_best_implicit_configuration()* function call will return the best performing model, with tuned hyperparameters
+Note: As described above, the *find_best_implicit_configuration()* is used for Top-N ranking prediction. If you want 
+to find a predictor instead of a recommender, replace the function call with *find_best_explicit_configuration()*
+
+The *find_best_implicit_configuration()* or *find_best_explicit_configuration()* function call will return the best performing model, with tuned hyperparameters
 and a configuration dictionary that contains all information about the model. In the Scenario 1 use-case the model is
 chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default  
 hyperparameter range. We can use the model in the exact same way like a regular LensKit model. 
@@ -115,7 +133,10 @@ custom configuration space with just a single algorithm included.
     # Provide the ItemItem ConfigurationSpace to the find_best_implicit_configuraiton function. 
     model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=cs)
 
-The *find_best_implicit_configuration()* function call will return the best performing ItemItem model. Besides the
+Note: As described above, the *find_best_implicit_configuration()* is used for Top-N ranking prediction. If you want 
+to find a predictor instead of a recommender, replace the function call with *find_best_explicit_configuration()*
+
+The *find_best_implicit_configuration()* or *find_best_explicit_configuration()* function call will return the best performing ItemItem model. Besides the
 model, the *find_best_implicit_configuration()* function returns a configuration dictionary with all information about
 the model.
 
@@ -180,4 +201,7 @@ After creating the parent-ConfigurationSpace, we can use it in the same way like
 
     # Provide the parent-ConfigurationSpace to the find_best_implicit_configuraiton function. 
     model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=parent_cs)
+
+Note: As described above, the *find_best_implicit_configuration()* is used for Top-N ranking prediction. If you want 
+to find a predictor instead of a recommender, replace the function call with *find_best_explicit_configuration()*
 
