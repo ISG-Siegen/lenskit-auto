@@ -12,6 +12,8 @@ from typing import Tuple
 
 from typing import Tuple
 
+from typing import Tuple
+
 
 def bayesian_optimization(train: pd.DataFrame,
                           feedback: str,
