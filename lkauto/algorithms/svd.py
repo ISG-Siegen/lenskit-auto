@@ -11,8 +11,14 @@ class BiasedSVD(svd.BiasedSVD):
         """
                return default configurationspace
         """
-        features = Integer('features', bounds=(5, 500), default=100)
-        damping = Float('damping', bounds=(0.0, 25.5), default=5.0)
+
+        """
+        The algorithm is based on the scikit TruncatedSVD algorithm and the hyperparameters are
+        choosen based around the default values of LensKit. No further explaination could be distracted
+        from scikit or the original paper.
+        """
+        features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
+        damping = Float('damping', bounds=(0.0, 1000), default=5.0, log=True)
 
         cs = ConfigurationSpace()
         cs.add_hyperparameters([features, damping])
