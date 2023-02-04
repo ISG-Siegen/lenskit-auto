@@ -1,9 +1,8 @@
 import pandas as pd
 from ConfigSpace import ConfigurationSpace, Configuration
-from lkauto.utils.get_model_from_cs import get_explicit_model_from_cs, get_implicit_recommender_from_cs
+from lkauto.utils.get_model_from_cs import get_model_from_cs
 from lenskit.metrics.predict import rmse
 import numpy as np
-from typing import Tuple
 
 
 def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
@@ -46,10 +45,7 @@ def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
 
     for config in configuration_set:
 
-        if user_feedback == "explicit":
-            model = get_explicit_model_from_cs(config)
-        else:
-            model = get_implicit_recommender_from_cs(config)
+        model = get_model_from_cs(config, feedback=user_feedback)
 
         model.fit(train)
 
