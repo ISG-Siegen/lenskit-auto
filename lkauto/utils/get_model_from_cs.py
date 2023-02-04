@@ -16,8 +16,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
                       feedback: str,
                       fallback_model=Bias(),
                       random_state: int = 42) -> Union[Recommender, Predictor]:
-    """
-        builds a Predictor model defined in ConfigurationSpace
+    """ builds a Predictor model defined in ConfigurationSpace
 
         Parameters
         ----------
