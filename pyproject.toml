@@ -26,7 +26,8 @@ dependencies = [
     "smac~=1.4",
     "matplotlib~=3.6",
     "lenskit~=0.14",
-    "tables~=3.8"
+    "tables~=3.8",
+    "typing~=3.5"
 ]
 
 [project.urls]
