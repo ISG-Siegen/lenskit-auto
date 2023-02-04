@@ -20,6 +20,8 @@ from lkauto.utils.filer import Filer
 from lenskit.algorithms import Predictor
 from lenskit import Recommender
 
+from typing import Tuple
+
 
 def find_best_explicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
@@ -30,7 +32,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
                                      n_trials: int = 100,
                                      random_state=None,
                                      folds: int = 5,
-                                     filer: Filer = None) -> tuple[Predictor, dict]:
+                                     filer: Filer = None) -> Tuple[Predictor, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -125,7 +127,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                      n_trials: int = 100,
                                      random_state=None,
                                      folds: int = 1,
-                                     filer: Filer = None) -> tuple[Recommender, dict]:
+                                     filer: Filer = None) -> Tuple[Recommender, dict]:
     """
         returns the best Recommender found in the defined search time
 
