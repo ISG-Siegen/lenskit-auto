@@ -61,9 +61,6 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         n_trials : int
                 number of samples to be used for optimization_strategy. Value can not be smaller than 6
                 if no initial configuration is provided.
-        initial_configuration: list[Configuration]
-                list of configurations that should be evaluated first. This parameter can be used to warmstart
-                the optimization process.
         random_state
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         folds : int
@@ -88,7 +85,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
     # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
-        cs = get_default_configurations()
+        cs = get_default_configuration_space(feedback='explicit')
 
     if optimization_strategie == 'bayesian':
         if optimization_strategie == 'bayesian':
