@@ -15,9 +15,8 @@ from lenskit.algorithms import Recommender
 def get_model_from_cs(cs: ConfigurationSpace,
                       feedback: str,
                       fallback_model=Bias(),
-                      random_state=42) -> Union[Recommender, Predictor]:
-    """
-        builds a Predictor model defined in ConfigurationSpace
+                      random_state: int = 42) -> Union[Recommender, Predictor]:
+    """ builds a Predictor model defined in ConfigurationSpace
 
         Parameters
         ----------
@@ -29,12 +28,12 @@ def get_model_from_cs(cs: ConfigurationSpace,
             fallback algorithm to use in case of missing values
         random_state: int
             random state to use
+
         Returns
         ----------
         fallback_algo : Predictor
             Predictor build with the config_space information
     """
-    algo = None
 
     # check if feedback value is valid
     if (feedback != 'explicit') and (feedback != 'implicit'):
@@ -46,27 +45,10 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # ItemItem
     if algo_name == 'ItemItem':
-        model = ItemItem(nnbrs=10000, feedback=feedback, **config)
+        model = ItemItem(feedback=feedback, **config)
     # UserUser
     elif algo_name == 'UserUser':
-        model = UserUser(nnbrs=10000, feedback=feedback, **config)
-    elif algo_name == 'UserUser':
-        algo = UserUser(nnbrs=10000, **dict(config_space), feedback='explicit')
-    # ALSBiasedMF
-    elif algo_name == 'ALSBiasedMF':
-        ureg = cs['ureg']
-        ireg = cs['ireg']
-        reg_touple = (ureg, ireg)
-        algo = ALSBiasedMF(features=cs['features'],
-                           reg=reg_touple,
-                           damping=cs['damping'],
-                           rng_spec=42)
-    # Biased
-    elif algo_name == 'Bias':
-        items_damping = cs['item_damping']
-        users_damping = cs['user_damping']
-        damping_touple = (users_damping, items_damping)
-        algo = Bias(damping=damping_touple)
+        model = UserUser(feedback=feedback, **config)
     # FunkSVD
     elif algo_name == 'FunkSVD':
         model = FunkSVD(random_state=random_state, **config)
@@ -78,7 +60,10 @@ def get_model_from_cs(cs: ConfigurationSpace,
         reg_touple = (float(config['ureg']), float(config['ireg']))
         del config['ureg']
         del config['ireg']
-        model = ALSBiasedMF(reg=reg_touple, rng_spec=random_state, **config)
+        damping_touple = (float(config['user_damping']), float(config['item_damping']))
+        del config['user_damping']
+        del config['item_damping']
+        model = ALSBiasedMF(reg=reg_touple, damping=damping_touple, rng_spec=random_state, **config)
     # Biased
     elif algo_name == 'Bias':
         damping_touple = (config['user_damping'], config['item_damping'])
