@@ -1,8 +1,9 @@
-from ConfigSpace import ConfigurationSpace
-from lkauto.utils.filer import Filer
-import pandas as pd
-from lkauto.utils.get_model_from_cs import get_model_from_cs
 import numpy as np
+import pandas as pd
+from ConfigSpace import ConfigurationSpace
+
+from lkauto.utils.filer import Filer
+from lkauto.utils.get_model_from_cs import get_model_from_cs
 
 
 class ExplicitEvaler:
@@ -29,7 +30,8 @@ class ExplicitEvaler:
         evaluate_explicit(config_space: ConfigurationSpace) -> float
     """
 
-    def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42, folds: int = None) -> None:
+    def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42,
+                 folds: int = None) -> None:
         self.train = train
         self.filer = filer
         self.random_state = random_state
@@ -38,7 +40,7 @@ class ExplicitEvaler:
         self.run_id = 0
         self.top_50_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
 
-    def evaluate_explicit(self, config_space: ConfigurationSpace) -> float:
+    def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
 
             The config_space parameter defines a model.

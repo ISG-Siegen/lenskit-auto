@@ -1,10 +1,11 @@
-from lkauto.utils.get_model_from_cs import get_model_from_cs
 import lenskit.crossfold as xf
-from ConfigSpace import ConfigurationSpace
-from lenskit import topn, batch
-from lkauto.utils.filer import Filer
 import numpy as np
 import pandas as pd
+from ConfigSpace import ConfigurationSpace
+from lenskit import topn, batch
+
+from lkauto.utils.filer import Filer
+from lkauto.utils.get_model_from_cs import get_model_from_cs
 
 
 class ImplicitEvaler:
@@ -30,6 +31,7 @@ class ImplicitEvaler:
             ----------
             evaluate_explicit(config_space: ConfigurationSpace) -> float
         """
+
     def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42, folds: int = 1) -> None:
         self.train = train
         self.optimization_metric = optimization_metric
@@ -38,7 +40,7 @@ class ImplicitEvaler:
         self.filer = filer
         self.run_id = 0
 
-    def evaluate_implicit(self, config_space: ConfigurationSpace) -> float:
+    def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
 
             The config_space parameter defines a model.
@@ -94,4 +96,3 @@ class ImplicitEvaler:
         validation_error = 1 - scores[self.optimization_metric.__name__].mean()
 
         return validation_error
-
