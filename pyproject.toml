@@ -25,7 +25,7 @@ requires-python = ">= 3.8"
 dependencies = [
     "smac~=1.4",
     "matplotlib~=3.6",
-    "lenskit~=0.14",
+    "lenskit>=0.14.2",
     "tables~=3.8",
     "typing~=3.5"
 ]
