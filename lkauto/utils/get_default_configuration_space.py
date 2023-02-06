@@ -9,7 +9,7 @@ from lkauto.algorithms.svd import BiasedSVD
 from lkauto.algorithms.als import ImplicitMF
 
 
-def get_default_configuration_space(feedback: str, random_state=42) -> ConfigurationSpace:
+def get_default_configuration_space(feedback: str, n_users: int, n_items: int, random_state=42) -> ConfigurationSpace:
     """
         returns the default configuration space for all included rating predictions algorithms
 
@@ -17,6 +17,10 @@ def get_default_configuration_space(feedback: str, random_state=42) -> Configura
         ----------
         feedback : str
             feedback type, either 'explicit' or 'implicit'
+        n_users: int
+            number of users contained in the dataset
+        n_items: int
+            number of items contained in the dataset
         random_state: int
             random state to use
     """
@@ -57,7 +61,7 @@ def get_default_configuration_space(feedback: str, random_state=42) -> Configura
         cs.add_configuration_space(
             prefix=algo,
             delimiter=":",
-            configuration_space=model.get_default_configspace(),
+            configuration_space=model.get_default_configspace(number_user=n_users, number_item=n_items),
             parent_hyperparameter={"parent": cs["algo"], "value": algo},
         )
 

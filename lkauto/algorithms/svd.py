@@ -7,7 +7,7 @@ class BiasedSVD(svd.BiasedSVD):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace():
+    def get_default_configspace(number_item: int, **kwargs):
         """
                return default configurationspace
         """
@@ -17,8 +17,12 @@ class BiasedSVD(svd.BiasedSVD):
         choosen based around the default values of LensKit. No further explaination could be distracted
         from scikit or the original paper.
         """
-        features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
-        damping = Float('damping', bounds=(0.0, 1000), default=5.0, log=True)
+        n_items = number_item
+        if n_items < 10000:
+            features = Integer('features', bounds=(2, n_items-1), default=1000, log=True)  # No default values given
+        else:
+            features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
+        damping = Float('damping', bounds=(0.0001, 1000), default=5.0, log=True)
 
         cs = ConfigurationSpace()
         cs.add_hyperparameters([features, damping])

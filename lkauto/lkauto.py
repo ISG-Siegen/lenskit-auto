@@ -26,9 +26,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
                                      optimization_metric=rmse,
                                      optimization_strategie: str = 'bayesian',
                                      time_limit_in_sec: int = 2700,
-                                     initial_configuration: list[Configuration] = None,
                                      n_trials: int = 100,
-                                     random_state=None,
+                                     random_state=42,
                                      folds: int = 5,
                                      filer: Filer = None) -> tuple[Predictor, dict]:
     """
@@ -60,9 +59,6 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         n_trials : int
                 number of samples to be used for optimization_strategy. Value can not be smaller than 6
                 if no initial configuration is provided.
-        initial_configuration: list[Configuration]
-                list of configurations that should be evaluated first. This parameter can be used to warmstart
-                the optimization process.
         random_state
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         folds : int
@@ -87,7 +83,9 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 
     # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
-        cs = get_default_configurations()
+        n_users = train['user'].nunique()
+        n_items = train['item'].nunique()
+        cs = get_default_configuration_space(feedback='explicit', n_users=n_users, n_items=n_items)
 
     if optimization_strategie == 'bayesian':
         if optimization_strategie == 'bayesian':
@@ -123,7 +121,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                      optimization_strategie: str = 'bayesian',
                                      time_limit_in_sec: int = 300,
                                      n_trials: int = 100,
-                                     random_state=None,
+                                     random_state=42,
                                      folds: int = 1,
                                      filer: Filer = None) -> tuple[Recommender, dict]:
     """

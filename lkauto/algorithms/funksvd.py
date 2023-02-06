@@ -7,7 +7,7 @@ class FunkSVD(funksvd.FunkSVD):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace():
+    def get_default_configspace(**kwargs):
         """
                return default configurationspace
         """
