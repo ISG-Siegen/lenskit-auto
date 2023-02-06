@@ -4,10 +4,10 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "lk-common"  ## FIXME Set the project name
+name = "lkauto"
 authors = [
     ## FIXME Set the author name(s)
-    {name = "Michael Ekstrand", email = "michaelekstrand@boisestate.edu"}
+    {name = "Tobias Vente", email = "tobias.vente@uni-siegen.de"}
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -21,14 +21,19 @@ readme = "README.md"
 license = { file = "LICENSE.md" }
 dynamic = ['version', 'description']
 requires-python = ">= 3.8"
-## FIXME Add this project's dependencies
+##Add this project's dependencies
 dependencies = [
+    "smac~=1.4",
+    "matplotlib~=3.6",
+    "lenskit>=0.14.2",
+    "tables~=3.8",
+    "typing~=3.5"
 ]
 
 [project.urls]
 ## FIXME Correct the URLs
-homepage = "https://lkpy.lenskit.org"
-source = "https://github.com/lenskit/lk-common"
+homepage = ""
+source = "https://github.com/ISG-Siegen/lenskit-auto"
 
 [project.optional-dependencies]
 # These are the dev dependencies we use across LensKit projects.

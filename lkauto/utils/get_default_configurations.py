@@ -1,8 +1,9 @@
 from ConfigSpace import ConfigurationSpace
 from ConfigSpace import Configuration
+from typing import List
 
 
-def get_default_configurations(config_space: ConfigurationSpace) -> list[Configuration]:
+def get_default_configurations(config_space: ConfigurationSpace) -> List[Configuration]:
     algorithms = config_space.get('algo').choices
     initial_configuration_list = []
 

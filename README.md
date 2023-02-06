@@ -96,8 +96,8 @@ Top-N ranking predicion example showcases the data-split based on user data.
     # Fixme: INSERT SCENARIO CODE HERE
 
     model.fit(train_split)
-    predictions = model.predict(x_test)
-    root_mean_square_error = rmse(predictions, y_test, missing='error')
+    predictions = model.predict(test_split)
+    root_mean_square_error = rmse(predictions, test_split['rating'])
 
 #### Scenario 1
 
