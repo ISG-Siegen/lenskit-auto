@@ -8,7 +8,7 @@ class UserUser(user_knn.UserUser):
         super().__init__(nnbrs=nnbrs, **kwargs)
 
     @staticmethod
-    def get_default_configspace():
+    def get_default_configspace(**kwargs):
         """
             return default configuration spaces for hyperparameter
         """

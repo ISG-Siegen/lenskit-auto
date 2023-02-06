@@ -60,10 +60,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
         reg_touple = (float(config['ureg']), float(config['ireg']))
         del config['ureg']
         del config['ireg']
-        damping_touple = (float(config['user_damping']), float(config['item_damping']))
-        del config['user_damping']
-        del config['item_damping']
-        model = ALSBiasedMF(reg=reg_touple, damping=damping_touple, rng_spec=random_state, **config)
+        model = ALSBiasedMF(reg=reg_touple, rng_spec=random_state, **config)
     # Biased
     elif algo_name == 'Bias':
         damping_touple = (config['user_damping'], config['item_damping'])

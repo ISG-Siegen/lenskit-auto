@@ -1,13 +1,12 @@
 import pandas as pd
-
 from ConfigSpace import Configuration, ConfigurationSpace
-from smac.scenario.scenario import Scenario
 from smac.facade.smac_hpo_facade import SMAC4HPO
+from smac.scenario.scenario import Scenario
 
-from lkauto.utils.get_default_configurations import get_default_configurations
-from lkauto.utils.filer import Filer
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
+from lkauto.utils.filer import Filer
+from lkauto.utils.get_default_configurations import get_default_configurations
 
 
 def bayesian_optimization(train: pd.DataFrame,
@@ -54,7 +53,7 @@ def bayesian_optimization(train: pd.DataFrame,
     # define SMAC facade for combined algorithm selection and hyperparameter optimization
     smac = SMAC4HPO(scenario=scenario,
                     rng=random_state,
-                    tae_runner=evaler.evaluate_explicit,
+                    tae_runner=evaler.evaluate,
                     initial_configurations=initial_configuraition,
                     initial_design=None)
 

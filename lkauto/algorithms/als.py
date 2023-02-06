@@ -7,7 +7,7 @@ class ImplicitMF(als.ImplicitMF):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace():
+    def get_default_configspace(**kwargs):
         """
               return default configurationspace
         """
@@ -32,7 +32,7 @@ class BiasedMF(als.BiasedMF):
         super().__init__(features=features, **kwargs)
 
     @staticmethod
-    def get_default_configspace():
+    def get_default_configspace(**kwargs):
         """
                return default configuration spaces for hyperparameter
         """

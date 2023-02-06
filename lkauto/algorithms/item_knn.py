@@ -8,7 +8,7 @@ class ItemItem(item_knn.ItemItem):
         super().__init__(nnbrs=nnbrs, **kwargs)
 
     @staticmethod
-    def get_default_configspace():
+    def get_default_configspace(**kwargs):
         """
                return default configurationspace
                Default configuration spaces for hyperparameters are defined here.
