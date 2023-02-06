@@ -1,4 +1,0 @@
-smac
-matplotlib
-lenskit
-tables
