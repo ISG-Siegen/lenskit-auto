@@ -29,7 +29,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
                                      optimization_strategie: str = 'bayesian',
                                      time_limit_in_sec: int = 2700,
                                      n_trials: int = 100,
-                                     random_state=42,
+                                     random_state=None,
                                      folds: int = 5,
                                      filer: Filer = None) -> Tuple[Predictor, dict]:
     """
