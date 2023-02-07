@@ -1,16 +1,21 @@
 # LensKit-Auto
 
+LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/) 
+recommender-system library. It automates algorithm selection and hyper parameter optimization an can build
+ensemble models based on the LensKit models.
+
 ## Install
 
 ### Pip Install:
 
-    pip install git+ssh://git@github.com/ISG-Siegen/lenskit-auto.git
-
+```bash
+pip install git+ssh://git@github.com/ISG-Siegen/lenskit-auto.git
+```
 ### Conda Install
 
 1. Create conda environment
 2. Install pip
-3. Follow the Pip Install subchapter to install lenskit-Auto in you conda environment
+3. Follow the Pip Install subchapter to install lenskit-Auto in your conda environment
 
 ## How To Use
 
@@ -18,13 +23,17 @@
 
 In the standard use-case you just need to call a single function to get the best performing model for your dataset.
 It is either 
-
-    find_best_implicit_configuration(train=train_split)
-
+```python
+from lkauto.lkauto import find_best_implicit_configuration
+    
+find_best_implicit_configuration(train=train_split)
+```
 for the recommendation use-case or
+```python
+from lkauto.lkauto import find_best_explicit_configuration
 
-    find_best_explicit_configuration(train=train_split)
-
+find_best_explicit_configuration(train=train_split)
+```
 for the prediction use-case
 
 ### Examples and Advanced Use-Cases
@@ -40,64 +49,66 @@ Note: All application scenarios apply to Top-N ranking prediction and rating pre
   of algorithms and/or different hyperparameter ranges for the provided dataset.
 
 In order to take advantage of LensKit-Auto, a developer needs to read in a dataset.
-
-    from lenskit.datasets import ML100K
+```python
+from lenskit.datasets import ML100K
     
-    ml100k = ML100K('path_to_file') 
-    ratings = ml100k.ratings
-    ml100k.name = 'ml_100k'
-
+ml100k = ML100K('path_to_file') 
+ratings = ml100k.ratings
+ml100k.name = 'ml_100k'
+```
 Furthermore, it is suggested, that we take advantage of the Filer to control the LensKit-Auto output
-
-    from lkauto.utils.filer import Filer
+```python
+from lkauto.utils.filer import Filer
     
-    filer = Filer('output/')
+filer = Filer('output/')
+```
 
 ### Top-N ranking prediction
 
 First, we need to split the data in a train and test split to evaluate our model. The train-test splits can be performed
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
-    
-    import lenskit.crossfold as xf
-    from lenskit.batch import recommend
-    from lenskit.metrics import topn
-    
-    # User based data-split
-    for i, tp in enumerate(xf.partition_users(ml100k, 1, xf.SampleN(5))):
-        train_split = tp.train.copy()
-        test_split = tp.test.copy()
+```python
+import lenskit.crossfold as xf
+from lenskit.batch import recommend
+from lenskit.metrics import topn
 
-    # Fixme: INSERT SCENARIO CODE HERE
+# User based data-split
+for i, tp in enumerate(xf.partition_users(ml100k, 1, xf.SampleN(5))):
+    train_split = tp.train.copy()
+    test_split = tp.test.copy()
 
-    # fit
-    model.fit(train_split)
-    # recommend
-    recs = recommend(algo=model, users=test['user'].unique(), n=5)
+# Fixme: INSERT SCENARIO CODE HERE
 
-    # initialize RecListAnalysis
-    rla = topn.RecListAnalysis()
-    # add precision metric
-    rla.add_metric(topn.ndcg)
+# fit
+model.fit(train_split)
+# recommend
+recs = recommend(algo=model, users=test_split['user'].unique(), n=5)
 
-    # compute scores
-    scores = rla.compute(recs, test, include_missing=True)
+# initialize RecListAnalysis
+rla = topn.RecListAnalysis()
+# add precision metric
+rla.add_metric(topn.ndcg)
 
+# compute scores
+scores = rla.compute(recs, test, include_missing=True)
+```
 ### Rating Prediction
 
 First, we need to split the data in a train and test split to evaluate our model. The train-test splits can be performed
 based on data rows or user data. For the rating prediction example we are splitting the data based on the data rows. The
 Top-N ranking predicion example showcases the data-split based on user data.
+```python
+from lenskit.metrics.predict import rmse
+from lenskit.crossfold import sample_rows
 
-    from lenskit.metrics.predict import rmse
-    from lenskit.crossfold import sample_rows
+train_split, test_split = sample_rows(ml100k, None, 25000)
 
-    train_split, test_split = sample_rows(ml100k, None, 25000)
+# Fixme: INSERT SCENARIO CODE HERE
 
-    # Fixme: INSERT SCENARIO CODE HERE
-
-    model.fit(train_split)
-    predictions = model.predict(test_split)
-    root_mean_square_error = rmse(predictions, test_split['rating'])
+model.fit(train_split)
+predictions = model.predict(test_split)
+root_mean_square_error = rmse(predictions, test_split['rating'])
+```
 
 #### Scenario 1
 
@@ -105,9 +116,9 @@ Scenario 1 describes the fully automated combined algorithm selection and hyperp
 This scenario is recommended for inexperienced developers who have no or little experience in model selection.
 
 LensKit-Auto performs the combined algorithm selection and hyperparameter optimization with a single function call.
-
-    model, config = find_best_implicit_configuration(train=train_split, filer=filer)
-
+```python
+model, config = find_best_implicit_configuration(train=train_split, filer=filer)
+```
 Note: As described above, the *find_best_implicit_configuration()* is used for Top-N ranking prediction. If you want 
 to find a predictor instead of a recommender, replace the function call with *find_best_explicit_configuration()*
 
@@ -120,19 +131,19 @@ hyperparameter range. We can use the model in the exact same way like a regular 
 
 In Senario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
 custom configuration space with just a single algorithm included.
+```python
+from ConfigSpace import Constant
+from lkauto.algorithms.item_knn import ItemItem
 
-    from ConfigSpace import Constant
-    from lkauto.algorithms.item_knn import ItemItem
-    
-    # initialize ItemItem ConfigurationSpace
-    cs = ItemItem.get_default_configspace()
-    cs.add_hyperparameters([Constant("algo", "ItemItem")])
-    # set a random seed for reproducible results
-    cs.seed(42)
+# initialize ItemItem ConfigurationSpace
+cs = ItemItem.get_default_configspace()
+cs.add_hyperparameters([Constant("algo", "ItemItem")])
+# set a random seed for reproducible results
+cs.seed(42)
 
-    # Provide the ItemItem ConfigurationSpace to the find_best_implicit_configuraiton function. 
-    model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=cs)
-
+# Provide the ItemItem ConfigurationSpace to the find_best_implicit_configuraiton function. 
+model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=cs)
+```
 Note: As described above, the *find_best_implicit_configuration()* is used for Top-N ranking prediction. If you want 
 to find a predictor instead of a recommender, replace the function call with *find_best_explicit_configuration()*
 
@@ -148,60 +159,61 @@ hyperparameter optimization process.
 
 First, a parent-ConfigurationSpace needs to be initialized. All algorithm names need to be added to the
 parent-ConfigurationSpace categorical *algo* hyperparameter.
+```python
+from ConfigSpace import ConfigurationSpace, Categorical
 
-    from ConfigSpace import ConfigurationSpace, Categorical
-    
-    # initialize ItemItem ConfigurationSpace
-    parent_cs = ConfigurationSpace()
-    # set a random seed for reproducible results
-    parent_cs.seed(42)
-    # add algorithm names as a constant
-    parent_cs.add_hyperparameters([Categorical("algo", ["ItemItem", "UserUser"])])
-
+# initialize ItemItem ConfigurationSpace
+parent_cs = ConfigurationSpace()
+# set a random seed for reproducible results
+parent_cs.seed(42)
+# add algorithm names as a constant
+parent_cs.add_hyperparameters([Categorical("algo", ["ItemItem", "UserUser"])])
+```
 Afterward, we need to build the *ItemItem* and *UserUser* sub-ConfigurationSpace.
 
 We can use the default sub-ConfigurationSpace from LensKit-Auto and add it to the parent-ConfigurationSpace:
+```python
+from lkauto.algorithms.item_knn import ItemItem
 
-    from lkauto.algorithms.item_knn import ItemItem
-    
-    # get default ItemItem ConfigurationSpace
-    item_item_cs = ItemItem.get_default_configspace()
-    
-    # Add sub-ConfigurationSpace to parent-ConfigurationSpace
-    parent_cs.add_configuration_space(
-            prefix="ItemItem",
-            delimiter=":",
-            configuration_space=item_item_cs,
-            parent_hyperparameter={"parent": parent_cs["algo"], "value": "ItemItem"},
-        )
+# get default ItemItem ConfigurationSpace
+item_item_cs = ItemItem.get_default_configspace()
 
+# Add sub-ConfigurationSpace to parent-ConfigurationSpace
+parent_cs.add_configuration_space(
+        prefix="ItemItem",
+        delimiter=":",
+        configuration_space=item_item_cs,
+        parent_hyperparameter={"parent": parent_cs["algo"], "value": "ItemItem"},
+    )
+```
 Or we can build our own ConfigurationSpace for a specific algorithm.
 
-    from ConfigSpace import ConfigurationSpace
-    from ConfigSpace import Integer, Float
+```python
+from ConfigSpace import ConfigurationSpace
+from ConfigSpace import Integer, Float
 
-    # first we initialize hyperparameter objects for all hyperparameters that we want to optimize
-    min_nbrs = Integer('min_nbrs', bounds=(1, 50), default=1)
-    min_sim = Float('min_sim', bounds=(0, 0.1), default=0)
+# first we initialize hyperparameter objects for all hyperparameters that we want to optimize
+min_nbrs = Integer('min_nbrs', bounds=(1, 50), default=1)
+min_sim = Float('min_sim', bounds=(0, 0.1), default=0)
 
-    # Then, we initialize the sub-ConfigurationSpace and add the hyperparameters to it
-    user_user_cs = ConfigurationSpace()
-    user_user_cs.add_hyperparameters([min_nbrs, min_sim])
+# Then, we initialize the sub-ConfigurationSpace and add the hyperparameters to it
+user_user_cs = ConfigurationSpace()
+user_user_cs.add_hyperparameters([min_nbrs, min_sim])
 
-    # Last, we add the user_user_cs to the parent-ConfigurationSpace 
+# Last, we add the user_user_cs to the parent-ConfigurationSpace 
 
-     parent_cs.add_configuration_space(
-            prefix="UserUser",
-            delimiter=":",
-            configuration_space=user_user_cs,
-            parent_hyperparameter={"parent": parent_cs["algo"], "value": "UserUser"},
-        )
-
+ parent_cs.add_configuration_space(
+        prefix="UserUser",
+        delimiter=":",
+        configuration_space=user_user_cs,
+        parent_hyperparameter={"parent": parent_cs["algo"], "value": "UserUser"},
+    )
+```
 After creating the parent-ConfigurationSpace, we can use it in the same way like Scenario 2
-
-    # Provide the parent-ConfigurationSpace to the find_best_implicit_configuraiton function. 
-    model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=parent_cs)
-
+```python
+# Provide the parent-ConfigurationSpace to the find_best_implicit_configuraiton function. 
+model, config = find_best_implicit_configuration(train=train_split, filer=filer, cs=parent_cs)
+```
 Note: As described above, the *find_best_implicit_configuration()* is used for Top-N ranking prediction. If you want 
 to find a predictor instead of a recommender, replace the function call with *find_best_explicit_configuration()*
 
