@@ -80,7 +80,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
     fallback = fallback_model
 
     if feedback == 'explicit':
-        final_model = Fallback(fallback, model)
+        final_model = Fallback(model, fallback)
     if feedback == 'implicit':
         final_model = Recommender.adapt(model)
 
