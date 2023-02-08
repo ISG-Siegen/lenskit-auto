@@ -1,22 +1,16 @@
 import numpy as np
 import pandas as pd
-from ConfigSpace import ConfigurationSpace, Configuration
-from smac.facade.smac_hpo_facade import SMAC4HPO
-from smac.scenario.scenario import Scenario
-from lkauto.utils.get_default_configurations import get_default_configurations
-from lkauto.explicit.explicit_evaler import ExplicitEvaler
-from lkauto.utils.get_model_from_cs import get_model_from_cs
-from lkauto.implicit.implicit_evaler import ImplicitEvaler
-from lkauto.utils.get_default_configuration_space import get_default_configuration_space
-from lenskit.metrics.predict import rmse
-from lenskit.metrics.topn import ndcg
 
 from ConfigSpace import ConfigurationSpace
 
+from lkauto.utils.get_model_from_cs import get_model_from_cs
+from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 from lkauto.optimization_strategies.bayesian_optimization import bayesian_optimization
 from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
 
+from lenskit.metrics.predict import rmse
+from lenskit.metrics.topn import ndcg
 from lenskit.algorithms import Predictor
 from lenskit import Recommender
 
@@ -104,6 +98,8 @@ def find_best_explicit_configuration(train: pd.DataFrame,
         incumbent = random_search(cs=cs,
                                   train=train,
                                   n_samples=n_trials,
+                                  filer=filer,
+                                  optimization_metric=optimization_metric,
                                   minimize_error_metric_val=True,
                                   random_state=random_state,
                                   user_feedback='explicit')
@@ -121,6 +117,7 @@ def find_best_explicit_configuration(train: pd.DataFrame,
 def find_best_implicit_configuration(train: pd.DataFrame,
                                      cs: ConfigurationSpace = None,
                                      optimization_strategie: str = 'bayesian',
+                                     optimization_metric=ndcg,
                                      time_limit_in_sec: int = 300,
                                      n_trials: int = 100,
                                      random_state=42,
@@ -146,6 +143,8 @@ def find_best_implicit_configuration(train: pd.DataFrame,
             ConfigurationSpace with all algorithms and parameter ranges defined.
         optimization_strategie: str
             optimization strategie to use. Either bayesian or random_search
+        optimization_metric : function
+            LensKit recommender metric to optimize for
         time_limit_in_sec : int
             search time limit.
         n_trials : int
@@ -181,6 +180,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
                                           feedback='implicit',
                                           time_limit_in_sec=time_limit_in_sec,
                                           number_of_evaluations=n_trials,
+                                          optimization_metric=optimization_metric,
                                           random_state=random_state,
                                           folds=folds,
                                           filer=filer)
@@ -188,6 +188,9 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     elif optimization_strategie == 'random_search':
         incumbent = random_search(cs=cs,
                                   train=train,
+                                  filer=filer,
+                                  optimization_metric=optimization_metric,
+                                  random_state=random_state,
                                   n_samples=n_trials,
                                   minimize_error_metric_val=True,
                                   user_feedback='implicit')

@@ -1,15 +1,22 @@
 import numpy as np
 import pandas as pd
 from ConfigSpace import ConfigurationSpace, Configuration
-from lenskit.metrics.predict import rmse
 
-from lkauto.utils.get_model_from_cs import get_model_from_cs
+from lkauto.explicit.explicit_evaler import ExplicitEvaler
+from lkauto.implicit.implicit_evaler import ImplicitEvaler
+from lkauto.utils.filer import Filer
 
 
-def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
-                  minimize_error_metric_val: bool = True, user_feedback: str = "explicit",
+def random_search(cs: ConfigurationSpace,
+                  train: pd.DataFrame,
+                  n_samples: int,
+                  filer: Filer,
+                  optimization_metric,
+                  user_feedback: str = None,
+                  minimize_error_metric_val: bool = True,
                   random_state=42) -> Configuration:
-    """ returns the best configuration found by random search
+    """
+        returns the best configuration found by random search
 
          The random_search method will randomly search through the ConfigurationSpace to find the
          best performing configuration for the given train split. The ConfigurationSpace can consist of
@@ -23,11 +30,15 @@ def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
             ConfigurationSpace with all algorithms and hyperparameter ranges defined.
         n_samples: int
             number of samples to be randomly drawn from the ConfigurationSpace
+        optimization_metric : function
+            LensKit prediction accuracy metric to optimize for (either rmse or mae)
         minimize_error_metric_val : bool
             Bool that decides if the error metric should be minimized or maximized.
         user_feedback : str
             Defines if the dataset contains explicit or implicit feedback.
         random_state: int
+        filer : Filer
+            filer to manage LensKit-Auto output
 
         Returns
         -------
@@ -36,48 +47,40 @@ def random_search(cs: ConfigurationSpace, train: pd.DataFrame, n_samples: int,
         val_error_score : float
             best validation error found on the validation split
    """
-    best_configuraiton = None
+    best_configuration = None
     best_error_score = np.inf
+
+    if user_feedback == "explicit":
+        evaler = ExplicitEvaler(train=train,
+                                filer=filer,
+                                optimization_metric=optimization_metric,
+                                random_state=random_state)
+    elif user_feedback == 'implicit':
+        evaler = ImplicitEvaler(train=train,
+                                filer=filer,
+                                optimization_metric=optimization_metric,
+                                random_state=random_state)
+    else:
+        raise ValueError('feedback must be either explicit or implicit')
 
     # random sample n_samples configurations from the ConfigurationSpace. Store them in a set to avoid duplicates.
     configuration_set = set()
     while len(configuration_set) < n_samples:
         configuration_set.add(cs.sample_configuration())
 
+    # loop through random spampled configurations
     for config in configuration_set:
+        # calculate error for the configuration
+        error = evaler.evaluate(config)
 
-        if user_feedback == "explicit":
-            model = get_model_from_cs(config, feedback='explicit', random_state=random_state)
-        else:
-            model = get_model_from_cs(config, feedback='implicit', random_state=random_state)
-
-        model.fit(train)
-
-        # holdout split using pandas and numpy random seed
-        validation_train = train.sample(frac=0.75, random_state=random_state)  # random state is a seed value
-        test = train.drop(validation_train.index)
-        X_validation_test = test.copy()
-        y_validation_test = test.copy()
-
-        # process validation split
-        X_validation_test = X_validation_test.drop('rating', inplace=False, axis=1)
-        y_validation_test = y_validation_test[['rating']].iloc[:, 0]
-
-        # fit and predict model from configuration
-        model.fit(validation_train)
-        predictions = model.predict(X_validation_test)
-        predictions.index = X_validation_test.index
-
-        # calculate error_metric
-        error = rmse(predictions, y_validation_test, missing='ignore')
-
+        # keep track of best performing configuration
         if minimize_error_metric_val:
             if error < best_error_score:
                 best_error_score = error
-                best_configuraiton = config
+                best_configuration = config
         else:
             if error > best_error_score:
                 best_error_score = error
-                best_configuraiton = config
+                best_configuration = config
 
-    return best_configuraiton
+    return best_configuration
