@@ -66,7 +66,7 @@ class ExplicitEvaler:
         model = get_model_from_cs(config_space, feedback='explicit')
 
         # holdout split using pandas and numpy random seed
-        validtaion_train, validation_test = validation_split(self.train, random_state=self.random_state)
+        validation_train, validation_test = validation_split(self.train, random_state=self.random_state)
         X_validation_test = validation_test.copy()
         y_validation_test = validation_test.copy()
 

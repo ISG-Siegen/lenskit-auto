@@ -6,6 +6,7 @@ from lenskit import topn, batch
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
+from lkauto.utils.validation_split import validation_split
 
 
 class ImplicitEvaler:
@@ -35,7 +36,7 @@ class ImplicitEvaler:
     def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42, folds: int = 1) -> None:
         self.train = train
         self.optimization_metric = optimization_metric
-        self.random_seed = random_state
+        self.random_state = random_state
         self.folds = folds
         self.filer = filer
         self.run_id = 0
@@ -56,7 +57,7 @@ class ImplicitEvaler:
             validation_error : float
                 the error of the considered model
         """
-        output_path = 'smac_runs/'
+        output_path = 'eval_runs/'
         self.run_id += 1
         metric_scores = np.array([])
         validation_data = pd.DataFrame()
@@ -65,24 +66,22 @@ class ImplicitEvaler:
         # get model form configuration space
         model = get_model_from_cs(config_space, feedback='implicit')
 
-        # validation split based on users
-        for i, tp in enumerate(xf.partition_users(self.train, self.folds, xf.SampleN(5))):
-            validation_train = tp.train.copy()
-            validation_test = tp.test.copy()
+        # holdout split using pandas and numpy random seed
+        validation_train, validation_test = validation_split(self.train, random_state=self.random_state)
 
-            # fit and recommend from configuration
-            model = model.fit(validation_train)
-            recs = batch.recommend(algo=model, users=validation_test['user'].unique(), n=5)
+        # fit and recommend from configuration
+        model = model.fit(validation_train)
+        recs = batch.recommend(algo=model, users=validation_test['user'].unique(), n=5, n_jobs=1)
 
-            rla = topn.RecListAnalysis()
-            rla.add_metric(self.optimization_metric)
+        rla = topn.RecListAnalysis()
+        rla.add_metric(self.optimization_metric)
 
-            # compute scores
-            scores = rla.compute(recs, validation_test, include_missing=True)
+        # compute scores
+        scores = rla.compute(recs, validation_test, include_missing=True)
 
-            # store data
-            validation_data = pd.concat([validation_data, recs], axis=0)
-            metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
+        # store data
+        validation_data = pd.concat([validation_data, recs], axis=0)
+        metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
@@ -91,7 +90,6 @@ class ImplicitEvaler:
                                          output_path=output_path,
                                          run_id=self.run_id)
 
-        # FIXME: is this correct? I guess the evaluation takes just the last fold into account
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         validation_error = 1 - scores[self.optimization_metric.__name__].mean()
 
