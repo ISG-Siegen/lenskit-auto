@@ -4,6 +4,7 @@ from ConfigSpace import ConfigurationSpace
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
+from lkauto.utils.validation_split import validation_split
 
 
 class ExplicitEvaler:
@@ -65,10 +66,9 @@ class ExplicitEvaler:
         model = get_model_from_cs(config_space, feedback='explicit')
 
         # holdout split using pandas and numpy random seed
-        validation_train = self.train.sample(frac=0.75, random_state=self.random_state)  # random state is a seed value
-        test = self.train.drop(validation_train.index)
-        X_validation_test = test.copy()
-        y_validation_test = test.copy()
+        validtaion_train, validation_test = validation_split(self.train, random_state=self.random_state)
+        X_validation_test = validation_test.copy()
+        y_validation_test = validation_test.copy()
 
         # process validation split
         X_validation_test = X_validation_test.drop('rating', inplace=False, axis=1)
