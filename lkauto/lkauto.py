@@ -172,7 +172,7 @@ def find_best_implicit_configuration(train: pd.DataFrame,
     if cs is None:
         n_users = train['user'].nunique()
         n_items = train['item'].nunique()
-        cs = get_default_configuration_space(feedback='explicit', n_users=n_users, n_items=n_items)
+        cs = get_default_configuration_space(feedback='implicit', n_users=n_users, n_items=n_items)
 
     if random_state is None:
         random_state = np.random.RandomState()
