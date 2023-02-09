@@ -4,7 +4,7 @@ import numpy as np
 
 def validation_split(data: pd.DataFrame, frac: float = 0.25, random_state=42):
     # indices
-    indices = {"train": np.array([]), "test": np.array([])}
+    indices = {"train": np.array([]), "validation": np.array([])}
     # rng instance for shuffling
     rng = np.random.default_rng(random_state)
 
