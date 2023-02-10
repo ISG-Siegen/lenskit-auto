@@ -28,3 +28,7 @@ class TestFunkSVD(unittest.TestCase):
         self.assertTrue(any(
             param.name == "damping" and param.default_value == 5 and param.lower == 0.01 and param.upper == 1000 for
             param in params))
+
+
+if __name__ == '__main__':
+    unittest.main()

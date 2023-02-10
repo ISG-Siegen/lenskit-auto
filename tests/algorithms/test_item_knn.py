@@ -2,18 +2,18 @@ import unittest
 
 import ConfigSpace as CS
 
-from lkauto.algorithms.user_knn import UserUser
+from lkauto.algorithms.item_knn import ItemItem
 
 
-class TestUserKNN(unittest.TestCase):
+class TestItemKNN(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
         nnbrs = 10
-        user_user = UserUser(nnbrs)
-        self.assertEqual(nnbrs, user_user.nnbrs)
-        self.assertIsInstance(user_user, UserUser)
+        item_item = ItemItem(nnbrs)
+        self.assertEqual(nnbrs, item_item.nnbrs)
+        self.assertIsInstance(item_item, ItemItem)
 
     def test_defaultConfigspace_GivenFunctionCalled_correctConfigSpaceReturnedExpected(self):
-        cs = UserUser.get_default_configspace()
+        cs = ItemItem.get_default_configspace()
         params = cs.get_hyperparameters()
         self.assertIsInstance(cs, CS.ConfigurationSpace)
         self.assertTrue(any(
@@ -25,3 +25,7 @@ class TestUserKNN(unittest.TestCase):
         self.assertTrue(any(
             param.name == "min_sim" and param.default_value == 1.0e-6 and param.lower == 1.0e-10 and param.upper ==
             1.0e-2 for param in params))
+
+
+if __name__ == '__main__':
+    unittest.main()
