@@ -1,12 +1,13 @@
-from ConfigSpace import ConfigurationSpace
 from ConfigSpace import Categorical
-from lkauto.algorithms.user_knn import UserUser
-from lkauto.algorithms.item_knn import ItemItem
-from lkauto.algorithms.als import BiasedMF as ALSBiasedMF
-from lkauto.algorithms.funksvd import FunkSVD
-from lkauto.algorithms.bias import Bias
-from lkauto.algorithms.svd import BiasedSVD
+from ConfigSpace import ConfigurationSpace
+
+from lkauto.algorithms.als import BiasedMF
 from lkauto.algorithms.als import ImplicitMF
+from lkauto.algorithms.bias import Bias
+from lkauto.algorithms.funksvd import FunkSVD
+from lkauto.algorithms.item_knn import ItemItem
+from lkauto.algorithms.svd import BiasedSVD
+from lkauto.algorithms.user_knn import UserUser
 
 
 def get_default_configuration_space(feedback: str, n_users: int, n_items: int, random_state=42) -> ConfigurationSpace:
@@ -50,7 +51,7 @@ def get_default_configuration_space(feedback: str, n_users: int, n_items: int, r
         elif algo == 'BiasedSVD':
             model = BiasedSVD
         elif algo == 'ALSBiasedMF':
-            model = ALSBiasedMF
+            model = BiasedMF
         elif algo == 'Bias':
             model = Bias
         elif algo == 'ImplicitMF':

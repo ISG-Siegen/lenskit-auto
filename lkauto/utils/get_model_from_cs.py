@@ -1,15 +1,16 @@
+from typing import Union
+
 from ConfigSpace import ConfigurationSpace
-from lenskit.algorithms.user_knn import UserUser
-from lenskit.algorithms.item_knn import ItemItem
-from lenskit.algorithms.als import BiasedMF as ALSBiasedMF
-from lenskit.algorithms.bias import Bias
-from lenskit.algorithms.funksvd import FunkSVD
-from lenskit.algorithms.svd import BiasedSVD
+from lenskit.algorithms import Predictor
+from lenskit.algorithms import Recommender
+from lenskit.algorithms.als import BiasedMF
 from lenskit.algorithms.als import ImplicitMF
 from lenskit.algorithms.basic import Fallback
-from lenskit.algorithms import Predictor
-from typing import Union
-from lenskit.algorithms import Recommender
+from lenskit.algorithms.bias import Bias
+from lenskit.algorithms.funksvd import FunkSVD
+from lenskit.algorithms.item_knn import ItemItem
+from lenskit.algorithms.svd import BiasedSVD
+from lenskit.algorithms.user_knn import UserUser
 
 
 def get_model_from_cs(cs: ConfigurationSpace,
@@ -60,7 +61,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
         reg_touple = (float(config['ureg']), float(config['ireg']))
         del config['ureg']
         del config['ireg']
-        model = ALSBiasedMF(reg=reg_touple, rng_spec=random_state, **config)
+        model = BiasedMF(reg=reg_touple, rng_spec=random_state, **config)
     # Biased
     elif algo_name == 'Bias':
         damping_touple = (config['user_damping'], config['item_damping'])
