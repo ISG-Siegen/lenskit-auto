@@ -50,3 +50,7 @@ class TestBiasedMF(unittest.TestCase):
         self.assertTrue(any(
             param.name == "bias" and param.default_value for param in
             params))
+
+
+if __name__ == '__main__':
+    unittest.main()

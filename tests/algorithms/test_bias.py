@@ -24,3 +24,7 @@ class TestBias(unittest.TestCase):
             param.name == "user_damping" and param.default_value == 0.25 and param.lower == 1e-3 and param.upper == 8500
             for
             param in params))
+
+
+if __name__ == '__main__':
+    unittest.main()
