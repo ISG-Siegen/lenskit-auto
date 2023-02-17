@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from ConfigSpace import ConfigurationSpace
+import logging
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
@@ -54,6 +55,7 @@ class ExplicitEvaler:
                  ensemble_size: int = 50,
                  minimize_error_metric_val: bool = True,
                  ) -> None:
+        self.logger = logging.getLogger('lenskit-auto')
         self.train = train
         self.filer = filer
         self.random_state = random_state
@@ -134,6 +136,10 @@ class ExplicitEvaler:
 
         # calculate mean error_metric
         validation_error = error_metric.mean()
+
+        self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
+                         self.optimization_metric.__name__ + ': ' + str(validation_error))
+        self.logger.debug(str(config_space))
 
         # return error_metric
         if self.minimize_error_metric_val:

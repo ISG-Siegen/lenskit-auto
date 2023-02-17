@@ -10,6 +10,7 @@ from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
 from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
+from lkauto.utils.logging import get_logger
 
 from lenskit.metrics.predict import rmse
 from lenskit.metrics.topn import ndcg
@@ -40,6 +41,7 @@ def get_best_prediction_model(train: pd.DataFrame,
                               rating_column: str = 'rating',
                               timestamp_col: str = 'timestamp',
                               include_timestamp: bool = True,
+                              log_level: str = 'INFO',
                               filer: Filer = None) -> Tuple[Predictor, dict]:
     """
         returns the best Predictor found in the defined search time
@@ -102,6 +104,8 @@ def get_best_prediction_model(train: pd.DataFrame,
             Name of the timestamp column
         include_timestamp: bool = True
             If True, the timestamp column will be included in the dataset
+        log_level : str
+            log level to use.
         filer : Filer
             filer to manage LensKit-Auto output
 
@@ -113,22 +117,38 @@ def get_best_prediction_model(train: pd.DataFrame,
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
    """
 
+    logger = get_logger(log_level=log_level)
+
+    # log parameters
+    logger.info('---Starting LensKit-Auto---')
+    if time_limit_in_sec is not None:
+        logger.info('\t optimization_time: \t\t {} seconds'.format(time_limit_in_sec))
+    if num_evaluations is not None:
+        logger.info('\t num_evaluations: \t\t\t {}'.format(num_evaluations))
+    logger.info('\t optimization_metric: \t\t {}'.format(optimization_metric.__name__))
+    logger.info('\t optimization_strategie: \t {}'.format(optimization_strategie))
+
+
     # set num_evaluations to infinity if none is provided
     if num_evaluations is None:
+        logger.debug('setting up num_evaluations to infinity')
         num_evaluations = np.inf
 
     # initialize filer if none is provided
     if filer is None:
+        logger.debug('initializing filer')
         filer = Filer()
 
     # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
+        logger.debug('initializing default ConfigurationSpace')
         n_users = train['user'].nunique()
         n_items = train['item'].nunique()
         cs = get_default_configuration_space(feedback='explicit', n_users=n_users, n_items=n_items)
 
     # set random_state if none is provided
     if random_state is None:
+        logger.debug('initializing random_state')
         random_state = np.random.RandomState(42)
 
     # preprocess data
@@ -178,16 +198,23 @@ def get_best_prediction_model(train: pd.DataFrame,
     # save top_n_runs to csv
     filer.save_dataframe_as_csv(top_n_runs, '', 'top_n_runs')
 
+    logger.info('--Start Postrprocessing--')
     if ensemble_size > 1:
         model, incumbent = build_ensemble(train=train, top_n_runs=top_n_runs,
                                           filer=filer,
                                           ensemble_size=ensemble_size,
                                           lenskit_metric=optimization_metric,
                                           maximize_metric=(not minimize_error_metric_val))
+        logger.info('--Best Model--')
+        logger.info('GES Ensemble Model')
     else:
         # build model from best model configuration found by SMAC
         model = get_model_from_cs(incumbent, feedback='explicit')
         incumbent = incumbent.get_dictionary()
+        logger.info('--Best Model--')
+        logger.info(incumbent)
+
+    logger.info('---LensKit-Auto finished---')
 
     # return model and model configuration
     return model, incumbent
@@ -214,6 +241,7 @@ def get_best_recommender_model(train: pd.DataFrame,
                                rating_column: str = 'rating',
                                timestamp_col: str = 'timestamp',
                                include_timestamp: bool = True,
+                               log_level: str = 'INFO',
                                filer: Filer = None) -> Tuple[Recommender, dict]:
     """
         returns the best Recommender found in the defined search time
@@ -275,6 +303,8 @@ def get_best_recommender_model(train: pd.DataFrame,
             Name of the timestamp column
         include_timestamp: bool = True
             If True, the timestamp column will be included in the dataset
+        log_level : str
+            log level to use.
         filer : Filer
             filer to manage LensKit-Auto output
 
@@ -285,22 +315,38 @@ def get_best_recommender_model(train: pd.DataFrame,
         incumbent : dict
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
     """
+
+    logger = get_logger(log_level=log_level)
+
+    # log parameters
+    logger.info('---Starting LensKit-Auto---')
+    if time_limit_in_sec is not None:
+        logger.info('\t optimization_time: \t\t {} seconds'.format(time_limit_in_sec))
+    if num_evaluations is not None:
+        logger.info('\t num_evaluations: \t\t\t {}'.format(num_evaluations))
+    logger.info('\t optimization_metric: \t\t {}@{}'.format(optimization_metric.__name__, num_recommendations))
+    logger.info('\t optimization_strategie: \t {}'.format(optimization_strategie))
+
     # set num_evaluations to infinity if none is provided
     if num_evaluations is None:
+        logger.debug('num_evaluations is None. Setting num_evaluations to infinity.')
         num_evaluations = np.inf
 
     # initialize filer if none is provided
     if filer is None:
+        logger.debug('filer is None. Initializing filer.')
         filer = Filer()
 
         # get pre-defined ConfiguraitonSpace if none is provided
     if cs is None:
+        logger.debug('cs is None. Initializing default cs.')
         n_users = train['user'].nunique()
         n_items = train['item'].nunique()
         cs = get_default_configuration_space(feedback='implicit', n_users=n_users, n_items=n_items)
 
     # set random state if none is provided
     if random_state is None:
+        logger.debug('random_state is None. Initializing random_state.')
         random_state = np.random.RandomState(42)
 
     # preprocess data
@@ -347,9 +393,17 @@ def get_best_recommender_model(train: pd.DataFrame,
     else:
         raise ValueError('optimization_strategie must be either bayesian or random_search')
 
+    logger.info('--Start Postrprocessing--')
+
     # build model from best model configuration found by SMAC
     model = get_model_from_cs(incumbent, feedback='implicit')
     incumbent = incumbent.get_dictionary()
+
+    logger.info('--Best Model--')
+    logger.info(incumbent)
+
+
+    logger.info('---LensKit-Auto finished---')
 
     # return model and model configuration
     return model, incumbent

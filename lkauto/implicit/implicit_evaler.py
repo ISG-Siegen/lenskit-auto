@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from ConfigSpace import ConfigurationSpace
 from lenskit import topn, batch
+import logging
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
@@ -54,6 +55,7 @@ class ImplicitEvaler:
                  num_recommendations: int = 10,
                  minimize_error_metric_val: bool = True,
                  ) -> None:
+        self.logger = logging.getLogger('lenskit-auto')
         self.train = train
         self.optimization_metric = optimization_metric
         self.random_state = random_state
@@ -127,6 +129,11 @@ class ImplicitEvaler:
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         validation_error = scores[self.optimization_metric.__name__].mean()
+
+        self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
+                         self.optimization_metric.__name__ + '@{}'.format(self.num_recommendations) + ': '
+                         + str(validation_error))
+        self.logger.debug(str(config_space))
 
         if self.minimize_error_metric_val:
             return validation_error

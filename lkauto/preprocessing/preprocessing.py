@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 from lkauto.preprocessing.pruning import min_ratings_per_user, max_ratings_per_user
 
@@ -49,6 +51,9 @@ def preprocess_data(data: pd.DataFrame,
         Dataframe with columns "user", "item", "rating"
     """
 
+    logger = logging.getLogger('lenskit-auto')
+    logger.info('--Start Preprocessing--')
+
     # rename columns
     if include_timestamp:
         if rating_col is None:
@@ -67,18 +72,24 @@ def preprocess_data(data: pd.DataFrame,
 
     # drop rows with NaN values
     if drop_na_values:
+        logger.debug('Dropping rows with NaN values...')
         data = data.dropna()
 
     # drop duplicate rows
     if drop_duplicates:
+        logger.debug('Dropping duplicate rows...')
         data = data.drop_duplicates(keep='first', inplace=False)
 
     # drop users with less than min_interactions_per_user interactions
     if min_interactions_per_user is not None:
+        logger.debug('Dropping users with less than {} interactions...'.format(min_interactions_per_user))
         data = min_ratings_per_user(data, min_interactions_per_user)
 
     # drop users with more than max_interactions_per_user interactions
     if max_interactions_per_user is not None:
+        logger.debug('Dropping users with more than {} interactions...'.format(max_interactions_per_user))
         data = max_ratings_per_user(data, max_interactions_per_user)
+
+    logger.info('--End Preprocessing--')
 
     return data

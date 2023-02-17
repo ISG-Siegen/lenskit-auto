@@ -9,6 +9,7 @@ from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.filer import Filer
 
 from typing import Tuple
+import logging
 
 
 def random_search(cs: ConfigurationSpace,
@@ -71,6 +72,9 @@ def random_search(cs: ConfigurationSpace,
         top_n_runs : pd.DataFrame
             pandas dataframe containing the top n runs of the random search.
    """
+    logger = logging.getLogger('lenskit-auto')
+    logger.info('--Start Random Search--')
+
     # initialize variables to keep track of the best configuration
     best_configuration = None
     if minimize_error_metric_val:
@@ -156,6 +160,8 @@ def random_search(cs: ConfigurationSpace,
             # keep track of time
             if time.time() - start_time > time_limit_in_sec:
                 break
+
+    logger.info('--End Random Search--')
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')

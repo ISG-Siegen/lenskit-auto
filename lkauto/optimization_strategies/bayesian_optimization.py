@@ -9,6 +9,7 @@ from lkauto.utils.filer import Filer
 from lkauto.utils.get_default_configurations import get_default_configurations
 
 from typing import Tuple
+import logging
 
 
 def bayesian_optimization(train: pd.DataFrame,
@@ -71,6 +72,9 @@ def bayesian_optimization(train: pd.DataFrame,
         top_n_runs : pd.DataFrame
             top n runs found by bayesian optimization
     """
+    logger = logging.getLogger('lenskit-auto')
+    logger.info('--Start Bayesian Optimization--')
+
     # get SMAC output directory
     output_dir = filer.get_smac_output_directory_path()
 
@@ -125,6 +129,8 @@ def bayesian_optimization(train: pd.DataFrame,
     finally:
         # get best model configuration
         incumbent = smac.solver.incumbent
+
+    logger.info('--End Bayesian Optimization--')
 
     # return best model configuration
     if user_feedback == 'explicit':
