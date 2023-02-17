@@ -39,6 +39,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
     if (feedback != 'explicit') and (feedback != 'implicit'):
         raise ValueError("Unknown feedback type: {}".format(feedback))
 
+    # get algorithm name
     algo_name = cs.get('algo')
     config = {key.replace("{}:".format(algo_name), ""): value for key, value in cs.items()}
     del config['algo']
@@ -79,6 +80,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
     # define fallback algorithm
     fallback = fallback_model
 
+    # define final model
     if feedback == 'explicit':
         final_model = Fallback(model, fallback)
     if feedback == 'implicit':

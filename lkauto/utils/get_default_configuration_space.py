@@ -58,6 +58,7 @@ def get_default_configuration_space(feedback: str, n_users: int, n_items: int, r
         else:
             raise ValueError("Unknown algorithm: {}".format(algo))
 
+        # add configuration space of algorithm
         cs.add_configuration_space(
             prefix=algo,
             delimiter=":",

@@ -23,23 +23,53 @@ class ImplicitEvaler:
                 LensKit top-n metric used to evaluate the model
             filer : Filer
                 filer to organize the output.
-            random_state :
-                The random number generator or seed (see :py:func:`lenskit.util.rng`).
-            folds : int
+             random_state :
+                 The random number generator or seed (see :py:func:`lenskit.util.rng`).
+            split_folds :
                 The number of folds of the validation split
+            split_strategie :
+                The strategie used to split the data. Possible values are 'user_based' and 'row_based'
+            split_frac :
+                The fraction of the data used for the validation split. If the split_folds value is greater than 1,
+                this value is ignored.
+            num_recommendations :
+                The number of recommendations to be made and evaluated for each user.
+            minimize_error_metric_val :
+                If True, the error metric is minimized. If False, the error metric is maximized. This parameter needs to be
+                set in corelation with the optimization metric.
 
-            Methods
+             Methods
             ----------
             evaluate_explicit(config_space: ConfigurationSpace) -> float
-        """
+    """
 
-    def __init__(self, train: pd.DataFrame, optimization_metric, filer: Filer, random_state=42, folds: int = 1) -> None:
+    def __init__(self,
+                 train: pd.DataFrame,
+                 optimization_metric,
+                 filer: Filer,
+                 random_state=42,
+                 split_folds: int = 1,
+                 split_strategie: str = 'user_based',
+                 split_frac: float = 0.25,
+                 num_recommendations: int = 10,
+                 minimize_error_metric_val: bool = True,
+                 ) -> None:
         self.train = train
         self.optimization_metric = optimization_metric
         self.random_state = random_state
-        self.folds = folds
+        self.split_folds = split_folds
+        self.split_strategie = split_strategie
+        self.split_frac = split_frac
         self.filer = filer
+        self.num_recommendations = num_recommendations
+        self.minimize_error_metric_val = minimize_error_metric_val
         self.run_id = 0
+        # create validation split
+        self.val_fold_indices = validation_split(data=self.train,
+                                                 strategie=self.split_strategie,
+                                                 num_folds=self.split_folds,
+                                                 frac=self.split_frac,
+                                                 random_state=self.random_state)
 
     def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
@@ -66,22 +96,27 @@ class ImplicitEvaler:
         # get model form configuration space
         model = get_model_from_cs(config_space, feedback='implicit')
 
-        # holdout split using pandas and numpy random seed
-        validation_train, validation_test = validation_split(self.train, random_state=self.random_state)
+        # iterate over validation folds
+        for fold in range(len(self.val_fold_indices)):
+            # get validation split by index
+            validation_train = self.train.loc[self.val_fold_indices[fold]["train"], :]
+            validation_test = self.train.loc[self.val_fold_indices[fold]["validation"], :]
 
-        # fit and recommend from configuration
-        model = model.fit(validation_train)
-        recs = batch.recommend(algo=model, users=validation_test['user'].unique(), n=5, n_jobs=1)
+            # fit and recommend from configuration
+            model = model.fit(validation_train)
+            recs = batch.recommend(algo=model, users=validation_test['user'].unique(), n=self.num_recommendations,
+                                   n_jobs=1)
 
-        rla = topn.RecListAnalysis()
-        rla.add_metric(self.optimization_metric)
+            # create rec list analysis
+            rla = topn.RecListAnalysis()
+            rla.add_metric(self.optimization_metric)
 
-        # compute scores
-        scores = rla.compute(recs, validation_test, include_missing=True)
+            # compute scores
+            scores = rla.compute(recs, validation_test, include_missing=True)
 
-        # store data
-        validation_data = pd.concat([validation_data, recs], axis=0)
-        metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
+            # store data
+            validation_data = pd.concat([validation_data, recs], axis=0)
+            metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
@@ -91,6 +126,9 @@ class ImplicitEvaler:
                                          run_id=self.run_id)
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
-        validation_error = 1 - scores[self.optimization_metric.__name__].mean()
+        validation_error = scores[self.optimization_metric.__name__].mean()
 
-        return validation_error
+        if self.minimize_error_metric_val:
+            return validation_error
+        else:
+            return 1 - validation_error

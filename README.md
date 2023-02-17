@@ -24,15 +24,15 @@ pip install git+ssh://git@github.com/ISG-Siegen/lenskit-auto.git
 In the standard use-case you just need to call a single function to get the best performing model for your dataset.
 It is either 
 ```python
-from lkauto.lkauto import find_best_implicit_configuration
+from lkauto.lkauto import get_best_recommender_model
     
-find_best_implicit_configuration(train=train_split)
+get_best_recommender_model()(train=train_split)
 ```
 for the recommendation use-case or
 ```python
-from lkauto.lkauto import find_best_explicit_configuration
+from lkauto.lkauto import get_best_prediction_model
 
-find_best_explicit_configuration(train=train_split)
+get_best_prediction_model(train=train_split)
 ```
 for the prediction use-case
 
