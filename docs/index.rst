@@ -42,9 +42,9 @@ LensKit-Auto is licensed under the MIT license. See `LICENSE <https://github.com
 
 .. toctree::
    :maxdepth: 1
-   :caption: SIGIR23-Demo:
+   :caption: Demo:
 
-   SIGIR23-Demo
+   Demo
 
 .. toctree::
    :maxdepth: 2

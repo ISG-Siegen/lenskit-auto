@@ -2,4 +2,6 @@
 
 This directory contains the project's documentation.
 
-Update `conf.py` to reflect your project.
+run `sphinx-apidoc -o . ..` to generate the documentation from the docstrings.
+
+run `make html` to generate the html documentation.
