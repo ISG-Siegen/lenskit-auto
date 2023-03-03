@@ -12,7 +12,7 @@ models based on the LensKit models.
 ## Resources
 
 - Documentation: [LensKit-Auto Documenatation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
-- SIGIR23 Demo: [Demo](https://lenskit-auto.readthedocs.io/en/latest/Demo.html)
+- Demo: [Demo](https://lenskit-auto.readthedocs.io/en/latest/Demo.html)
 
 ## Install
 
