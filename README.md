@@ -2,7 +2,7 @@
 
 ![Test Suite](https://github.com/ISG-Siegen/lenskit-auto/actions/workflows/tests.yml/badge.svg)
 ![coverage](https://github.com/ISG-Siegen/lenskit-auto/blob/main/coverage.svg)
-![License](https://img.shields.io/github/license/ISG-Siegen/lenskit-auto?label=License)
+![License](https://img.shields.io/github/license/ISG-Siegen/lenskit-auto)
 ![release](https://img.shields.io/github/v/release/ISG-Siegen/lenskit-auto)
 
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
@@ -12,7 +12,7 @@ models based on the LensKit models.
 ## Resources
 
 - Documentation: [LensKit-Auto Documenatation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
-- SIGIR23 Demo: [SIGIR23 Demo](https://lenskit-auto.readthedocs.io/en/latest/SIGIR23-Demo.html)
+- RecSys23 Demo: [RecSys23 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys23-Demo.html)
 
 ## Install
 
