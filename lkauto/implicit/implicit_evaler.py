@@ -1,3 +1,5 @@
+from typing import List, Any
+
 import numpy as np
 import pandas as pd
 from ConfigSpace import ConfigurationSpace
@@ -72,7 +74,7 @@ class ImplicitEvaler:
                                                  frac=self.split_frac,
                                                  random_state=self.random_state)
 
-    def evaluate(self, config_space: ConfigurationSpace) -> float:
+    def evaluate(self, config_space: ConfigurationSpace) -> list[Any] | list[int | Any]:
         """ evaluates model defined in config_space
 
             The config_space parameter defines a model.
@@ -110,14 +112,18 @@ class ImplicitEvaler:
 
             # create rec list analysis
             rla = topn.RecListAnalysis()
-            rla.add_metric(self.optimization_metric)
+
+            for metric in self.optimization_metric:
+                rla.add_metric(metric)
 
             # compute scores
             scores = rla.compute(recs, validation_test, include_missing=True)
 
             # store data
-            validation_data = pd.concat([validation_data, recs], axis=0)
-            metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
+            for metric in self.optimization_metric:
+                validation_data = pd.concat([validation_data, recs], axis=0)
+                metric_scores = np.append(metric_scores, scores[metric.__name__].mean())
+            # metric_scores = np.append(metric_scores, scores[self.optimization_metric.__name__].mean())
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
@@ -127,14 +133,21 @@ class ImplicitEvaler:
                                          run_id=self.run_id)
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
-        validation_error = scores[self.optimization_metric.__name__].mean()
+        metrics_logging = ''
+        validation_error_list = []
+        for metric in self.optimization_metric:
+            validation_error = scores[metric.__name__].mean()
+            validation_error_list.append(validation_error)
+            metrics_logging += ' | ' + metric.__name__ + '@{}'.format(self.num_recommendations) + ': ' \
+                               + str(validation_error)
 
-        self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
-                         self.optimization_metric.__name__ + '@{}'.format(self.num_recommendations) + ': '
-                         + str(validation_error))
+        self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + metrics_logging)
         self.logger.debug(str(config_space))
 
         if self.minimize_error_metric_val:
-            return validation_error
+            return validation_error_list
         else:
-            return 1 - validation_error
+            validation_error_list2 = []
+            for validation_error in validation_error_list:
+                validation_error_list2.append(1 - validation_error)
+            return validation_error_list2

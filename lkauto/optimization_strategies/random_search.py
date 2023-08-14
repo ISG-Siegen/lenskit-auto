@@ -16,7 +16,7 @@ import logging
 def random_search(cs: ConfigurationSpace,
                   train: pd.DataFrame,
                   user_feedback: str,
-                  optimization_metric,
+                  optimization_metric: Tuple,
                   filer: Filer,
                   time_limit_in_sec: int = 3600,
                   num_evaluations: int = None,
@@ -77,11 +77,14 @@ def random_search(cs: ConfigurationSpace,
     logger.info('--Start Random Search--')
 
     # initialize variables to keep track of the best configuration
-    best_configuration = None
+    best_configuration_list = [None] * len(optimization_metric)
+    best_error_score_list = []
     if minimize_error_metric_val:
-        best_error_score = np.inf
+        for i in range(len(optimization_metric)):
+            best_error_score_list.append(np.inf)
     else:
-        best_error_score = 0
+        for i in range(len(optimization_metric)):
+            best_error_score_list.append(0)
 
     # initialize evaler based on user feedback
     if user_feedback == "explicit":
@@ -152,17 +155,22 @@ def random_search(cs: ConfigurationSpace,
         # loop through random spampled configurations
         for config in configuration_set:
             # calculate error for the configuration
-            error = evaler.evaluate(config)
+            error_list = evaler.evaluate(config)
+
+            i = 0
+            for error in error_list:
+                if minimize_error_metric_val:
+                    if error < best_error_score_list[i]:
+                        best_error_score_list[i] = error
+                        best_configuration_list[i] = config
+                else:
+                    if error > best_error_score_list[i]:
+                        best_error_score_list[i] = error
+                        best_configuration_list[i] = config
+                i += 1
 
             # keep track of best performing configuration
-            if minimize_error_metric_val:
-                if error < best_error_score:
-                    best_error_score = error
-                    best_configuration = config
-            else:
-                if error > best_error_score:
-                    best_error_score = error
-                    best_configuration = config
+
 
             # keep track of time
             if time.time() - start_time > time_limit_in_sec:
@@ -172,8 +180,8 @@ def random_search(cs: ConfigurationSpace,
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
-        return best_configuration, evaler.top_n_runs
+        return best_configuration_list, evaler.top_n_runs
     elif user_feedback == 'implicit':
-        return best_configuration
+        return best_configuration_list
     else:
         raise ValueError('feedback must be either explicit or implicit')
