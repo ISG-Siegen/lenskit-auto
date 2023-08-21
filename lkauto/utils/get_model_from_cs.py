@@ -12,6 +12,9 @@ from lenskit.algorithms.item_knn import ItemItem
 from lenskit.algorithms.svd import BiasedSVD
 from lenskit.algorithms.user_knn import UserUser
 
+from lkauto.algorithms.implicit import AlternatingLeastSquares \
+    # , BayesianPersonalizedRanking, LogisticMatrixFactorization
+
 
 def get_model_from_cs(cs: ConfigurationSpace,
                       feedback: str,
@@ -71,10 +74,15 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = Bias(damping=damping_touple, **config)
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
-        reg_touple = (config['ureg'], config['ireg'])
-        del config['ureg']
-        del config['ireg']
+        reg_touple = config['reg']
+        del config['reg']
         model = ImplicitMF(reg=reg_touple, rng_spec=random_state, **config)
+    elif algo_name == 'AlternatingLeastSquares':
+        model = AlternatingLeastSquares(**config)
+    # elif algo_name == 'BayesianPersonalizedRanking':
+    #     model = BayesianPersonalizedRanking(**config)
+    # elif algo_name == 'LogisticMatrixFactorization':
+    #     model = LogisticMatrixFactorization(**config)
     else:
         raise ValueError("Unknown algorithm: {}".format(algo_name))
 

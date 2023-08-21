@@ -383,9 +383,13 @@ def get_best_recommender_model(train: pd.DataFrame,
     model_list = []
     metric_number = 0
     for incumbent in incumbent_list:
-        model_list.append(get_model_from_cs(incumbent, feedback='implicit'))
-        incumbent = incumbent.get_dictionary()
+        try:
+            model_list.append(get_model_from_cs(incumbent, feedback='implicit'))
+        except:
+            incumbent = incumbent_list[0]
+            model_list.append(get_model_from_cs(incumbent, feedback='implicit'))
 
+        incumbent = incumbent.get_dictionary()
         logger.info('--Best Model for ' + optimization_metric[metric_number].__name__ + '--')
         logger.info(incumbent)
         metric_number += 1
