@@ -30,6 +30,7 @@ def get_logger(name: str = 'lenskit-auto', level: str = logging.INFO) -> logging
     fh_formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     fh.setFormatter(fh_formatter)
 
-    logger.addHandler(fh)
+    if not logger.hasHandlers():
+        logger.addHandler(fh)
 
     return logger

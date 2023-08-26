@@ -5,7 +5,7 @@ from lenskit.algorithms import Predictor
 from lenskit.algorithms import Recommender
 from lenskit.algorithms.als import BiasedMF
 from lenskit.algorithms.als import ImplicitMF
-from lenskit.algorithms.basic import Fallback
+from lenskit.algorithms.basic import Fallback, PopScore, Popular
 from lenskit.algorithms.bias import Bias
 from lenskit.algorithms.funksvd import FunkSVD
 from lenskit.algorithms.item_knn import ItemItem
@@ -71,8 +71,9 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = Bias(damping=damping_touple, **config)
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
-        reg_touple = config['reg']
-        del config['reg']
+        reg_touple = (config['ureg'], config['ireg'])
+        del config['ureg']
+        del config['ireg']
         model = ImplicitMF(reg=reg_touple, rng_spec=random_state, **config)
     # elif algo_name == 'AlternatingLeastSquares':
     #     model = AlternatingLeastSquares(**config)

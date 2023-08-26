@@ -7,7 +7,6 @@ from lkauto.utils.get_model_from_cs import get_model_from_cs
 from lkauto.optimization_strategies.bayesian_optimization import bayesian_optimization
 from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
-from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
 from lkauto.utils.logging import get_logger
 
@@ -389,7 +388,7 @@ def get_best_recommender_model(train: pd.DataFrame,
             incumbent = incumbent_list[0]
             model_list.append(get_model_from_cs(incumbent, feedback='implicit'))
 
-        incumbent = incumbent.get_dictionary()
+        incumbent = dict(incumbent)
         logger.info('--Best Model for ' + optimization_metric[metric_number].__name__ + '--')
         logger.info(incumbent)
         metric_number += 1
