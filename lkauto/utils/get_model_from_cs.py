@@ -71,10 +71,11 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = Bias(damping=damping_touple, **config)
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
-        reg_touple = (config['ureg'], config['ireg'])
-        del config['ureg']
-        del config['ireg']
-        model = ImplicitMF(reg=reg_touple, rng_spec=random_state, **config)
+        # reg_touple = (config['ureg'], config['ireg'])
+        # del config['ureg']
+        # del config['ireg']
+        model = ImplicitMF(rng_spec=random_state, **config)
+        print(model)
     # elif algo_name == 'AlternatingLeastSquares':
     #     model = AlternatingLeastSquares(**config)
     # elif algo_name == 'BayesianPersonalizedRanking':

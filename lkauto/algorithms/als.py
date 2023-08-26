@@ -18,11 +18,12 @@ class ImplicitMF(als.ImplicitMF):
         Therefore we stick to the ranges from LensKits other Matrix Factorization algorithm: BiasedMF
         """
         features = Integer('features', bounds=(5, 10000), default=1000)  # No default values given
-        ureg = Float('ureg', bounds=(0.01, 0.2), default=0.1)
-        ireg = Float('ireg', bounds=(0.01, 0.2), default=0.1)
+        iterations = Integer('iterations', bounds=(5, 40), default=20)
+        weight = Integer('weight', bounds=(20, 60), default=40)
+        reg = Float('reg', bounds=(0.01, 0.1), default=0.1)
 
         cs = ConfigurationSpace()
-        cs.add_hyperparameters([features, ureg, ireg])
+        cs.add_hyperparameters([features, iterations, weight, reg])
 
         return cs
 
