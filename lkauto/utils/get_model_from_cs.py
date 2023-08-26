@@ -75,7 +75,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
         # del config['ureg']
         # del config['ireg']
         model = ImplicitMF(rng_spec=random_state, **config)
-        print(model)
     # elif algo_name == 'AlternatingLeastSquares':
     #     model = AlternatingLeastSquares(**config)
     # elif algo_name == 'BayesianPersonalizedRanking':
