@@ -79,9 +79,9 @@ def random_search(cs: ConfigurationSpace,
     # initialize variables to keep track of the best configuration
     best_configuration = None
     if minimize_error_metric_val:
-        best_error_score = np.inf
-    else:
         best_error_score = 0
+    else:
+        best_error_score = np.inf
 
     # initialize evaler based on user feedback
     if user_feedback == "explicit":
@@ -156,11 +156,11 @@ def random_search(cs: ConfigurationSpace,
 
             # keep track of best performing configuration
             if minimize_error_metric_val:
-                if error < best_error_score:
+                if error > best_error_score:
                     best_error_score = error
                     best_configuration = config
             else:
-                if error > best_error_score:
+                if error < best_error_score:
                     best_error_score = error
                     best_configuration = config
 

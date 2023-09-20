@@ -28,7 +28,7 @@ is either
 ```python
 from lkauto.lkauto import get_best_recommender_model
 
-get_best_recommender_model()(train=train_split)
+get_best_recommender_model(train=train_split)
 ```
 
 for the recommendation use-case or
