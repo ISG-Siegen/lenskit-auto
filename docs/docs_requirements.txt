@@ -1,4 +1,6 @@
 myst-parser==0.9.1
 nbsphinx==0.8.9
 Jinja2<3.1
+pandas
+
 
