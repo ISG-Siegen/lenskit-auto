@@ -13,6 +13,7 @@ models based on the LensKit models.
 
 - Documentation: [LensKit-Auto Documenatation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
 - RecSys23 Demo: [RecSys23 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys23-Demo.html)
+- RecSys23 Demo Video: [RecSys23 Demo Video](https://youtu.be/OTZAb8E_IZI)
 
 ## Install
 
