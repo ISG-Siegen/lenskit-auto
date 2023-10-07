@@ -146,11 +146,11 @@ def random_search(cs: ConfigurationSpace,
 
                 # keep track of best performing configuration
                 if minimize_error_metric_val:
-                    if error < best_error_score:
+                    if error > best_error_score:
                         best_error_score = error
                         best_configuration = config
                 else:
-                    if error > best_error_score:
+                    if error < best_error_score:
                         best_error_score = error
                         best_configuration = config
                 # add configuration to list of tested configurations
