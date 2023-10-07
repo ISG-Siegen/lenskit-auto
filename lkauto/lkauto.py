@@ -20,6 +20,7 @@ from typing import Tuple
 
 
 def get_best_prediction_model(train: pd.DataFrame,
+                              validation: pd.DataFrame = None,
                               cs: ConfigurationSpace = None,
                               optimization_metric=rmse,
                               optimization_strategie: str = 'bayesian',
@@ -60,6 +61,9 @@ def get_best_prediction_model(train: pd.DataFrame,
         ----------
         train : pd.DataFrame
             Pandas Dataframe train split.
+        validation : pd.DataFrame
+            Pandas Dataframe validation split.
+            if a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
         optimization_metric : function
@@ -142,6 +146,10 @@ def get_best_prediction_model(train: pd.DataFrame,
         logger.debug('initializing random_state')
         random_state = 42
 
+    # set split_folds to 1 if validation is not None
+    if validation is not None:
+        split_folds = 1
+
     # preprocess data
     preprocess_data(data=train,
                     user_col=user_column,
@@ -159,6 +167,7 @@ def get_best_prediction_model(train: pd.DataFrame,
         incumbent, top_n_runs = bayesian_optimization(train=train,
                                                       cs=cs,
                                                       user_feedback='explicit',
+                                                      validation=validation,
                                                       optimization_metric=optimization_metric,
                                                       time_limit_in_sec=time_limit_in_sec,
                                                       num_evaluations=num_evaluations,
@@ -173,6 +182,7 @@ def get_best_prediction_model(train: pd.DataFrame,
         incumbent, top_n_runs = random_search(train=train,
                                               cs=cs,
                                               user_feedback='explicit',
+                                              validation=validation,
                                               optimization_metric=optimization_metric,
                                               time_limit_in_sec=time_limit_in_sec,
                                               num_evaluations=num_evaluations,
@@ -212,6 +222,7 @@ def get_best_prediction_model(train: pd.DataFrame,
 
 
 def get_best_recommender_model(train: pd.DataFrame,
+                               validation: pd.DataFrame = None,
                                cs: ConfigurationSpace = None,
                                optimization_metric=ndcg,
                                optimization_strategie: str = 'bayesian',
@@ -252,6 +263,9 @@ def get_best_recommender_model(train: pd.DataFrame,
         ----------
         train : pd.DataFrame
             Pandas Dataframe train split.
+        validation : pd.DataFrame
+            Pandas Dataframe validation split.
+            if a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
         optimization_strategie: str
@@ -333,6 +347,10 @@ def get_best_recommender_model(train: pd.DataFrame,
         logger.debug('random_state is None. Initializing random_state.')
         random_state = 42
 
+    # set split_folds to 1 if validation is not None
+    if validation is not None:
+        split_folds = 1
+
     # preprocess data
     preprocess_data(data=train,
                     user_col=user_column,
@@ -348,6 +366,7 @@ def get_best_recommender_model(train: pd.DataFrame,
     # define optimization strategie to use
     if optimization_strategie == 'bayesian':
         incumbent = bayesian_optimization(train=train,
+                                          validation=validation,
                                           cs=cs,
                                           user_feedback='implicit',
                                           optimization_metric=optimization_metric,
@@ -362,6 +381,7 @@ def get_best_recommender_model(train: pd.DataFrame,
                                           filer=filer)
     elif optimization_strategie == 'random_search':
         incumbent = random_search(train=train,
+                                  validation=validation,
                                   cs=cs,
                                   user_feedback='implicit',
                                   optimization_metric=optimization_metric,

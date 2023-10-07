@@ -24,6 +24,8 @@ class ExplicitEvaler:
             LensKit prediction accuracy metric used to evaluate the model (either rmse or mae)
         filer : Filer
             filer to organize the output.
+        validation : pd.DataFrame
+            pandas dataset containing the validation split.
         random_state :
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         split_folds :
@@ -48,6 +50,7 @@ class ExplicitEvaler:
                  train: pd.DataFrame,
                  optimization_metric,
                  filer: Filer,
+                 validation=None,
                  random_state=42,
                  split_folds: int = 1,
                  split_strategie: str = 'user_based',
@@ -58,6 +61,7 @@ class ExplicitEvaler:
         self.logger = logging.getLogger('lenskit-auto')
         self.train = train
         self.filer = filer
+        self.validation = validation
         self.random_state = random_state
         self.split_folds = split_folds
         self.optimization_metric = optimization_metric
@@ -67,11 +71,14 @@ class ExplicitEvaler:
         self.run_id = 0
         self.ensemble_size = ensemble_size
         self.top_n_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
-        self.val_fold_indices = validation_split(data=self.train,
-                                                 strategie=self.split_strategie,
-                                                 num_folds=self.split_folds,
-                                                 frac=self.split_frac,
-                                                 random_state=self.random_state)
+        if self.validation is None:
+            self.val_fold_indices = validation_split(data=self.train,
+                                                     strategie=self.split_strategie,
+                                                     num_folds=self.split_folds,
+                                                     frac=self.split_frac,
+                                                     random_state=self.random_state)
+        else:
+            self.val_fold_indices = None
 
     def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
@@ -98,10 +105,14 @@ class ExplicitEvaler:
         model = get_model_from_cs(config_space, feedback='explicit')
 
         # loop over validation folds
-        for fold in range(len(self.val_fold_indices)):
-            # get validation split by fold index
-            validation_train = self.train.loc[self.val_fold_indices[fold]["train"], :]
-            validation_test = self.train.loc[self.val_fold_indices[fold]["validation"], :]
+        for fold in range(self.split_folds):
+            if self.validation is None:
+                # get validation split by fold index
+                validation_train = self.train.loc[self.val_fold_indices[fold]["train"], :]
+                validation_test = self.train.loc[self.val_fold_indices[fold]["validation"], :]
+            else:
+                validation_train = self.train
+                validation_test = self.validation
 
             # split validation data into X and y
             X_validation_test = validation_test.copy()

@@ -23,6 +23,8 @@ class ImplicitEvaler:
                 LensKit top-n metric used to evaluate the model
             filer : Filer
                 filer to organize the output.
+            validation : pd.DataFrame
+                pandas dataset containing the validation split.
              random_state :
                  The random number generator or seed (see :py:func:`lenskit.util.rng`).
             split_folds :
@@ -47,6 +49,7 @@ class ImplicitEvaler:
                  train: pd.DataFrame,
                  optimization_metric,
                  filer: Filer,
+                 validation=None,
                  random_state=42,
                  split_folds: int = 1,
                  split_strategie: str = 'user_based',
@@ -56,6 +59,7 @@ class ImplicitEvaler:
                  ) -> None:
         self.logger = logging.getLogger('lenskit-auto')
         self.train = train
+        self.validation = validation
         self.optimization_metric = optimization_metric
         self.random_state = random_state
         self.split_folds = split_folds
@@ -66,11 +70,14 @@ class ImplicitEvaler:
         self.minimize_error_metric_val = minimize_error_metric_val
         self.run_id = 0
         # create validation split
-        self.val_fold_indices = validation_split(data=self.train,
-                                                 strategie=self.split_strategie,
-                                                 num_folds=self.split_folds,
-                                                 frac=self.split_frac,
-                                                 random_state=self.random_state)
+        if self.validation is None:
+            self.val_fold_indices = validation_split(data=self.train,
+                                                     strategie=self.split_strategie,
+                                                     num_folds=self.split_folds,
+                                                     frac=self.split_frac,
+                                                     random_state=self.random_state)
+        else:
+            self.val_fold_indices = None
 
     def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
@@ -98,10 +105,14 @@ class ImplicitEvaler:
         model = get_model_from_cs(config_space, feedback='implicit')
 
         # iterate over validation folds
-        for fold in range(len(self.val_fold_indices)):
+        for fold in range(self.split_folds):
             # get validation split by index
-            validation_train = self.train.loc[self.val_fold_indices[fold]["train"], :]
-            validation_test = self.train.loc[self.val_fold_indices[fold]["validation"], :]
+            if self.validation is None:
+                validation_train = self.train.loc[self.val_fold_indices[fold]["train"], :]
+                validation_test = self.train.loc[self.val_fold_indices[fold]["validation"], :]
+            else:
+                validation_train = self.train
+                validation_test = self.validation
 
             # fit and recommend from configuration
             model = model.fit(validation_train)
