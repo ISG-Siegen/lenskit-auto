@@ -14,6 +14,7 @@ from lkauto.algorithms.user_knn import UserUser
 def get_default_configuration_space(data: pd.DataFrame,
                                     val_fold_indices,
                                     feedback: str,
+                                    validation: pd.DataFrame = None,
                                     random_state=42) -> ConfigurationSpace:
     """
         returns the default configuration space for all included rating predictions algorithms
@@ -24,6 +25,8 @@ def get_default_configuration_space(data: pd.DataFrame,
             data to use
         val_fold_indices
             validation fold indices
+        validation: pd.DataFrame
+            validation data (provided by user)
         feedback : str
             feedback type, either 'explicit' or 'implicit'
         random_state: int
@@ -38,15 +41,22 @@ def get_default_configuration_space(data: pd.DataFrame,
         raise ValueError("Unknown feedback type: {}".format(feedback))
 
     # get minimum number of items and users for the given train split
-    val_fold_indices = val_fold_indices
+
     num_items = 0
     num_users = 0
-    for fold in range(len(val_fold_indices)):
-        tmp = data.loc[val_fold_indices[fold]["train"], :]
-        if tmp['item'].nunique() < num_items or num_items == 0:
-            num_items = tmp['item'].nunique()
-        if tmp['user'].nunique() < num_users or num_users == 0:
-            num_users = tmp['user'].nunique()
+    if validation is None:
+        val_fold_indices = val_fold_indices
+        for fold in range(len(val_fold_indices)):
+            tmp = data.loc[val_fold_indices[fold]["train"], :]
+            if tmp['item'].nunique() < num_items or num_items == 0:
+                num_items = tmp['item'].nunique()
+            if tmp['user'].nunique() < num_users or num_users == 0:
+                num_users = tmp['user'].nunique()
+    else:
+        if data['item'].nunique() < num_items or num_items == 0:
+            num_items = data['item'].nunique()
+        if data['user'].nunique() < num_users or num_users == 0:
+            num_users = data['user'].nunique()
 
     # define configuration space
     cs = ConfigurationSpace(

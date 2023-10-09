@@ -19,6 +19,7 @@ def random_search(cs: ConfigurationSpace,
                   user_feedback: str,
                   optimization_metric,
                   filer: Filer,
+                  validation: pd.DataFrame = None,
                   time_limit_in_sec: int = 3600,
                   num_evaluations: int = None,
                   split_folds: int = 1,
@@ -52,6 +53,8 @@ def random_search(cs: ConfigurationSpace,
         random_state: int
         filer : Filer
             filer to manage LensKit-Auto output
+        validation : pd.DataFrame
+            Pandas Dataframe validation split.
         time_limit_in_sec
             time limit in seconds for the optimization process
         split_folds : int
@@ -89,6 +92,7 @@ def random_search(cs: ConfigurationSpace,
         evaler = ExplicitEvaler(train=train,
                                 optimization_metric=optimization_metric,
                                 filer=filer,
+                                validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
                                 split_strategie=split_strategie,
@@ -99,6 +103,7 @@ def random_search(cs: ConfigurationSpace,
         evaler = ImplicitEvaler(train=train,
                                 optimization_metric=optimization_metric,
                                 filer=filer,
+                                validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
                                 split_strategie=split_strategie,
@@ -113,6 +118,7 @@ def random_search(cs: ConfigurationSpace,
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
                                              val_fold_indices=evaler.val_fold_indices,
+                                             validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)
 
