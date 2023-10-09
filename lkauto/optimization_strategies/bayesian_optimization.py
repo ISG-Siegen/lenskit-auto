@@ -15,6 +15,7 @@ import logging
 
 def bayesian_optimization(train: pd.DataFrame,
                           user_feedback: str,
+                          validation: pd.DataFrame = None,
                           cs: ConfigurationSpace = None,
                           optimization_metric=None,
                           time_limit_in_sec: int = 2700,
@@ -38,6 +39,8 @@ def bayesian_optimization(train: pd.DataFrame,
         ----------
         train : pd.DataFrame
             Pandas Dataframe outer train split.
+        validation : pd.DataFrame
+            Pandas Dataframe validation split.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and hyperparameter ranges defined.
         time_limit_in_sec : int
@@ -82,6 +85,7 @@ def bayesian_optimization(train: pd.DataFrame,
     # initialize Evaler for SMAC evaluations
     if user_feedback == 'explicit':
         evaler = ExplicitEvaler(train=train,
+                                validation=validation,
                                 optimization_metric=optimization_metric,
                                 filer=filer,
                                 random_state=random_state,
@@ -92,6 +96,7 @@ def bayesian_optimization(train: pd.DataFrame,
                                 minimize_error_metric_val=minimize_error_metric_val)
     elif user_feedback == 'implicit':
         evaler = ImplicitEvaler(train=train,
+                                validation=validation,
                                 optimization_metric=optimization_metric,
                                 filer=filer,
                                 random_state=random_state,
@@ -108,6 +113,7 @@ def bayesian_optimization(train: pd.DataFrame,
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
                                              val_fold_indices=evaler.val_fold_indices,
+                                             validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)
 
