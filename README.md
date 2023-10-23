@@ -20,7 +20,7 @@ models based on the LensKit models.
 ### Pip Install:
 
 ```bash
-pip install git+ssh://git@github.com/ISG-Siegen/lenskit-auto.git
+pip install lkauto
 ```
 
 ### Conda Install
