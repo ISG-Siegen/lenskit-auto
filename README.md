@@ -9,6 +9,8 @@ LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.read
 recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
 models based on the LensKit models.
 
+LensKit-Auto is currently developed and tested only on Linux systems. 
+
 ## Resources
 
 - Documentation: [LensKit-Auto Documenatation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
@@ -26,8 +28,7 @@ pip install lkauto
 ### Conda Install
 
 1. Create conda environment
-2. Install pip
-3. Follow the Pip Install subchapter to install lenskit-Auto in your conda environment
+2. Follow the Pip Install subchapter to install lenskit-auto in your conda environment
 
 ## Getting Started
 
