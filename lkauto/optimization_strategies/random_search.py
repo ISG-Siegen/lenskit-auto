@@ -6,6 +6,7 @@ from ConfigSpace import ConfigurationSpace, Configuration
 
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
+from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
@@ -18,6 +19,7 @@ def random_search(cs: ConfigurationSpace,
                   user_feedback: str,
                   optimization_metric: Tuple,
                   filer: Filer,
+                  validation: pd.DataFrame = None,
                   time_limit_in_sec: int = 3600,
                   num_evaluations: int = None,
                   split_folds: int = 1,
@@ -51,6 +53,8 @@ def random_search(cs: ConfigurationSpace,
         random_state: int
         filer : Filer
             filer to manage LensKit-Auto output
+        validation : pd.DataFrame
+            Pandas Dataframe validation split.
         time_limit_in_sec
             time limit in seconds for the optimization process
         split_folds : int
@@ -81,16 +85,20 @@ def random_search(cs: ConfigurationSpace,
     best_error_score_list = []
     if minimize_error_metric_val:
         for i in range(len(optimization_metric)):
-            best_error_score_list.append(np.inf)
+            best_error_score_list.append(0)
+            #prev: best_error_score_list.append(np.inf)
     else:
         for i in range(len(optimization_metric)):
-            best_error_score_list.append(0)
+            best_error_score_list.append(np.inf)
+            #prev: best_error_score_list.append(0)
+
 
     # initialize evaler based on user feedback
     if user_feedback == "explicit":
         evaler = ExplicitEvaler(train=train,
                                 optimization_metric=optimization_metric,
                                 filer=filer,
+                                validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
                                 split_strategie=split_strategie,
@@ -101,6 +109,7 @@ def random_search(cs: ConfigurationSpace,
         evaler = ImplicitEvaler(train=train,
                                 optimization_metric=optimization_metric,
                                 filer=filer,
+                                validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
                                 split_strategie=split_strategie,
@@ -115,11 +124,15 @@ def random_search(cs: ConfigurationSpace,
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
                                              val_fold_indices=evaler.val_fold_indices,
+                                             validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)
 
+    # get LensKit default configurations
+    initial_configuraition = get_default_configurations(cs)
+
     # run for a specified number of iterations or until time limit is reached
-    if num_evaluations is None:
+    if num_evaluations == 0:
         # track time to support random_search on a time base
         start_time = time.time()
 
@@ -127,9 +140,17 @@ def random_search(cs: ConfigurationSpace,
         configuration_list = []
 
         # loop through random spampled configurations
-        while time.time() - start_time > time_limit_in_sec:
-            # random sample configuration from configuration space
-            config = cs.sample_configuration()
+        while time.time() - start_time < time_limit_in_sec:
+            # initialize config
+            config = None
+            # check if all initial configurations have been tested
+            if all(x in configuration_list for x in initial_configuraition):
+                # random sample configuration from configuration space
+                config = cs.sample_configuration()
+            else:
+                # pop configuration from initial configurations
+                config = initial_configuraition.pop(0)
+
             # check if configuration has already been tested
             if config not in configuration_list:
                 # calculate error for the configuration
@@ -137,15 +158,24 @@ def random_search(cs: ConfigurationSpace,
 
                 # keep track of best performing configuration
                 if minimize_error_metric_val:
-                    if error < best_error_score:
-                        best_error_score = error
-                        best_configuration = config
-                else:
                     if error > best_error_score:
                         best_error_score = error
                         best_configuration = config
+                else:
+                    if error < best_error_score:
+                        best_error_score = error
+                        best_configuration = config
+                # add configuration to list of tested configurations
+                configuration_list.append(config)
     else:
         configuration_set = set()
+
+        # add initial configurations to set
+        for config in initial_configuraition:
+            if len(configuration_set) < num_evaluations:
+                configuration_set.add(config)
+
+        # add configurations to set until the set contains num_evaluations configurations
         while len(configuration_set) < num_evaluations:
             configuration_set.add(cs.sample_configuration())
 
@@ -160,17 +190,16 @@ def random_search(cs: ConfigurationSpace,
             i = 0
             for error in error_list:
                 if minimize_error_metric_val:
-                    if error < best_error_score_list[i]:
-                        best_error_score_list[i] = error
-                        best_configuration_list[i] = config
-                else:
+                   #prev if error < best_error_score_list[i]:
                     if error > best_error_score_list[i]:
                         best_error_score_list[i] = error
                         best_configuration_list[i] = config
+                else:
+                  #if error > best_error_score_list[i]:
+                    if error < best_error_score_list[i]:
+                        best_error_score_list[i] = error
+                        best_configuration_list[i] = config
                 i += 1
-
-            # keep track of best performing configuration
-
 
             # keep track of time
             if time.time() - start_time > time_limit_in_sec:

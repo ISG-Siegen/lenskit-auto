@@ -18,7 +18,7 @@ extensions = [
     'sphinx.ext.intersphinx',
 ]
 
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 pygments_style = 'sphinx'
 highlight_language = 'python3'

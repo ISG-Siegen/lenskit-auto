@@ -28,6 +28,7 @@ dependencies = [
     "smac~=1.4",
     "matplotlib~=3.6",
     "lenskit>=0.14.2",
+    "numpy==1.21.6",
     "tables~=3.8",
     "typing~=3.5"
 ]
