@@ -1,8 +1,8 @@
-from lenskit.algorithms import svd
-from ConfigSpace import Integer, Float, ConfigurationSpace
+from lenskit.sklearn.svd import BiasedSVDScorer
+from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, UniformFloatHyperparameter
 
 
-class BiasedSVD(svd.BiasedSVD):
+class BiasedSVD(BiasedSVDScorer):
     def __init__(self, features, **kwargs):
         super().__init__(features=features, **kwargs)
 
@@ -19,12 +19,13 @@ class BiasedSVD(svd.BiasedSVD):
         """
         n_items = number_item
         if n_items < 10000:
-            features = Integer('features', bounds=(2, n_items), default=n_items-1, log=True)  # No default values given
+            features = UniformIntegerHyperparameter('features', lower=2, upper=n_items, default_value=n_items-1, log=True)
         else:
-            features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
-        damping = Float('damping', bounds=(0.0001, 1000), default=5.0, log=True)
+            #features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
+            features = UniformIntegerHyperparameter('features', lower=2, upper=10000, log=True)
+        damping = UniformFloatHyperparameter('damping', lower=0.0001, upper=1000, log=True)
 
         cs = ConfigurationSpace()
-        cs.add_hyperparameters([features, damping])
+        cs.add([features, damping])
 
         return cs
