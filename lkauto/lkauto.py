@@ -11,10 +11,14 @@ from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
 from lkauto.utils.logging import get_logger
 
-from lenskit.metrics.predict import rmse
-from lenskit.metrics.topn import ndcg
-from lenskit.algorithms import Predictor
-from lenskit import Recommender
+# from lenskit.metrics.predict import rmse
+# from lenskit.metrics.topn import ndcg
+# from lenskit.algorithms import Predictor
+# from lenskit import Recommender
+
+from lenskit.metrics.predict import RMSE
+from lenskit.metrics import NDCG
+from lenskit.pipeline import Component
 
 from typing import Tuple
 
@@ -42,7 +46,7 @@ def get_best_prediction_model(train: pd.DataFrame,
                               timestamp_col: str = 'timestamp',
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
-                              filer: Filer = None) -> Tuple[Predictor, dict]:
+                              filer: Filer = None) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -244,7 +248,7 @@ def get_best_recommender_model(train: pd.DataFrame,
                                timestamp_col: str = 'timestamp',
                                include_timestamp: bool = True,
                                log_level: str = 'INFO',
-                               filer: Filer = None) -> Tuple[Recommender, dict]:
+                               filer: Filer = None) -> Tuple[Component, dict]:
     """
         returns the best Recommender found in the defined search time
 
