@@ -4,21 +4,61 @@ import numpy as np
 import pandas as pd
 
 from lkauto.utils.validation_split import validation_split
+from lenskit.data import from_interactions_df
 
 
 class TestValidationSplit(unittest.TestCase):
 
     def setUp(self):
-        self.df = pd.DataFrame(np.ones((100, 3)), columns=["user", "item", "rating", ])
+        self.df = pd.DataFrame(np.array([[1, 1, 1],
+                                         [1, 2, 2],
+                                         [1, 3, 3],
+                                         [2, 1, 1],
+                                         [2, 2, 2],
+                                         [2, 3, 3],
+                                         [3, 1, 1],
+                                         [3, 2, 2],
+                                         [3, 3, 3],
+                                         [4, 1, 1],
+                                         [4, 2, 2],
+                                         [4, 3, 3],
+                                         [5, 1, 1],
+                                         [5, 2, 2],
+                                         [5, 3, 3]]), columns=["user", "item", "rating", ])
+        self.ds = from_interactions_df(self.df)
 
+    """
     def test_validationSplit_givenValidDataFrame_correctSplitTrainAndValidationDataframesReturnedExpected(self):
-        val_fold_indices = validation_split(data=self.df, frac=0.25, random_state=42)
+        val_fold_indices = validation_split(data=self.ds, frac=0.25, random_state=42)
 
         validation_train = self.df.loc[val_fold_indices[0]["train"], :]
         validation_test = self.df.loc[val_fold_indices[0]["validation"], :]
 
         self.assertTrue(validation_train.shape == (75, 3))
         self.assertTrue(validation_test.shape == (25, 3))
+        """
+
+    def test_validationSplit_givenValidDataset_1Fold_UserBased(self):
+        splits = validation_split(data=self.ds, strategy="user_based", frac=0.2, num_folds=1, random_state=42)
+
+        fold = next(splits)
+        test_sample_fold = fold.test
+        train_sample_fold = fold.train
+
+        self.assertTrue(test_sample_fold.to_df().shape[0] == 3)
+        self.assertTrue(train_sample_fold.interaction_count == 12)
+
+    def test_validationSplit_givenValidDataset_3Fold_RowBased(self):
+        splits = validation_split(data=self.ds, strategy="row_based", frac=0.2, num_folds=3, random_state=42)
+
+        fold = next(splits)
+        test_sample_fold = fold.test
+        train_sample_fold = fold.train
+
+        self.assertTrue(test_sample_fold.to_df().shape[0] == 5)
+        self.assertTrue(train_sample_fold.interaction_count == 10)
+
+
 
 
 if __name__ == '__main__':
