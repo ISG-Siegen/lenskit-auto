@@ -1,6 +1,10 @@
 import pandas as pd
+
+from typing import Iterator, Union
 from ConfigSpace import Categorical
 from ConfigSpace import ConfigurationSpace
+from lenskit.data import Dataset
+from lenskit.splitting import TTSplit
 
 from lkauto.algorithms.als import BiasedMF
 from lkauto.algorithms.als import ImplicitMF
@@ -11,13 +15,13 @@ from lkauto.algorithms.svd import BiasedSVD
 from lkauto.algorithms.user_knn import UserUser
 
 
-def get_default_configuration_space(data: pd.DataFrame,
+def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
                                     val_fold_indices,
                                     feedback: str,
-                                    validation: pd.DataFrame = None,
+                                    validation: Iterator[TTSplit] = None,
                                     random_state=42) -> ConfigurationSpace:
     """
-        returns the default configuration space for all included rating predictions algorithms
+        returns the default configuration space for all included rating prediction algorithms
 
         Parameters
         ----------
@@ -42,6 +46,7 @@ def get_default_configuration_space(data: pd.DataFrame,
 
     # get minimum number of items and users for the given train split
 
+    """
     num_items = 0
     num_users = 0
     if validation is None:
@@ -57,6 +62,22 @@ def get_default_configuration_space(data: pd.DataFrame,
             num_items = data['item'].nunique()
         if data['user'].nunique() < num_users or num_users == 0:
             num_users = data['user'].nunique()
+            """
+
+    num_items = 0
+    num_users = 0
+
+    if validation is None and not isinstance(data, Dataset):
+        for fold in data:
+            if fold.train.item_count < num_items or num_items == 0:
+                num_items = fold.train.item_count
+            if fold.train.user_count < num_users or num_users == 0:
+                num_users = fold.train.user_count
+    else:
+        if data.item_count < num_items or num_items == 0:
+            num_items = data.item_count
+        if data.user_count < num_users or num_users == 0:
+            num_users = data.user_count
 
     # define configuration space
     cs = ConfigurationSpace(

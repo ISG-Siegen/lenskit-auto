@@ -1,7 +1,7 @@
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
-from smac.facade.smac_hpo_facade import SMAC4HPO
-from smac.scenario.scenario import Scenario
+from smac.facade import HyperparameterOptimizationFacade as SMAC4HPO
+from smac.scenario import Scenario
 
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler

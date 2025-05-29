@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from ConfigSpace import ConfigurationSpace
-from lenskit import topn, batch
+from lenskit.basic import topn
+from lenskit import batch
 import logging
 
 from lkauto.utils.filer import Filer
