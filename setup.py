@@ -13,10 +13,10 @@ setup(
     python_requires=">=3.8, <=3.9",
     packages=find_packages(),
     install_requires=[
-        "smac~=1.4",
+        "smac~=2.3",
         "matplotlib~=3.6",
         "lenskit>=0.14.2",
-        "numpy==1.21.6",
+        "numpy>2.2",
         "tables~=3.8",
         "typing~=3.5"
     ],

@@ -73,7 +73,7 @@ class ExplicitEvaler:
         self.top_n_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
         if self.validation is None:
             self.val_fold_indices = validation_split(data=self.train,
-                                                     strategie=self.split_strategie,
+                                                     strategy=self.split_strategie,
                                                      num_folds=self.split_folds,
                                                      frac=self.split_frac,
                                                      random_state=self.random_state)
