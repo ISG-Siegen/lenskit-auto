@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from lenskit.crossfold import partition_rows
-
+# from lenskit.crossfold import partition_rows
+from lenskit.splitting import crossfold_records
 
 def validation_split(data: pd.DataFrame, strategie: str = 'user_based', num_folds: int = 1,
                      frac: float = 0.25, random_state=42) -> dict:
@@ -193,9 +193,9 @@ def __row_based_k_fold_validation_split(fold_indices: dict, data: pd.DataFrame, 
         Pandas Dataframe with the data to be split.
     """
     # generate the indices of the train and validation split for the given data
-    for i, splits in enumerate(partition_rows(data, partitions=num_folds, rng_spec=random_state)):
+    for i, splits in enumerate(crossfold_records(data, partitions=num_folds, rng_spec=random_state)):
         fold_indices[i]['train'] = np.append(fold_indices[i]["train"], splits[0].index)
-        fold_indices[i]['validation'] = np.append(fold_indices[i]["train"], splits[1].index)
+        fold_indices[i]['validation'] = np.append(fold_indices[i]["validation"], splits[1].index)
     return fold_indices
 
 

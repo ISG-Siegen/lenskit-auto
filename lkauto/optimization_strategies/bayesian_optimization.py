@@ -1,7 +1,11 @@
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
-from smac.facade.smac_hpo_facade import SMAC4HPO
-from smac.scenario.scenario import Scenario
+# from smac.facade.smac_hpo_facade import SMAC4HPO
+# from smac.scenario.scenario import Scenario
+
+from smac import HyperparameterOptimizationFacade, Scenario
+from smac.initial_design import RandomInitialDesign
+from smac.intensifier import Intensifier
 
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
@@ -121,29 +125,50 @@ def bayesian_optimization(train: pd.DataFrame,
     initial_configuraition = get_default_configurations(cs)
 
     # define SMAC Scenario for algorithm selection and hyperparameter optimization
-    scenario = Scenario({
-        'run_obj': 'quality',
-        'wallclock_limit': time_limit_in_sec,
-        'ta_run_limit': num_evaluations,
-        'cs': cs,
-        'deterministic': True,
-        'abort_on_first_run_crash': False,
-        'output_dir': output_dir
-    })
+    # scenario = Scenario({
+    #     'run_obj': 'quality',
+    #     'wallclock_limit': time_limit_in_sec,
+    #     'ta_run_limit': num_evaluations,
+    #     'cs': cs,
+    #     'deterministic': True,
+    #     'abort_on_first_run_crash': False,
+    #     'output_dir': output_dir
+    # })
+    #
+    # # define SMAC facade for combined algorithm selection and hyperparameter optimization
+    # smac = SMAC4HPO(scenario=scenario,
+    #                 rng=random_state,
+    #                 tae_runner=evaler.evaluate,
+    #                 initial_configurations=initial_configuraition,
+    #                 initial_design=None)
 
-    # define SMAC facade for combined algorithm selection and hyperparameter optimization
-    smac = SMAC4HPO(scenario=scenario,
-                    rng=random_state,
-                    tae_runner=evaler.evaluate,
-                    initial_configurations=initial_configuraition,
-                    initial_design=None)
 
-    try:
-        # start optimizing
-        smac.optimize()
-    finally:
-        # get best model configuration
-        incumbent = smac.solver.incumbent
+    scenario = Scenario(configspace=cs,
+                        deterministic=True,
+                        n_trials=num_evaluations,
+                        walltime_limit=time_limit_in_sec,
+                        output_directory=output_dir
+                        )
+
+    def target_function(config, seed=0, budget=None, instance=None):
+        return evaler.evaluate(config)
+
+    smac = HyperparameterOptimizationFacade(
+        scenario=scenario,
+        target_function=target_function,
+        initial_design=RandomInitialDesign(scenario),
+        intensifier=Intensifier(scenario),
+        overwrite=True
+    )
+
+    # try:
+    #     # start optimizing
+    #     smac.optimize()
+    # finally:
+    #     # get best model configuration
+    #     incumbent = smac.solver.incumbent
+
+    incumbent = smac.optimize()
 
     logger.info('--End Bayesian Optimization--')
 

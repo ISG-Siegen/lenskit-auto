@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 from ConfigSpace import ConfigurationSpace
-from lenskit import topn, batch
+# from lenskit import topn, batch
+from lenskit import batch
+from lenskit.metrics import RunAnalysis
 import logging
 
 from lkauto.utils.filer import Filer
@@ -120,7 +122,7 @@ class ImplicitEvaler:
                                    n_jobs=1)
 
             # create rec list analysis
-            rla = topn.RecListAnalysis()
+            rla = RunAnalysis()
             rla.add_metric(self.optimization_metric)
 
             # compute scores
