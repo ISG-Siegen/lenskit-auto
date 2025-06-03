@@ -120,7 +120,6 @@ def bayesian_optimization(train: Dataset,
     if cs is None:
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
-                                             val_fold_indices=evaler.train_test_splits,
                                              validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)

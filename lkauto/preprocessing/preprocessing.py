@@ -65,7 +65,7 @@ def preprocess_data(data: Dataset, #data: pd.DataFrame
             data = data[[user_col, item_col, timestamp_col]]
             data.columns = ['user', 'item', 'timestamp']
         else:
-            data = data[[user_col, item_col, rating_col, timestamp_col]]
+            # data = data[[user_col, item_col, rating_col, timestamp_col]]
             data.columns = ['user', 'item', 'rating', 'timestamp']
     else:
         if rating_col is None:
