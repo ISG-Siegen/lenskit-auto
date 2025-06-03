@@ -9,6 +9,8 @@ from smac.initial_design import RandomInitialDesign
 from smac.intensifier import Intensifier
 from smac.scenario import Scenario
 
+from lenskit.data import Dataset, ItemListCollection
+
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.filer import Filer
@@ -19,9 +21,9 @@ from typing import Tuple
 import logging
 
 
-def bayesian_optimization(train: pd.DataFrame,
+def bayesian_optimization(train: Dataset,
                           user_feedback: str,
-                          validation: pd.DataFrame = None,
+                          validation: ItemListCollection = None,
                           cs: ConfigurationSpace = None,
                           optimization_metric=None,
                           time_limit_in_sec: int = 2700,
@@ -118,7 +120,7 @@ def bayesian_optimization(train: pd.DataFrame,
     if cs is None:
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
-                                             val_fold_indices=evaler.val_fold_indices,
+                                             val_fold_indices=evaler.train_test_splits,
                                              validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)

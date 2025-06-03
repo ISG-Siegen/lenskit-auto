@@ -3,8 +3,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from typing import Iterator
-from lenskit.data import Dataset
+from typing import Iterator, Union
+from lenskit.data import Dataset, ItemListCollection
 from lenskit.pipeline import predict_pipeline, topn_pipeline
 from lenskit.batch import recommend
 from lenskit.metrics import RunAnalysis
@@ -56,12 +56,10 @@ class ExplicitEvaler:
     """
 
     def __init__(self,
-                 data: Dataset,
-                 train: pd.DataFrame,
+                 train: Dataset,
                  optimization_metric,
                  filer: Filer,
-                 ttsplits: Iterator[TTSplit] = None,
-                 validation=None,
+                 validation: ItemListCollection = None,
                  random_state=42,
                  split_folds: int = 1,
                  split_strategie: str = 'user_based',
@@ -70,10 +68,8 @@ class ExplicitEvaler:
                  minimize_error_metric_val: bool = True,
                  ) -> None:
         self.logger = logging.getLogger('lenskit-auto')
-        self.data = data
         self.train = train
         self.filer = filer
-        self.ttsplits = ttsplits
         self.validation = validation
         self.random_state = random_state
         self.split_folds = split_folds
@@ -84,14 +80,14 @@ class ExplicitEvaler:
         self.run_id = 0
         self.ensemble_size = ensemble_size
         self.top_n_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
-        if self.ttsplits is None:
-            self.train_test_splits = validation_split(data=self.data,
+        if self.validation is None:
+            self.train_test_splits = validation_split(data=self.train,
                                                       strategy=self.split_strategie,
                                                       num_folds=self.split_folds,
                                                       frac=self.split_frac,
                                                       random_state=self.random_state)
         else:
-            self.train_test_splits = self.ttsplits
+            self.train_test_splits = iter([TTSplit(train, validation)])
 
     def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space

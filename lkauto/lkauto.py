@@ -19,12 +19,13 @@ from lkauto.utils.logging import get_logger
 from lenskit.metrics.predict import RMSE
 from lenskit.metrics import NDCG
 from lenskit.pipeline import Component
+from lenskit.data import Dataset, ItemListCollection
 
 from typing import Tuple
 
 
-def get_best_prediction_model(train: pd.DataFrame,
-                              validation: pd.DataFrame = None,
+def get_best_prediction_model(train: Dataset,
+                              validation: ItemListCollection = None,
                               cs: ConfigurationSpace = None,
                               optimization_metric=RMSE,
                               optimization_strategie: str = 'bayesian',
@@ -166,7 +167,7 @@ def get_best_prediction_model(train: pd.DataFrame,
                     drop_na_values=drop_na_values,
                     drop_duplicates=drop_duplicates)
 
-    # decide which optimization strategie to use
+    # decide which optimization strategy to use
     if optimization_strategie == 'bayesian':
         incumbent, top_n_runs = bayesian_optimization(train=train,
                                                       cs=cs,

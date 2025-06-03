@@ -45,25 +45,6 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
         raise ValueError("Unknown feedback type: {}".format(feedback))
 
     # get minimum number of items and users for the given train split
-
-    """
-    num_items = 0
-    num_users = 0
-    if validation is None:
-        val_fold_indices = val_fold_indices
-        for fold in range(len(val_fold_indices)):
-            tmp = data.loc[val_fold_indices[fold]["train"], :]
-            if tmp['item'].nunique() < num_items or num_items == 0:
-                num_items = tmp['item'].nunique()
-            if tmp['user'].nunique() < num_users or num_users == 0:
-                num_users = tmp['user'].nunique()
-    else:
-        if data['item'].nunique() < num_items or num_items == 0:
-            num_items = data['item'].nunique()
-        if data['user'].nunique() < num_users or num_users == 0:
-            num_users = data['user'].nunique()
-            """
-
     num_items = 0
     num_users = 0
 
