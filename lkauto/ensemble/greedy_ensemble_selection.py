@@ -6,6 +6,7 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
+from lenskit.data import Dataset
 
 
 class EnsembleSelection:
@@ -39,13 +40,13 @@ class EnsembleSelection:
         # Will be filled later from external
         self.base_models = None
 
-    def fit(self, data: pd.DataFrame):
+    def fit(self, data: Dataset):
         """ Fit base models (we assume the ensemble part, ensemble_fit, was already fitted here or is fitted later)
 
         Parameters
         ----------
-        data: DataFrame
-            Dataframe with columns "user", "item", "rating"
+        data: Dataset
+            Dataset with columns "user", "item", "rating"
         """
         if self.base_models is None:
             raise ValueError("Base Models is None; we need a list of base models to fit them here!")
@@ -55,11 +56,11 @@ class EnsembleSelection:
 
         return self
 
-    def predict(self, X_data: pd.DataFrame):
+    def predict(self, x_data: Dataset):
         """
         "user", "item" Dataframe
         """
-        bm_preds = [bm.predict(X_data) for bm in self.base_models]
+        bm_preds = [bm.predict(x_data) for bm in self.base_models]
         test_ind = bm_preds[0].index
         ens_predictions = self.ensemble_predict([np.array(bm_pred) for bm_pred in bm_preds])
 
