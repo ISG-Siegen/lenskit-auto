@@ -1,16 +1,6 @@
 from typing import Union
 
 from ConfigSpace import ConfigurationSpace
-# from lenskit.algorithms import Predictor
-# from lenskit.algorithms import Recommender
-# from lenskit.algorithms.als import BiasedMF
-# from lenskit.algorithms.als import ImplicitMF
-# from lenskit.algorithms.basic import Fallback
-# from lenskit.algorithms.bias import Bias
-# from lenskit.algorithms.funksvd import FunkSVD
-# from lenskit.algorithms.item_knn import ItemItem
-# from lenskit.algorithms.svd import BiasedSVD
-# from lenskit.algorithms.user_knn import UserUser
 
 from lenskit.als import BiasedMFScorer
 from lenskit.als import ImplicitMFScorer

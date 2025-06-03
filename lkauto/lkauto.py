@@ -226,8 +226,8 @@ def get_best_prediction_model(train: Dataset,
     return model, incumbent
 
 
-def get_best_recommender_model(train: pd.DataFrame,
-                               validation: pd.DataFrame = None,
+def get_best_recommender_model(train: Dataset,
+                               validation: ItemListCollection = None,
                                cs: ConfigurationSpace = None,
                                optimization_metric=NDCG,
                                optimization_strategie: str = 'bayesian',

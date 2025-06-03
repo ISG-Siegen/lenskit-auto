@@ -6,11 +6,10 @@ import pandas as pd
 from typing import Iterator, Union
 from lenskit.data import Dataset, ItemListCollection
 from lenskit.pipeline import predict_pipeline, topn_pipeline
-from lenskit.batch import recommend
+from lenskit.batch import predict
 from lenskit.metrics import RunAnalysis
 from lenskit.splitting import TTSplit
 from ConfigSpace import ConfigurationSpace
-from sklearn.model_selection import train_test_split
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
@@ -153,7 +152,7 @@ class ExplicitEvaler:
             fit_pipeline = pipeline.clone()
             fit_pipeline.train(data=validation_train)
 
-            recs = recommend(fit_pipeline, validation_test.keys())
+            recs = predict(fit_pipeline, validation_test.keys())
 
             run_analysis = RunAnalysis()
             run_analysis.add_metric(self.optimization_metric)

@@ -108,7 +108,7 @@ def random_search(cs: ConfigurationSpace,
                                 validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
-                                split_strategie=split_strategie,
+                                split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 num_recommendations=num_recommendations,
                                 minimize_error_metric_val=minimize_error_metric_val)
