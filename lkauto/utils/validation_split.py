@@ -137,12 +137,6 @@ def __row_based_k_fold_validation_split(data: Dataset, num_folds: int, random_st
         Lenskit Dataset with the data to be split.
     """
 
-    # generate the indices of the train and validation split for the given data
-    for i, splits in enumerate(crossfold_records(data, partitions=num_folds, rng_spec=random_state)):
-        fold_indices[i]['train'] = np.append(fold_indices[i]["train"], splits[0].index)
-        fold_indices[i]['validation'] = np.append(fold_indices[i]["validation"], splits[1].index)
-    return fold_indices
-
     splits = crossfold_records(data=data, partitions=num_folds, rng=random_state)
     return splits
 
