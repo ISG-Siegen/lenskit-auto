@@ -6,6 +6,7 @@ from lenskit.batch import predict
 from lenskit import batch
 from lenskit.data import Dataset
 from lenskit.metrics import RunAnalysis
+from lenskit.splitting import TTSplit
 import logging
 
 from lenskit.pipeline import predict_pipeline
@@ -110,33 +111,52 @@ class ImplicitEvaler:
         # get model form configuration space
         model = get_model_from_cs(config_space, feedback='implicit')
 
-        # iterate over validation folds
-        for fold in range(self.split_folds):
-            # get validation split by index
-            if self.validation is None:
-                validation_train = self.val_fold_indices[fold].train
-                validation_test = self.val_fold_indices[fold].test
-            else:
+        if self.validation is None:
+            for fold in self.val_fold_indices:
+                validation_train = fold.train
+                validation_test = fold.test
+
+                pipeline = predict_pipeline(scorer=model)
+                fit_pipeline = pipeline.clone()
+                fit_pipeline.train(validation_train)
+
+                recs = predict(fit_pipeline, validation_test)
+
+                # create rec list analysis
+                rla = RunAnalysis()
+                rla.add_metric(self.optimization_metric)
+
+                # compute scores
+                scores = rla.measure(recs, validation_test)
+
+                # store data
+                validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
+                # the first (index 0) column should contain the means for the metrics (rows)
+                metric_scores = np.append(metric_scores, scores.list_summary()[self.optimization_metric.__name__].iloc[0])
+        else:
+            for fold in range(self.split_folds):
                 validation_train = self.train
                 validation_test = self.validation
 
-            pipeline = predict_pipeline(scorer=model)
-            fit_pipeline = pipeline.clone()
-            fit_pipeline.train(validation_train)
+                pipeline = predict_pipeline(scorer=model)
+                fit_pipeline = pipeline.clone()
+                fit_pipeline.train(validation_train)
 
-            recs = predict(fit_pipeline, validation_test.keys())
+                recs = predict(fit_pipeline, validation_test)
 
-            # create rec list analysis
-            rla = RunAnalysis()
-            rla.add_metric(self.optimization_metric)
+                # create rec list analysis
+                rla = RunAnalysis()
+                rla.add_metric(self.optimization_metric)
 
-            # compute scores
-            scores = rla.measure(recs, validation_test)
+                # compute scores
+                scores = rla.measure(recs, validation_test)
 
-            # store data
-            validation_data = pd.concat([validation_data, recs], axis=0)
-            # the first (index 0) column should contain the means for the metrics (rows)
-            metric_scores = np.append(metric_scores, scores.list_summary()[self.optimization_metric.__name].iloc[0])
+                # store data
+                validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
+                # the first (index 0) column should contain the means for the metrics (rows)
+                metric_scores = np.append(metric_scores,
+                scores.list_summary()[self.optimization_metric.__name__].iloc[0])
+
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,

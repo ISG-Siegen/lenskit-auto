@@ -86,7 +86,7 @@ class ExplicitEvaler:
                                                       frac=self.split_frac,
                                                       random_state=self.random_state)
         else:
-            self.train_test_splits = iter([TTSplit(train, validation)])
+            self.train_test_splits = None
 
     def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
@@ -112,54 +112,40 @@ class ExplicitEvaler:
         # get model from configuration space
         model = get_model_from_cs(config_space, feedback='explicit')
 
-        '''
-        # loop over validation folds
-        for fold in range(self.split_folds):
-            if self.validation is None:
-                # get validation split by fold index
-                validation_train = self.train.loc[self.train_test_splits[fold]["train"], :]
-                validation_test = self.train.loc[self.train_test_splits[fold]["validation"], :]
-            else:
+        if self.validation is None:
+            for fold in self.train_test_splits:
+                validation_train = self.train_test_splits.train
+                validation_test = self.train_test_splits.test
+
+                pipeline = predict_pipeline(scorer=model)
+                fit_pipeline = pipeline.clone()
+                fit_pipeline.train(data=validation_train)
+
+                recs = predict(fit_pipeline, validation_test)
+
+                run_analysis = RunAnalysis()
+                run_analysis.add_metric(self.optimization_metric)
+                error_results = run_analysis.measure(recs, validation_test)
+
+                error_metric = np.append(error_metric, error_results)
+                validation_data = pd.concat([validation_data, recs], ignore_index=True)
+        else:
+            for fold in range(self.split_folds):
                 validation_train = self.train
                 validation_test = self.validation
 
-            # split validation data into X and y
-            x_validation_test = validation_test.copy()
-            y_validation_test = validation_test.copy()
+                pipeline = predict_pipeline(scorer=model)
+                fit_pipeline = pipeline.clone()
+                fit_pipeline.train(data=validation_train)
 
-            # process validation split
-            x_validation_test = x_validation_test.drop('rating', inplace=False, axis=1)
-            y_validation_test = y_validation_test[['rating']].iloc[:, 0]
+                recs = predict(fit_pipeline, validation_test)
 
+                run_analysis = RunAnalysis()
+                run_analysis.add_metric(self.optimization_metric)
+                error_results = run_analysis.measure(recs, validation_test)
 
-            # fit and predict model from configuration
-            model.fit(validation_train)
-            predictions = model.predict(x_validation_test)
-            predictions.index = x_validation_test.index
-
-            # calculate error_metric and append to numpy array
-            error_metric = np.append(error_metric,
-                                     self.optimization_metric(predictions, y_validation_test, missing='ignore'))
-
-            validation_data = pd.concat([validation_data, predictions], axis=0)
-            '''
-
-        for fold in self.train_test_splits:
-            validation_train = fold.train
-            validation_test = fold.test
-
-            pipeline = predict_pipeline(scorer=model)
-            fit_pipeline = pipeline.clone()
-            fit_pipeline.train(data=validation_train)
-
-            recs = predict(fit_pipeline, validation_test.keys())
-
-            run_analysis = RunAnalysis()
-            run_analysis.add_metric(self.optimization_metric)
-            error_results = run_analysis.measure(recs, validation_test)
-
-            error_metric = np.append(error_metric, error_results)
-            validation_data = pd.concat([validation_data, recs], ignore_index=True)
+                error_metric = np.append(error_metric, error_results)
+                validation_data = pd.concat([validation_data, recs], ignore_index=True)
 
         # Save validation data for reproducibility and ensembling
         self.top_n_runs = update_top_n_runs(config_space=config_space,
