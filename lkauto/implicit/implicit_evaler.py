@@ -153,17 +153,9 @@ class ImplicitEvaler:
 
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
-                # the first (index 0) column should contain the means for the metrics (rows)
-                print("====Hier kommen die scores====")
-                print(scores.list_summary())
-                print(scores.list_summary().index)
-                print("====Das waren die scores====")
                 metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
 
 
-        print("====Hier kommt die Config====")
-        print(config_space)
-        print("====Das war die Config====")
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
                                          predictions=validation_data,

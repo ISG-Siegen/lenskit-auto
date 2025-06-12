@@ -62,7 +62,6 @@ class Filer:
         self.__check_if_folder_structure_exist(output_path)
         data_path = os.path.join(self.output_directory_path, output_path, '{}.json'.format(name))
 
-        print("In save_dictionary_to_json")
         temp_dic = {}
         for key, value in dictionary.items():
             if isinstance(value, np.bool):
