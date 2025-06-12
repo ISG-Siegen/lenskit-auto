@@ -132,7 +132,7 @@ class ImplicitEvaler:
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 # the first (index 0) column should contain the means for the metrics (rows)
-                metric_scores = np.append(metric_scores, scores.list_summary()[self.optimization_metric.__name__].iloc[0])
+                metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
         else:
             for fold in range(self.split_folds):
                 validation_train = self.train
@@ -154,8 +154,11 @@ class ImplicitEvaler:
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 # the first (index 0) column should contain the means for the metrics (rows)
-                metric_scores = np.append(metric_scores,
-                scores.list_summary()[self.optimization_metric.__name__].iloc[0])
+                print("====Hier kommen die scores====")
+                print(scores.list_summary())
+                print(scores.list_summary().index)
+                print("====Das waren die scores====")
+                metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
 
 
         # save validation data
@@ -167,7 +170,7 @@ class ImplicitEvaler:
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         # the first (index 0) column should contain the means for the metrics (rows)
-        validation_error = scores.list_summary()[self.optimization_metric.__name__].iloc[0]
+        validation_error = scores.list_summary()[self.optimization_metric].iloc[0]
 
         self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
                          self.optimization_metric.__name__ + '@{}'.format(self.num_recommendations) + ': '
