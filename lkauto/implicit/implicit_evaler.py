@@ -161,6 +161,9 @@ class ImplicitEvaler:
                 metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
 
 
+        print("====Hier kommt die Config====")
+        print(config_space)
+        print("====Das war die Config====")
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
                                          predictions=validation_data,
@@ -170,7 +173,7 @@ class ImplicitEvaler:
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         # the first (index 0) column should contain the means for the metrics (rows)
-        validation_error = scores.list_summary()[self.optimization_metric].iloc[0]
+        validation_error = scores.list_summary().loc[self.optimization_metric.__name__, "mean"] - 1
 
         self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
                          self.optimization_metric.__name__ + '@{}'.format(self.num_recommendations) + ': '

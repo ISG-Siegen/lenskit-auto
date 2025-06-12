@@ -62,8 +62,19 @@ class Filer:
         self.__check_if_folder_structure_exist(output_path)
         data_path = os.path.join(self.output_directory_path, output_path, '{}.json'.format(name))
 
+        print("In save_dictionary_to_json")
+        temp_dic = {}
+        for key, value in dictionary.items():
+            if isinstance(value, np.bool):
+                if value:
+                    temp_dic[key] = True
+                else:
+                    temp_dic[key] = False
+            else:
+                temp_dic[key] = value
+
         with open(data_path, 'w') as f:
-            json.dump(dictionary, f)
+            json.dump(temp_dic, f)
 
     def save_metric_scores_to_txt(self, metric_scores: np.array, output_path: str, name: str) -> None:
         self.__check_if_folder_structure_exist(output_path=output_path)
@@ -90,7 +101,19 @@ class Filer:
 
     def get_dict_from_json_file(self, path_to_file: str) -> dict:
         with open(os.path.join(self.get_output_directory_path(), path_to_file)) as f:
-            dictionary = json.load(f)
+            temp_dic = json.load(f)
+
+        dictionary = {}
+
+        for key, value in temp_dic.items():
+            if isinstance(value, bool):
+                if value:
+                    dictionary[key] = True
+                else:
+                    dictionary[key] = False
+            else:
+                dictionary[key] = value
+
         return dictionary
 
     def get_numpy_array_from_txt_file(self, path_to_file: str) -> np.array:
