@@ -128,17 +128,28 @@ based on data rows or user data. For the rating prediction example we are splitt
 Top-N ranking predicion example showcases the data-split based on user data.
 
 ```python
-from lenskit.metrics.predict import rmse
-from lenskit.crossfold import sample_rows
+from lenskit.metrics import RMSE, RunAnalysis
+from lenskit.splitting import sample_records
+from lenskit.data import load_movielens
+from lenskit.pipeline import predict_pipeline
+from lenskit.batch import predict
 from lkauto.lkauto import get_best_prediction_model
 
-train_split, test_split = sample_rows(ratings, None, 25000)
+ml100k = load_movielens(path)
+tt_split = sample_records(ml100k, 1000)
+train_split = tt_split.train
+test_split = tt_split.test
 
 # Fixme: INSERT SCENARIO CODE HERE
 
-model.fit(train_split)
-predictions = model.predict(test_split)
-root_mean_square_error = rmse(predictions, test_split['rating'])
+pipeline = predict_pipeline(model)
+pipeline.train(train_split)
+recs = predict(pipeline, test_split)
+
+rla = RunAnalysis()
+rla.add_metric(RMSE)
+scores = rla.measure(recs, test_split)
+print("Scores:\n", scores)
 ```
 
 #### Scenario 1
@@ -171,12 +182,12 @@ from lkauto.algorithms.item_knn import ItemItem
 
 # initialize ItemItem ConfigurationSpace
 cs = ItemItem.get_default_configspace()
-cs.add_hyperparameters([Constant("algo", "ItemItem")])
+cs.add(Constant(name="algo", value="ItemItem"))
 # set a random seed for reproducible results
 cs.seed(42)
 
-# Provide the ItemItem ConfigurationSpace to the get_best_recommender_model function. 
-model, config = get_best_recommender_model(train=train_split, filer=filer, cs=cs)
+# Provide the ItemItem ConfigurationSpace to the get_best_recommender_model function.
+model, config = get_best_recommender_model(train_split, test_split, cs=cs)
 ```
 
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
@@ -196,14 +207,14 @@ First, a parent-ConfigurationSpace needs to be initialized. All algorithm names 
 parent-ConfigurationSpace categorical *algo* hyperparameter.
 
 ```python
-from ConfigSpace import ConfigurationSpace, Categorical
+from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter
 
 # initialize ItemItem ConfigurationSpace
 parent_cs = ConfigurationSpace()
 # set a random seed for reproducible results
 parent_cs.seed(42)
 # add algorithm names as a constant
-parent_cs.add_hyperparameters([Categorical("algo", ["ItemItem", "UserUser"])])
+parent_cs.add([CategoricalHyperparameter("algo", ["ItemItem", "UserUser"])])
 ```
 
 Afterward, we need to build the *ItemItem* and *UserUser* sub-ConfigurationSpace.
@@ -238,7 +249,7 @@ min_sim = Float('min_sim', bounds=(0, 0.1), default=0)
 
 # Then, we initialize the sub-ConfigurationSpace and add the hyperparameters to it
 user_user_cs = ConfigurationSpace()
-user_user_cs.add_hyperparameters([nnbrs, min_nbrs, min_sim])
+user_user_cs.add([nnbrs, min_nbrs, min_sim])
 
 # Last, we add the user_user_cs to the parent-ConfigurationSpace 
 
