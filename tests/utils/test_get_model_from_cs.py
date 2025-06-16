@@ -14,7 +14,7 @@ class TestGetModelFromCS(unittest.TestCase):
 
     def test_getModelFromCS_givenInvalidFeedback_valueErrorThrown(self):
         with self.assertRaises(ValueError) as cm:
-            get_model_from_cs(cs=self.cs, fallback_model=self.fallback_model, random_state=self.random_state,
+            get_model_from_cs(cs=self.cs, random_state=self.random_state,
                               feedback="")
         self.assertEqual("Unknown feedback type: ", cm.exception.args[0])
 
@@ -23,7 +23,7 @@ class TestGetModelFromCS(unittest.TestCase):
         self.cs.items.return_value = [('algo', 'alg'), ('alg:attr1', 'val1'), ('alg:attr2', 'val2')]
 
         with self.assertRaises(ValueError) as cm:
-            get_model_from_cs(cs=self.cs, fallback_model=self.fallback_model, random_state=self.random_state,
+            get_model_from_cs(cs=self.cs, random_state=self.random_state,
                               feedback="implicit")
         self.assertEqual("Unknown algorithm: alg", cm.exception.args[0])
 
@@ -48,7 +48,7 @@ class TestGetModelFromCS(unittest.TestCase):
                 with patch('lkauto.utils.get_model_from_cs.{}'.format(
                     algorithm_params[0] if algorithm_params[0] != 'ALSBiasedMF' else 'BiasedMF'),
                     return_value=algorithm_mock):
-                    result = get_model_from_cs(cs=self.cs, fallback_model=self.fallback_model,
+                    result = get_model_from_cs(cs=self.cs,
                                                random_state=self.random_state,
                                                feedback="implicit")
 
