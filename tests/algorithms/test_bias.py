@@ -14,7 +14,7 @@ class TestBias(unittest.TestCase):
         number_item = 10
         number_user = 100
         cs = Bias.get_default_configspace(number_item=number_item, number_user=number_user)
-        params = cs.get_hyperparameters()
+        params = list(cs.values())
         self.assertIsInstance(cs, CS.ConfigurationSpace)
         self.assertTrue(any(
             param.name == "item_damping" and param.default_value == 0.025 and param.lower == 1e-4 and param.upper == 850
