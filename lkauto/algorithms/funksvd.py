@@ -5,6 +5,8 @@ from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, Unifor
 class FunkSVD(FunkSVDScorer):
     def __init__(self, features, **kwargs):
         super().__init__(features=features, **kwargs)
+        # store feature as an instance variable so we can acces it (for testing)
+        self.features = features
 
     @staticmethod
     def get_default_configspace(**kwargs):
