@@ -10,18 +10,18 @@ setup(
     name="lkauto",
     version="0.1.1",
     author="Tobias Vente",
-    python_requires=">=3.8, <=3.9",
+    python_requires=">=3.12, <3.13",
     packages=find_packages(),
     install_requires=[
-        "smac~=2.3",
-        "matplotlib~=3.6",
-        "lenskit>=0.14.2",
-        "numpy>2.2",
-        "tables~=3.8",
-        "typing~=3.5"
-    ],
+        "smac>=2.3.1",
+        "matplotlib>=3.6",
+        "lenskit>=2025.2.0",
+        "numpy=2.2.5",
+        "tables>=3.8",
+        "typing-extensions>=4.13.2"
+    ], ### TODO: update the extra requirements ###
     extras_require={
-        "doc": ["nbsphinx==0.8.9", "sphinx-rtd-theme==1.*", "numpy==1.21.6", "Jinja2<3.1"],
+        "doc": ["nbsphinx==0.8.9", "sphinx-rtd-theme==1.*", "numpy==2.2.5", "Jinja2<3.1"],
         "test": ["pytest>=6.2.5", "pytest-cov>=2.12.1"],
     },
     entry_points={},
