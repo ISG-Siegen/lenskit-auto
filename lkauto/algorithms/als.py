@@ -5,6 +5,7 @@ from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, Unifor
 class ImplicitMF(ImplicitMFScorer):
     def __init__(self, features, **kwargs):
         super().__init__(features=features, **kwargs)
+        self.features = features  # store the features as an instance variable for testing
 
     @staticmethod
     def get_default_configspace(**kwargs):
@@ -23,6 +24,7 @@ class ImplicitMF(ImplicitMFScorer):
 class BiasedMF(BiasedMFScorer):
     def __init__(self, features, **kwargs):
         super().__init__(features=features, **kwargs)
+        self.features = features # store the features as an instance variable for testing
 
     @staticmethod
     def get_default_configspace(**kwargs):
@@ -41,7 +43,7 @@ class BiasedMF(BiasedMFScorer):
         """
         #features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default value given
         # no default value given but we set the default value to 1000???
-        features = UniformIntegerHyperparameter('features', lower=5, upper=10000, default_value=1000, log=True)
+        features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=1000, log=True)
         """
         The authors of the original ALS paper set the range of the regularization hyperparameter to from 0.03 - 0.065.
         https://link.springer.com/chapter/10.1007/978-3-540-68880-8_32
