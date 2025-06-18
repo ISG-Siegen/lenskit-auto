@@ -4,14 +4,18 @@ from ConfigSpace import ConfigurationSpace
 
 
 class ItemItem(ItemKNNScorer):
-    def __init__(self, max_nbrs, min_nbrs=1, min_sim=1e-6, save_nbrs=None, feedback='explicit', block_size=250, **kwargs):
+    def __init__(self, max_nbrs, min_nbrs=1, min_sim=1e-6, **kwargs):
+        # store the parameters as instance variables so we can access them (for testing)
+        self.max_nbrs = max_nbrs
+        self.min_nbrs = min_nbrs
+        self.min_sim = min_sim
+
+        
+        # create the configuration object and pass it to the parntt class
         config = ItemKNNConfig(
             max_nbrs=max_nbrs,
             min_nbrs=min_nbrs,
             min_sim=min_sim,
-            save_nbrs=save_nbrs,
-            feedback=feedback,
-            block_size=block_size
         )
         super().__init__(config=config, **kwargs)
 
