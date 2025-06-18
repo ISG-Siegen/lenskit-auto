@@ -7,16 +7,16 @@ from lkauto.algorithms.svd import BiasedSVD
 
 class TestSVD(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
-        features = 10
-        svd = BiasedSVD(features)
-        self.assertIsInstance(svd, BiasedSVD)
-        self.assertEqual(features, svd.factorization.n_components)
+        expected_features = 10
+        biased_svd = BiasedSVD(expected_features)
+        self.assertIsInstance(biased_svd, BiasedSVD)
+        self.assertEqual(expected_features, biased_svd.features)
 
     def test_defaultConfigspace_GivenFunctionCalled_correctConfigSpaceReturnedExpected(self):
         number_item_list = [1500, 100000]
         for number_item in number_item_list:
             cs = BiasedSVD.get_default_configspace(number_item=number_item)
-            params = cs.get_hyperparameters()
+            params = list(cs.values())
             with self.subTest(number_item=number_item):
                 self.assertIsInstance(cs, CS.ConfigurationSpace)
                 if number_item < 10000:
