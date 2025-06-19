@@ -18,7 +18,8 @@ setup(
         "lenskit>=2025.2.0",
         "numpy=2.2.5",
         "tables>=3.8",
-        "typing-extensions>=4.13.2"
+        "typing-extensions>=4.13.2",
+        "numba >= 0.61.2"
     ], ### TODO: update the extra requirements ###
     extras_require={
         "doc": ["nbsphinx==0.8.9", "sphinx-rtd-theme==1.*", "numpy==2.2.5", "Jinja2<3.1"],

@@ -32,7 +32,8 @@ dependencies = [
     "lenskit>=2025.2.0",
     "numpy>=2.2.5",
     "tables>=3.8",
-    "typing-extensions>=4.13.2"
+    "typing-extensions>=4.13.2",
+    "numba >= 0.61.2"
 ]
 
 
