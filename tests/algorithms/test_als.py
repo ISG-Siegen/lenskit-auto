@@ -14,6 +14,7 @@ class TestImplicitMF(unittest.TestCase):
 
     def test_defaultConfigspace_GivenFunctionCalled_correctConfigSpaceReturnedExpected(self):
         cs = ImplicitMF.get_default_configspace()
+        params = list(cs.values())
         self.assertIsInstance(cs, CS.ConfigurationSpace)
         self.assertTrue(any(
             param.name == "features" and param.default_value == 1000 and param.lower == 5 and param.upper == 10000 for
