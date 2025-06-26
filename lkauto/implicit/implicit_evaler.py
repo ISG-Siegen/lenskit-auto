@@ -24,20 +24,20 @@ class ImplicitEvaler:
 
             Attributes
             ----------
-            train : pd.DataFrame
-                pandas dataset containing the train split.
+            train : Dataset
+                lenskit Dataset containing the train split.
             optimization_metric: function
                 LensKit top-n metric used to evaluate the model
             filer : Filer
-                filer to organize the output.
-            validation : pd.DataFrame
-                pandas dataset containing the validation split.
+                Filer to organize the output.
+            validation : ItemListCollection
+                ItemListCollection containing the validation split.
              random_state :
                  The random number generator or seed (see :py:func:`lenskit.util.rng`).
             split_folds :
                 The number of folds of the validation split
             split_strategy :
-                The strategie used to split the data. Possible values are 'user_based' and 'row_based'
+                The strategy used to split the data. Possible values are 'user_based' and 'row_based'
             split_frac :
                 The fraction of the data used for the validation split. If the split_folds value is greater than 1,
                 this value is ignored.

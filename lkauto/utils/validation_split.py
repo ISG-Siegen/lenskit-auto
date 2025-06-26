@@ -20,7 +20,7 @@ def validation_split(data: Dataset, strategy: str = 'user_based', num_folds: int
     data : Dataset
         Lenskit Dataset with the data to be split.
     strategy : str
-        cross validation strategy (user_based or row_based)
+        cross validation strategy (either "user_based" or "row_based")
     num_folds : int
         number of folds for the validation split cross validation
     frac : float

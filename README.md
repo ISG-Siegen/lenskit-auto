@@ -95,30 +95,32 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
 
 ```python
-import lenskit.crossfold as xf
 from lenskit.batch import recommend
-from lenskit import topn
+from lenskit.splitting import crossfold_users, SampleN
+from lenskit.metrics import RunAnalysis, NDCG
+from lenskit.pipeline import topn_pipeline
 from lkauto.lkauto import get_best_recommender_model
 
 # User based data-split
-for i, tp in enumerate(xf.partition_users(ratings, 1, xf.SampleN(5))):
-    train_split = tp.train.copy()
-    test_split = tp.test.copy()
-
-    # Fixme: INSERT SCENARIO CODE HERE
-
+for split in crossfold_users(ml100k, 2, SampleN(5)):
+    train_split = split.train
+    test_split = split.test
+    
+    # Fixme: INSERT SECENARIO CODE HERE
+    
+    # create pipeline
+    pipeline = topn_pipeline(model)
     # fit
-    model.fit(train_split)
-    # recommend
-    recs = recommend(algo=model, users=test_split['user'].unique(), n=5, n_jobs=1)
+    pipeline.train(train_split)
+    #recommend
+    recs = recommend(pipeline, test_split)
 
-    # initialize RecListAnalysis
-    rla = topn.RecListAnalysis()
-    # add precision metric
-    rla.add_metric(topn.ndcg)
+    # create run analysis
+    rla = RunAnalysis()
+    rla.add_metric(NDCG)
+    scores = rla.measure(recs, test_split)
 
-    # compute scores
-    scores = rla.compute(recs, test_split, include_missing=True)
+    print("Scores:\n", scores)
 ```
 
 ### Rating Prediction
@@ -130,12 +132,10 @@ Top-N ranking predicion example showcases the data-split based on user data.
 ```python
 from lenskit.metrics import RMSE, RunAnalysis
 from lenskit.splitting import sample_records
-from lenskit.data import load_movielens
 from lenskit.pipeline import predict_pipeline
 from lenskit.batch import predict
 from lkauto.lkauto import get_best_prediction_model
 
-ml100k = load_movielens(path)
 tt_split = sample_records(ml100k, 1000)
 train_split = tt_split.train
 test_split = tt_split.test

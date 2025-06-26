@@ -26,20 +26,20 @@ class ExplicitEvaler:
 
         Attributes
         ----------
-        train : pd.DataFrame
-            pandas dataset containing the train split.
+        train : Dataset
+            lenskit dataset containing the train split.
         optimization_metric: function
             LensKit prediction accuracy metric used to evaluate the model (either rmse or mae)
         filer : Filer
-            filer to organize the output.
-        validation : pd.DataFrame
-            pandas dataset containing the validation split.
+            Filer to organize the output.
+        validation : ItemListCollection
+            An ItemListCollection containing the validation split.
         random_state :
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         split_folds :
             The number of folds of the validation split
-        split_strategie :
-            The strategie used to split the data. Possible values are 'user_based' and 'row_based'
+        split_strategy :
+            The strategy used to split the data (either "user_based" or "row_based")
         split_frac :
             The fraction of the data used for the validation split. If the split_folds value is greater than 1,
             this value is ignored.
@@ -61,7 +61,7 @@ class ExplicitEvaler:
                  validation: ItemListCollection = None,
                  random_state=42,
                  split_folds: int = 1,
-                 split_strategie: str = 'user_based',
+                 split_strategy: str = 'user_based',
                  split_frac: float = 0.25,
                  ensemble_size: int = 50,
                  minimize_error_metric_val: bool = True,
@@ -73,7 +73,7 @@ class ExplicitEvaler:
         self.random_state = random_state
         self.split_folds = split_folds
         self.optimization_metric = optimization_metric
-        self.split_strategie = split_strategie
+        self.split_strategy = split_strategy
         self.split_frac = split_frac
         self.minimize_error_metric_val = minimize_error_metric_val
         self.run_id = 0
@@ -81,7 +81,7 @@ class ExplicitEvaler:
         self.top_n_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
         if self.validation is None:
             self.train_test_splits = validation_split(data=self.train,
-                                                      strategy=self.split_strategie,
+                                                      strategy=self.split_strategy,
                                                       num_folds=self.split_folds,
                                                       frac=self.split_frac,
                                                       random_state=self.random_state)
