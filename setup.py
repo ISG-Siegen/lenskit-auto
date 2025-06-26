@@ -14,16 +14,18 @@ setup(
     packages=find_packages(),
     install_requires=[
         "smac>=2.3.1",
-        "matplotlib>=3.6",
         "lenskit>=2025.2.0",
-        "numpy=2.2.5",
-        "tables>=3.8",
+        "numpy>=2.2.6",
+        "pandas>=2.2.3",
+        "scikit-learn>=1.6.1",
+        "scipy>=1.15.3",
+        "numba>=0.61.2",
         "typing-extensions>=4.13.2",
-        "numba >= 0.61.2"
-    ], ### TODO: update the extra requirements ###
+        "matplotlib>=3.10.3",
+    ],
     extras_require={
-        "doc": ["nbsphinx==0.8.9", "sphinx-rtd-theme==1.*", "numpy==2.2.5", "Jinja2<3.1"],
-        "test": ["pytest>=6.2.5", "pytest-cov>=2.12.1"],
+        "test": ["pytest>=8.4.1", "pytest-cov>=6.2.1"],
+        "doc": ["sphinx>=4.2", "sphinx-rtd-theme>=1.0.0", "nbsphinx>=0.8.9"],
     },
     entry_points={},
     description=SHORT_DESCRIPTION,
