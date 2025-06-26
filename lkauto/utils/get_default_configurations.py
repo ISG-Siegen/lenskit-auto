@@ -16,6 +16,7 @@ def get_default_configurations(config_space: ConfigurationSpace) -> List[Configu
     Returns
     -------
     List[Configuration]
+        List of default configurations for all algorithms in the configuration space
     """
 
     # get all algorithms in the configuration space
