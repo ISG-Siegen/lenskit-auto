@@ -3,8 +3,8 @@ from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, Unifor
 
 
 class ImplicitMF(ImplicitMFScorer):
-    def __init__(self, features, **kwargs):
-        super().__init__(features=features, **kwargs)
+    def __init__(self, features, feedback="implicit", **kwargs):
+        super().__init__(feedback=feedback, features=features, **kwargs)
         self.features = features  # store the features as an instance variable for testing
 
     @staticmethod
@@ -22,8 +22,9 @@ class ImplicitMF(ImplicitMFScorer):
 
 
 class BiasedMF(BiasedMFScorer):
-    def __init__(self, features, **kwargs):
+    def __init__(self, features, feedback="explicit", **kwargs):
         super().__init__(features=features, **kwargs)
+        self.feedback = feedback
         self.features = features # store the features as an instance variable for testing
 
     @staticmethod

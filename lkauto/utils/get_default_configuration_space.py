@@ -25,22 +25,27 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
 
         Parameters
         ----------
-        data: pd.DataFrame
-            data to use
+        data: Union[Dataset, Iterator[TTSplit]]
+            data to use (either a Dataset or a Train-Test-Pair)
         val_fold_indices
             validation fold indices
-        validation: pd.DataFrame
+        validation: Iterator[TTSplit]
             validation data (provided by user)
         feedback : str
-            feedback type, either 'explicit' or 'implicit'
+            feedback type (either 'explicit' or 'implicit')
         random_state: int
             random state to use
+
+        Returns
+        ------
+        ConfigurationSpace
+            The default configuration space
     """
 
     if feedback == 'explicit':
         algo_list = ['ItemItem', 'UserUser', 'FunkSVD', 'BiasedSVD', 'ALSBiasedMF', 'Bias']
     elif feedback == 'implicit':
-        algo_list = ['ItemItem', 'FunkSVD', 'UserUser', 'ImplicitMF', 'BiasedSVD']
+        algo_list = ['ItemItem', 'UserUser', 'ImplicitMF',]
     else:
         raise ValueError("Unknown feedback type: {}".format(feedback))
 

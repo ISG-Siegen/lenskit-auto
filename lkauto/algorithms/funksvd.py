@@ -3,9 +3,10 @@ from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, Unifor
 
 
 class FunkSVD(FunkSVDScorer):
-    def __init__(self, features, **kwargs):
+    def __init__(self, features, feedback="explicit", **kwargs):
         super().__init__(features=features, **kwargs)
         # store feature as an instance variable so we can acces it (for testing)
+        self.feedback = feedback
         self.features = features
 
     @staticmethod
@@ -25,7 +26,7 @@ class FunkSVD(FunkSVDScorer):
         Therefore, the pip install -e .loatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001)
 
         """
-        lrate = UniformFloatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001) 
+        lrate = UniformFloatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001)
         """
         The authors of the original FunkSVD paper (https://sifter.org/~simon/journal/20061211.html) stated:
         The point here is to try to cut down on over fitting, ultimately allowing us to use

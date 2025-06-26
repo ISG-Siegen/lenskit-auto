@@ -49,7 +49,7 @@ class TestGetDefaultConfigurationSpace(unittest.TestCase):
     @patch('lkauto.utils.get_default_configuration_space.BiasedSVD', model_mock)
     @patch('lkauto.utils.get_default_configuration_space.ImplicitMF', model_mock)
     def test_getDefaultConfigurationSpace_GivenImplicitAndValidInputs_CorrectConfigSpaceReturnedExpected(self):
-        algorithm_list_string = 'ItemItem, FunkSVD, UserUser, ImplicitMF, BiasedSVD'
+        algorithm_list_string = 'ItemItem, UserUser, ImplicitMF'
 
         result = get_default_configuration_space(feedback='implicit', data=self.ds,
                                                  val_fold_indices=self.val_fold_indices,

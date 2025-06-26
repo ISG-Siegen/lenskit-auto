@@ -3,9 +3,10 @@ from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, Unifor
 
 
 class BiasedSVD(BiasedSVDScorer):
-    def __init__(self, features, **kwargs):
+    def __init__(self, features, feedback="explicit", **kwargs):
         super().__init__(features=features, **kwargs)
-        self.features = features  # Store features as an instance variable for testing 
+        self.feedback = feedback
+        self.features = features  # Store features as an instance variable for testing
 
     @staticmethod
     def get_default_configspace(number_item: int, **kwargs):

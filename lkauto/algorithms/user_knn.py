@@ -4,13 +4,15 @@ from ConfigSpace import ConfigurationSpace
 
 
 class UserUser(UserKNNScorer):
-    def __init__(self, max_nbrs, min_nbrs=1, min_sim=1e-6, **kwargs):
+    def __init__(self, max_nbrs, min_nbrs=1, min_sim=1e-6, feedback="implicit", **kwargs):
         # store the parameters as an instance variables so we can acces it (for testing)
+        self.feedback = feedback
         self.max_nbrs = max_nbrs
         self.min_nbrs = min_nbrs
         self.min_sim = min_sim
-        
+
         config= UserKNNConfig(
+            feedback=feedback,
             max_nbrs=max_nbrs,
             min_nbrs=min_nbrs,
             min_sim=min_sim,

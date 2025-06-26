@@ -3,8 +3,10 @@ from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 
 
 class Bias(BiasScorer):
-    def __init__(self, **kwargs):
+    def __init__(self, feedback="explicit", **kwargs):
         super().__init__(**kwargs)
+
+        self.feedback = feedback
 
     @staticmethod
     def get_default_configspace(number_item: int, number_user: int):
@@ -24,5 +26,5 @@ class Bias(BiasScorer):
 
         cs = ConfigurationSpace()
         cs.add([item_damping, user_damping])
-        
+
         return cs

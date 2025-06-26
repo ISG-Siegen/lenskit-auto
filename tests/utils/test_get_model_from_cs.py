@@ -2,6 +2,12 @@ import unittest
 import uuid
 from unittest.mock import MagicMock, patch
 
+from lenskit.als import ImplicitMFScorer, BiasedMFScorer
+from lenskit.basic import BiasScorer
+from lenskit.funksvd import FunkSVDScorer
+from lenskit.knn import UserKNNScorer, ItemKNNScorer
+from lenskit.sklearn.svd import BiasedSVDScorer
+
 from lkauto.utils.get_model_from_cs import get_model_from_cs
 
 
@@ -29,13 +35,9 @@ class TestGetModelFromCS(unittest.TestCase):
 
     def test_getModelFromCS_givenImplicitAndValidInputs_correctModelReturnedExpected(self):
         algorithm_params_list = [
-            ('ItemKNNScorer', [('algo', 'ItemKNNScorer'), ('ItemKNNScorer:attr1', 'val1')]),
-            ('UserKNNScorer', [('algo', 'UserKNNScorer'), ('UserKNNScorer:attr1', 'val1')]),
-            ('FunkSVDScorer', [('algo', 'FunkSVDScorer'), ('FunkSVDScorer:attr1', 'val1')]),
-            ('BiasedSVDScorer', [('algo', 'BiasedSVDScorer'), ('BiasedSVDScorer:attr1', 'val1')]),
-            ('BiasedMFScorer', [('algo', 'BiasedMFScorer'), ('BiasedMFScorer:ureg', 1), ('BiasedMFScorer:ireg', 2)]),
-            ('BiasScorer',[('algo', 'BiasScorer'), ('BiasScorer:user_damping', 'val1'), ('BiasScorer:item_damping', 'val2')]),
-            ('ImplicitMFScorer',[('algo', 'ImplicitMFScorer'), ('ImplicitMFScorer:ureg', 0.15), ('ImplicitMFScorer:ireg', 0.15)])]
+            ('ItemItem', [('algo', 'ItemItem'), ('ItemItem:attr1', 'val1')], ItemKNNScorer),
+            ('UserUser', [('algo', 'UserUser'), ('UserUser:attr1', 'val1')], UserKNNScorer),
+            ('ImplicitMF',[('algo', 'ImplicitMF'), ('ImplicitMF:ureg', 0.15), ('ImplicitMFScorer:ireg', 0.15)], ImplicitMFScorer)]
 
         for algorithm_params in algorithm_params_list:
             with self.subTest(algorithm=algorithm_params[0]):
@@ -45,24 +47,22 @@ class TestGetModelFromCS(unittest.TestCase):
                 algorithm_mock_test_id = uuid.uuid4()
                 algorithm_mock.test_id = algorithm_mock_test_id
 
-                with patch('lkauto.utils.get_model_from_cs.{}'.format(
-                    algorithm_params[0] if algorithm_params[0] != 'ALSBiasedMF' else 'BiasedMF'),
-                    return_value=algorithm_mock):
-                    result = get_model_from_cs(cs=self.cs,
-                                               random_state=self.random_state,
-                                               feedback="implicit")
 
-                self.assertEqual(algorithm_mock_test_id, result.test_id)
+                result = get_model_from_cs(cs=self.cs, random_state=self.random_state, feedback="implicit")
+
+                if algorithm_params[0] != "ImplicitMF":
+                    self.assertEqual("implicit", result.config.feedback)
+                self.assertEqual(algorithm_params[-1], type(result))
 
     def test_getModelFromCS_givenExplicitAndValidInputs_correctModelReturnedExpected(self):
         algorithm_params_list = [
-            ('ItemKNNScorer', [('algo', 'ItemKNNScorer'), ('ItemKNNScorer:attr1', 'val1')]),
-            ('UserKNNScorer', [('algo', 'UserKNNScorer'), ('UserKNNScorer:attr1', 'val1')]),
-            ('FunkSVDScorer', [('algo', 'FunkSVDScorer'), ('FunkSVDScorer:attr1', 'val1')]),
-            ('BiasedSVDScorer', [('algo', 'BiasedSVDScorer'), ('BiasedSVDScorer:attr1', 'val1')]),
-            ('BiasedMFScorer', [('algo', 'BiasedMFScorer'), ('BiasedMFScorer:ureg', 1), ('BiasedMFScorer:ireg', 2)]),
-            ('BiasScorer', [('algo', 'BiasScorer'), ('BiasScorer:user_damping', 'val1'), ('BiasScorer:item_damping', 'val2')]),
-            ('ImplicitMFScorer', [('algo', 'ImplicitMFScorer'), ('ImplicitMFScorer:ureg', 0.15), ('ImplicitMFScorer:ireg', 0.15)])]
+            ('ItemItem', [('algo', 'ItemItem'), ('ItemItem:attr1', 'val1')], ItemKNNScorer),
+            ('UserUser', [('algo', 'UserUser'), ('UserUser:attr1', 'val1')], UserKNNScorer),
+            ('FunkSVD', [('algo', 'FunkSVD'), ('FunkSVD:attr1', 'val1')], FunkSVDScorer),
+            ('BiasedSVD', [('algo', 'BiasedSVD'), ('BiasedSVD:attr1', 'val1')], BiasedSVDScorer),
+            ('ALSBiasedMF', [('algo', 'ALSBiasedMF'), ('ALSBiasedMF:ureg', 1), ('BiasedMFScorer:ireg', 2)], BiasedMFScorer),
+            ('Bias', [('algo', 'Bias'), ('Bias:user_damping', 'val1'), ('BiasScorer:item_damping', 'val2')], BiasScorer)
+        ]
 
         for algorithm_params in algorithm_params_list:
             with self.subTest(algorithm=algorithm_params[0]):
@@ -72,6 +72,11 @@ class TestGetModelFromCS(unittest.TestCase):
                 algorithm_mock_test_id = uuid.uuid4()
                 algorithm_mock.test_id = algorithm_mock_test_id
 
+                result = get_model_from_cs(cs=self.cs, random_state=self.random_state, feedback="explicit")
+
+                self.assertEqual(algorithm_params[-1], type(result))
+
+                '''
                 with patch('lkauto.utils.get_model_from_cs.{}'.format(
                     algorithm_params[0] if algorithm_params[0] != 'ALSBiasedMF' else 'BiasedMF'),
                     return_value=algorithm_mock):
@@ -80,6 +85,7 @@ class TestGetModelFromCS(unittest.TestCase):
                                                feedback="explicit")
 
                 self.assertEqual(algorithm_mock_test_id, result.test_id)
+                '''
 
 
 if __name__ == '__main__':
