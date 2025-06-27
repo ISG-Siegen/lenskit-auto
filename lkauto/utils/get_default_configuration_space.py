@@ -1,5 +1,3 @@
-import pandas as pd
-
 from typing import Iterator, Union
 from ConfigSpace import Categorical
 from ConfigSpace import ConfigurationSpace
@@ -17,7 +15,7 @@ from lkauto.algorithms.user_knn import UserUser
 
 def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
                                     feedback: str,
-                                    val_fold_indices = None,
+                                    val_fold_indices=None,
                                     validation: Iterator[TTSplit] = None,
                                     random_state=42) -> ConfigurationSpace:
     """

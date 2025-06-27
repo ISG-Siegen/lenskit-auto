@@ -3,12 +3,10 @@ import logging
 import numpy as np
 import pandas as pd
 
-from typing import Iterator, Union
 from lenskit.data import Dataset, ItemListCollection
-from lenskit.pipeline import predict_pipeline, topn_pipeline
+from lenskit.pipeline import predict_pipeline
 from lenskit.batch import predict
 from lenskit.metrics import RunAnalysis
-from lenskit.splitting import TTSplit
 from ConfigSpace import ConfigurationSpace
 
 from lkauto.utils.filer import Filer

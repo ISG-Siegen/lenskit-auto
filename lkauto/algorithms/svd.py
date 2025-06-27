@@ -23,7 +23,7 @@ class BiasedSVD(BiasedSVDScorer):
         if n_items < 10000:
             features = UniformIntegerHyperparameter('features', lower=2, upper=n_items, default_value=n_items-1, log=True)
         else:
-            #features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
+            # features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default values given
             features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=1000, log=True)
         damping = UniformFloatHyperparameter('damping', lower=0.0001, upper=1000, default_value=5, log=True)
 

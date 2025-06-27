@@ -11,7 +11,7 @@ class UserUser(UserKNNScorer):
         self.min_nbrs = min_nbrs
         self.min_sim = min_sim
 
-        config= UserKNNConfig(
+        config = UserKNNConfig(
             feedback=feedback,
             max_nbrs=max_nbrs,
             min_nbrs=min_nbrs,

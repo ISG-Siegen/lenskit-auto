@@ -3,10 +3,8 @@ import pandas as pd
 from ConfigSpace import ConfigurationSpace
 
 from lenskit.batch import predict
-from lenskit import batch
 from lenskit.data import Dataset
 from lenskit.metrics import RunAnalysis
-from lenskit.splitting import TTSplit
 import logging
 
 from lenskit.pipeline import predict_pipeline
@@ -154,7 +152,6 @@ class ImplicitEvaler:
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
-
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,

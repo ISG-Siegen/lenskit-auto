@@ -14,7 +14,6 @@ from lenskit.data import Dataset, ItemListCollection
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.filer import Filer
-from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
 from typing import Tuple

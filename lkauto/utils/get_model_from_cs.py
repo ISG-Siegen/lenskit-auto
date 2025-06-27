@@ -4,20 +4,18 @@ from ConfigSpace import ConfigurationSpace
 
 from lenskit.als import BiasedMFScorer
 from lenskit.als import ImplicitMFScorer
-#fallback missing
 from lenskit.basic import BiasScorer
 from lenskit.funksvd import FunkSVDScorer
 from lenskit.knn import ItemKNNScorer
 from lenskit.sklearn.svd import BiasedSVDScorer
 from lenskit.knn import UserKNNScorer
 # from lenskit.scored import Scorer
-from lenskit.pipeline import Component
 
 
 def get_model_from_cs(cs: ConfigurationSpace,
                       feedback: str,
                       # fallback_model=Bias(),
-                      random_state: int = 42) ->Union[
+                      random_state: int = 42) -> Union[
                           ItemKNNScorer,
                           UserKNNScorer,
                           FunkSVDScorer,

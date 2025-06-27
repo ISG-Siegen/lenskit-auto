@@ -1,11 +1,5 @@
 from typing import Iterator
 
-import pandas as pd
-
-import numpy as np
-# from lenskit.crossfold import partition_rows
-from lenskit.splitting import crossfold_records
-
 from lenskit.splitting import crossfold_records, crossfold_users, sample_records, SampleFrac, TTSplit
 from lenskit.data import Dataset
 
@@ -71,8 +65,7 @@ def row_based_validation_split(data: Dataset, num_folds: int = 1, frac: float = 
         return __row_based_k_fold_validation_split(data=data, num_folds=num_folds, random_state=random_state)
 
 
-def user_based_validation_split(data: Dataset, num_folds: int = 1, frac: float = 0.25, random_state=42) -> Iterator[
-    TTSplit]:
+def user_based_validation_split(data: Dataset, num_folds: int = 1, frac: float = 0.25, random_state=42) -> Iterator[TTSplit]:
     """
     Parameters
     ----------
@@ -96,7 +89,6 @@ def user_based_validation_split(data: Dataset, num_folds: int = 1, frac: float =
         return __holdout_validation_split(data=data, frac=frac, random_state=random_state)
     else:
         return __user_based_crossfold_validation_split(data=data, num_folds=num_folds)
-
 
 
 def __holdout_validation_split(data: Dataset, frac: float, random_state=42):
@@ -139,8 +131,6 @@ def __row_based_k_fold_validation_split(data: Dataset, num_folds: int, random_st
 
     splits = crossfold_records(data=data, partitions=num_folds, rng=random_state)
     return splits
-
-
 
 
 def __user_based_crossfold_validation_split(data: Dataset, num_folds) -> Iterator[TTSplit]:

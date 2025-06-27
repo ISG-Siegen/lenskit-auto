@@ -1,7 +1,8 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 
-SHORT_DESCRIPTION = """LensKit-Auto is built as a wrapper around the Python LensKit recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble models based on the LensKit models."""
+SHORT_DESCRIPTION = """LensKit-Auto is built as a wrapper around the Python LensKit recommender-system library.
+                    It automates algorithm selection and hyper parameter optimization an can build ensemble models based on the LensKit models."""
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()

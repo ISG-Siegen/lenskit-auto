@@ -12,7 +12,7 @@ class ImplicitMF(ImplicitMFScorer):
         """
               return default configurationspace
         """
-        features = UniformIntegerHyperparameter('features', lower=5, upper=10000, default_value= 1000, log=True)
+        features = UniformIntegerHyperparameter('features', lower=5, upper=10000, default_value=1000, log=True)
         ureg = UniformFloatHyperparameter('ureg', lower=0.01, upper=0.1, default_value=0.1, log=True)
         ireg = UniformFloatHyperparameter('ireg', lower=0.01, upper=0.1, default_value=0.1, log=True)
 
@@ -25,7 +25,7 @@ class BiasedMF(BiasedMFScorer):
     def __init__(self, features, feedback="explicit", **kwargs):
         super().__init__(features=features, **kwargs)
         self.feedback = feedback
-        self.features = features # store the features as an instance variable for testing
+        self.features = features  # store the features as an instance variable for testing
 
     @staticmethod
     def get_default_configspace(**kwargs):
@@ -42,7 +42,7 @@ class BiasedMF(BiasedMFScorer):
         Since the authors just evaluated on one larger dataset, we still allow smaller and larger feature numbers
         but set the default value to 1000.
         """
-        #features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default value given
+        # features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default value given
         # no default value given but we set the default value to 1000???
         features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=1000, log=True)
         """
@@ -54,7 +54,6 @@ class BiasedMF(BiasedMFScorer):
         """
         ureg = UniformFloatHyperparameter('ureg', lower=0.01, upper=0.1, default_value=0.1, log=True)
         ireg = UniformFloatHyperparameter('ireg', lower=0.01, upper=0.1, default_value=0.1, log=True)
-
 
         """
         The damping hyperparameter en- or disables a damping factor.

@@ -11,7 +11,6 @@ class ItemItem(ItemKNNScorer):
         self.min_nbrs = min_nbrs
         self.min_sim = min_sim
 
-
         # create the configuration object and pass it to the parntt class
         config = ItemKNNConfig(
             feedback=feedback,

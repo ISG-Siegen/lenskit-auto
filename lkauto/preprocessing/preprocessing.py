@@ -1,11 +1,11 @@
 import logging
 
-import pandas as pd
 from lkauto.preprocessing.pruning import min_ratings_per_user, max_ratings_per_user
 from lenskit.data import Dataset
 from lenskit.data import from_interactions_df
 
-def preprocess_data(data: Dataset, #data: pd.DataFrame
+
+def preprocess_data(data: Dataset,
                     user_col: str,
                     item_col: str,
                     rating_col: str = None,
@@ -56,7 +56,7 @@ def preprocess_data(data: Dataset, #data: pd.DataFrame
     logger.info('--Start Preprocessing--')
 
     data = data.interaction_table(format='pandas')
-    original_cols = data.columns.tolist()
+    # original_cols = data.columns.tolist()
     # print(original_cols)
 
     # rename columns
