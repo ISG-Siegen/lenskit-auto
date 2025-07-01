@@ -20,17 +20,35 @@ LensKit-Auto is currently developed and tested only on Linux systems.
 ## Install
 
 Lenskit-Auto requires at least Python 3.12. 
-Optionally, a conda environment can be created with
+You can set up your environment in two ways:
+1. using the provided `environment.yml`.
+2. Using `setup.py`
+
+## 1. Using `environment.yml` (Conda)
+This method creates a conda environment withh all dependencies including their versions.
+
 ```bash
-conda create -n <env-name> python=3.12  # create environment
-conda activate <env-name>               # activate environment
+# Create the environment
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate lkauto-env
 ```
-Download Lenskit-Auto and navigate to the root of the project. 
-Here, execute the command
+
+# 2. Using `setup.py` (pip)
+
+This method works in any Python 3.12+ environment (e.g. conda, venv).
+
 ```bash
+# Create and activate a new environment
+conda create -n lkauto-env python=3.12
+conda activate lkauto-env
+# or use python -m venv venv_name && source venv_name/bin/activate
+
+# Install the package and all dependencies
 pip install .
 ```
-to install the required packages from the setup.py file.
+# 
 
 ## Getting Started
 
