@@ -19,16 +19,18 @@ LensKit-Auto is currently developed and tested only on Linux systems.
 
 ## Install
 
-### Pip Install:
-
+Lenskit-Auto requires at least Python 3.12. 
+Optionally, a conda environment can be created with
 ```bash
-pip install lkauto
+conda create -n <env-name> python=3.12  # create environment
+conda activate <env-name>               # activate environment
 ```
-
-### Conda Install
-
-1. Create conda environment
-2. Follow the Pip Install subchapter to install lenskit-auto in your conda environment
+Download Lenskit-Auto and navigate to the root of the project. 
+Here, execute the command
+```bash
+pip install .
+```
+to install the required packages from the setup.py file.
 
 ## Getting Started
 
@@ -72,13 +74,12 @@ Note: All application scenarios apply to Top-N ranking prediction and rating pre
   of algorithms and/or different hyperparameter ranges for the provided dataset.
 
 In order to take advantage of LensKit-Auto, a developer needs to read in a dataset.
+The ``load_movielens()`` function can be used to load a MovieLens dataset for example.
 
 ```python
-from lenskit.datasets import ML100K
+from lenskit.data import load_movielens
 
-ml100k = ML100K('path_to_file')
-ratings = ml100k.ratings
-ratings.name = 'ml_100k'
+ml100k = load_movielens('path_to_file')
 ```
 
 Furthermore, it is suggested, that we take advantage of the Filer to control the LensKit-Auto output
