@@ -35,7 +35,7 @@ conda env create -f environment.yml
 conda activate lkauto-env
 ```
 
-# 2. Using `setup.py` (pip)
+## 2. Using `setup.py` (pip)
 
 This method works in any Python 3.12+ environment (e.g. conda, venv).
 
@@ -48,7 +48,36 @@ conda activate lkauto-env
 # Install the package and all dependencies
 pip install .
 ```
-# 
+# Note:
+For now, after using one of these methods, you need to set the PYTHONPATH to your project root to run the scripts, since lkauto is not pip installable yet:
+
+## Option A: Using PYTHONPATH
+```bash
+export PYTHONPATH=/path/to/your/lenskit-auto
+```
+
+## Option B: Using .env file (for VSCode)
+create a `.env` file in your project root and add the following path inside it:
+```bash
+export PYTHONPATH=/path/to/your/lenskit-auto
+```
+
+## Getting the path:
+clone our entire repo under a folder named `lenskit-auto`
+```bash
+git clone https://github.com/ISG-Siegen/lenskit-auto.git
+```
+
+navigate to the project directory:
+```bash
+cd lenskit-auto
+```
+
+checkout to the updated branch `update_lkauto`
+```bash
+git checkout update_lkauto
+```
+
 
 ## Getting Started
 
