@@ -4,6 +4,8 @@ import time
 
 from ConfigSpace import ConfigurationSpace, Configuration
 
+from lenskit.data import Dataset, ItemListCollection
+
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.get_default_configurations import get_default_configurations
@@ -15,11 +17,11 @@ import logging
 
 
 def random_search(cs: ConfigurationSpace,
-                  train: pd.DataFrame,
+                  train: Dataset,
                   user_feedback: str,
                   optimization_metric,
                   filer: Filer,
-                  validation: pd.DataFrame = None,
+                  validation: ItemListCollection = None,
                   time_limit_in_sec: int = 3600,
                   num_evaluations: int = None,
                   split_folds: int = 1,
@@ -95,7 +97,7 @@ def random_search(cs: ConfigurationSpace,
                                 validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
-                                split_strategie=split_strategie,
+                                split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 ensemble_size=ensemble_size,
                                 minimize_error_metric_val=minimize_error_metric_val)
@@ -106,7 +108,7 @@ def random_search(cs: ConfigurationSpace,
                                 validation=validation,
                                 random_state=random_state,
                                 split_folds=split_folds,
-                                split_strategie=split_strategie,
+                                split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 num_recommendations=num_recommendations,
                                 minimize_error_metric_val=minimize_error_metric_val)
@@ -117,7 +119,7 @@ def random_search(cs: ConfigurationSpace,
     if cs is None:
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
-                                             val_fold_indices=evaler.val_fold_indices,
+                                             val_fold_indices=evaler.train_test_splits,
                                              validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)

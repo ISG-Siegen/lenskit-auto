@@ -19,16 +19,65 @@ LensKit-Auto is currently developed and tested only on Linux systems.
 
 ## Install
 
-### Pip Install:
+Lenskit-Auto requires at least Python 3.12. 
+You can set up your environment in two ways:
+1. using the provided `environment.yml`.
+2. Using `setup.py`
+
+## 1. Using `environment.yml` (Conda)
+This method creates a conda environment withh all dependencies including their versions.
 
 ```bash
-pip install lkauto
+# Create the environment
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate lkauto-env
 ```
 
-### Conda Install
+## 2. Using `setup.py` (pip)
 
-1. Create conda environment
-2. Follow the Pip Install subchapter to install lenskit-auto in your conda environment
+This method works in any Python 3.12+ environment (e.g. conda, venv).
+
+```bash
+# Create and activate a new environment
+conda create -n lkauto-env python=3.12
+conda activate lkauto-env
+# or use python -m venv venv_name && source venv_name/bin/activate
+
+# Install the package and all dependencies
+pip install .
+```
+# Note:
+For now, after using one of these methods, you need to set the PYTHONPATH to your project root to run the scripts, since lkauto is not pip installable yet:
+
+## Option A: Using PYTHONPATH
+```bash
+export PYTHONPATH=/path/to/your/lenskit-auto
+```
+
+## Option B: Using .env file (for VSCode)
+create a `.env` file in your project root and add the following path inside it:
+```bash
+export PYTHONPATH=/path/to/your/lenskit-auto
+```
+
+## Getting the path:
+clone our entire repo under a folder named `lenskit-auto`
+```bash
+git clone https://github.com/ISG-Siegen/lenskit-auto.git
+```
+
+navigate to the project directory:
+```bash
+cd lenskit-auto
+```
+
+checkout to the updated branch `update_lkauto`
+```bash
+git checkout update_lkauto
+```
+
 
 ## Getting Started
 
@@ -72,13 +121,12 @@ Note: All application scenarios apply to Top-N ranking prediction and rating pre
   of algorithms and/or different hyperparameter ranges for the provided dataset.
 
 In order to take advantage of LensKit-Auto, a developer needs to read in a dataset.
+The ``load_movielens()`` function can be used to load a MovieLens dataset for example.
 
 ```python
-from lenskit.datasets import ML100K
+from lenskit.data import load_movielens
 
-ml100k = ML100K('path_to_file')
-ratings = ml100k.ratings
-ratings.name = 'ml_100k'
+ml100k = load_movielens('path_to_file')
 ```
 
 Furthermore, it is suggested, that we take advantage of the Filer to control the LensKit-Auto output
@@ -95,30 +143,32 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
 
 ```python
-import lenskit.crossfold as xf
 from lenskit.batch import recommend
-from lenskit import topn
+from lenskit.splitting import crossfold_users, SampleN
+from lenskit.metrics import RunAnalysis, NDCG
+from lenskit.pipeline import topn_pipeline
 from lkauto.lkauto import get_best_recommender_model
 
 # User based data-split
-for i, tp in enumerate(xf.partition_users(ratings, 1, xf.SampleN(5))):
-    train_split = tp.train.copy()
-    test_split = tp.test.copy()
-
-    # Fixme: INSERT SCENARIO CODE HERE
-
+for split in crossfold_users(ml100k, 2, SampleN(5)):
+    train_split = split.train
+    test_split = split.test
+    
+    # Fixme: INSERT SECENARIO CODE HERE
+    
+    # create pipeline
+    pipeline = topn_pipeline(model)
     # fit
-    model.fit(train_split)
-    # recommend
-    recs = recommend(algo=model, users=test_split['user'].unique(), n=5, n_jobs=1)
+    pipeline.train(train_split)
+    #recommend
+    recs = recommend(pipeline, test_split)
 
-    # initialize RecListAnalysis
-    rla = topn.RecListAnalysis()
-    # add precision metric
-    rla.add_metric(topn.ndcg)
+    # create run analysis
+    rla = RunAnalysis()
+    rla.add_metric(NDCG)
+    scores = rla.measure(recs, test_split)
 
-    # compute scores
-    scores = rla.compute(recs, test_split, include_missing=True)
+    print("Scores:\n", scores)
 ```
 
 ### Rating Prediction
@@ -128,17 +178,26 @@ based on data rows or user data. For the rating prediction example we are splitt
 Top-N ranking predicion example showcases the data-split based on user data.
 
 ```python
-from lenskit.metrics.predict import rmse
-from lenskit.crossfold import sample_rows
+from lenskit.metrics import RMSE, RunAnalysis
+from lenskit.splitting import sample_records
+from lenskit.pipeline import predict_pipeline
+from lenskit.batch import predict
 from lkauto.lkauto import get_best_prediction_model
 
-train_split, test_split = sample_rows(ratings, None, 25000)
+tt_split = sample_records(ml100k, 1000)
+train_split = tt_split.train
+test_split = tt_split.test
 
 # Fixme: INSERT SCENARIO CODE HERE
 
-model.fit(train_split)
-predictions = model.predict(test_split)
-root_mean_square_error = rmse(predictions, test_split['rating'])
+pipeline = predict_pipeline(model)
+pipeline.train(train_split)
+recs = predict(pipeline, test_split)
+
+rla = RunAnalysis()
+rla.add_metric(RMSE)
+scores = rla.measure(recs, test_split)
+print("Scores:\n", scores)
 ```
 
 #### Scenario 1
@@ -171,12 +230,12 @@ from lkauto.algorithms.item_knn import ItemItem
 
 # initialize ItemItem ConfigurationSpace
 cs = ItemItem.get_default_configspace()
-cs.add_hyperparameters([Constant("algo", "ItemItem")])
+cs.add(Constant(name="algo", value="ItemItem"))
 # set a random seed for reproducible results
 cs.seed(42)
 
-# Provide the ItemItem ConfigurationSpace to the get_best_recommender_model function. 
-model, config = get_best_recommender_model(train=train_split, filer=filer, cs=cs)
+# Provide the ItemItem ConfigurationSpace to the get_best_recommender_model function.
+model, config = get_best_recommender_model(train_split, test_split, cs=cs)
 ```
 
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
@@ -196,14 +255,14 @@ First, a parent-ConfigurationSpace needs to be initialized. All algorithm names 
 parent-ConfigurationSpace categorical *algo* hyperparameter.
 
 ```python
-from ConfigSpace import ConfigurationSpace, Categorical
+from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter
 
 # initialize ItemItem ConfigurationSpace
 parent_cs = ConfigurationSpace()
 # set a random seed for reproducible results
 parent_cs.seed(42)
 # add algorithm names as a constant
-parent_cs.add_hyperparameters([Categorical("algo", ["ItemItem", "UserUser"])])
+parent_cs.add([CategoricalHyperparameter("algo", ["ItemItem", "UserUser"])])
 ```
 
 Afterward, we need to build the *ItemItem* and *UserUser* sub-ConfigurationSpace.
@@ -238,7 +297,7 @@ min_sim = Float('min_sim', bounds=(0, 0.1), default=0)
 
 # Then, we initialize the sub-ConfigurationSpace and add the hyperparameters to it
 user_user_cs = ConfigurationSpace()
-user_user_cs.add_hyperparameters([nnbrs, min_nbrs, min_sim])
+user_user_cs.add([nnbrs, min_nbrs, min_sim])
 
 # Last, we add the user_user_cs to the parent-ConfigurationSpace 
 

@@ -7,14 +7,14 @@ from lkauto.algorithms.funksvd import FunkSVD
 
 class TestFunkSVD(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
-        features = 10
+        features = 100
         funk_svd = FunkSVD(features)
         self.assertIsInstance(funk_svd, FunkSVD)
         self.assertEqual(features, funk_svd.features)
 
     def test_defaultConfigspace_GivenFunctionCalled_correctConfigSpaceReturnedExpected(self):
         cs = FunkSVD.get_default_configspace()
-        params = cs.get_hyperparameters()
+        params = list(cs.values())
         self.assertIsInstance(cs, CS.ConfigurationSpace)
         self.assertTrue(any(
             param.name == "features" and param.default_value == 1000 and param.lower == 2 and param.upper == 10000 for

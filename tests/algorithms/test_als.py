@@ -7,14 +7,14 @@ from lkauto.algorithms.als import ImplicitMF, BiasedMF
 
 class TestImplicitMF(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
-        features = 10
-        implicit_mf = ImplicitMF(features)
+        expected_features = 10
+        implicit_mf = ImplicitMF(expected_features)
         self.assertIsInstance(implicit_mf, ImplicitMF)
-        self.assertEqual(features, implicit_mf.features)
+        self.assertEqual(expected_features, implicit_mf.features)
 
     def test_defaultConfigspace_GivenFunctionCalled_correctConfigSpaceReturnedExpected(self):
         cs = ImplicitMF.get_default_configspace()
-        params = cs.get_hyperparameters()
+        params = list(cs.values())
         self.assertIsInstance(cs, CS.ConfigurationSpace)
         self.assertTrue(any(
             param.name == "features" and param.default_value == 1000 and param.lower == 5 and param.upper == 10000 for
@@ -29,14 +29,14 @@ class TestImplicitMF(unittest.TestCase):
 
 class TestBiasedMF(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
-        features = 10
-        biased_mf = BiasedMF(features)
+        expected_features = 10
+        biased_mf = BiasedMF(expected_features)
         self.assertIsInstance(biased_mf, BiasedMF)
-        self.assertEqual(features, biased_mf.features)
+        self.assertEqual(expected_features, biased_mf.features)
 
     def test_defaultConfigspace_GivenFunctionCalled_correctConfigSpaceReturnedExpected(self):
         cs = BiasedMF.get_default_configspace()
-        params = cs.get_hyperparameters()
+        params = list(cs.values())
         self.assertIsInstance(cs, CS.ConfigurationSpace)
         self.assertTrue(any(
             param.name == "features" and param.default_value == 1000 and param.lower == 2 and param.upper == 10000 for

@@ -1,7 +1,13 @@
+import logging
+
 import numpy as np
 import pandas as pd
+
+from lenskit.data import Dataset, ItemListCollection
+from lenskit.pipeline import predict_pipeline
+from lenskit.batch import predict
+from lenskit.metrics import RunAnalysis
 from ConfigSpace import ConfigurationSpace
-import logging
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
@@ -18,20 +24,20 @@ class ExplicitEvaler:
 
         Attributes
         ----------
-        train : pd.DataFrame
-            pandas dataset containing the train split.
+        train : Dataset
+            lenskit dataset containing the train split.
         optimization_metric: function
             LensKit prediction accuracy metric used to evaluate the model (either rmse or mae)
         filer : Filer
-            filer to organize the output.
-        validation : pd.DataFrame
-            pandas dataset containing the validation split.
+            Filer to organize the output.
+        validation : ItemListCollection
+            An ItemListCollection containing the validation split.
         random_state :
             The random number generator or seed (see :py:func:`lenskit.util.rng`).
         split_folds :
             The number of folds of the validation split
-        split_strategie :
-            The strategie used to split the data. Possible values are 'user_based' and 'row_based'
+        split_strategy :
+            The strategy used to split the data (either "user_based" or "row_based")
         split_frac :
             The fraction of the data used for the validation split. If the split_folds value is greater than 1,
             this value is ignored.
@@ -47,13 +53,13 @@ class ExplicitEvaler:
     """
 
     def __init__(self,
-                 train: pd.DataFrame,
+                 train: Dataset,
                  optimization_metric,
                  filer: Filer,
-                 validation=None,
+                 validation: ItemListCollection = None,
                  random_state=42,
                  split_folds: int = 1,
-                 split_strategie: str = 'user_based',
+                 split_strategy: str = 'user_based',
                  split_frac: float = 0.25,
                  ensemble_size: int = 50,
                  minimize_error_metric_val: bool = True,
@@ -65,20 +71,20 @@ class ExplicitEvaler:
         self.random_state = random_state
         self.split_folds = split_folds
         self.optimization_metric = optimization_metric
-        self.split_strategie = split_strategie
+        self.split_strategy = split_strategy
         self.split_frac = split_frac
         self.minimize_error_metric_val = minimize_error_metric_val
         self.run_id = 0
         self.ensemble_size = ensemble_size
         self.top_n_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
         if self.validation is None:
-            self.val_fold_indices = validation_split(data=self.train,
-                                                     strategie=self.split_strategie,
-                                                     num_folds=self.split_folds,
-                                                     frac=self.split_frac,
-                                                     random_state=self.random_state)
+            self.train_test_splits = validation_split(data=self.train,
+                                                      strategy=self.split_strategy,
+                                                      num_folds=self.split_folds,
+                                                      frac=self.split_frac,
+                                                      random_state=self.random_state)
         else:
-            self.val_fold_indices = None
+            self.train_test_splits = None
 
     def evaluate(self, config_space: ConfigurationSpace) -> float:
         """ evaluates model defined in config_space
@@ -104,34 +110,40 @@ class ExplicitEvaler:
         # get model from configuration space
         model = get_model_from_cs(config_space, feedback='explicit')
 
-        # loop over validation folds
-        for fold in range(self.split_folds):
-            if self.validation is None:
-                # get validation split by fold index
-                validation_train = self.train.loc[self.val_fold_indices[fold]["train"], :]
-                validation_test = self.train.loc[self.val_fold_indices[fold]["validation"], :]
-            else:
+        if self.validation is None:
+            for fold in self.train_test_splits:
+                validation_train = self.train_test_splits.train
+                validation_test = self.train_test_splits.test
+
+                pipeline = predict_pipeline(scorer=model)
+                fit_pipeline = pipeline.clone()
+                fit_pipeline.train(data=validation_train)
+
+                recs = predict(fit_pipeline, validation_test)
+
+                run_analysis = RunAnalysis()
+                run_analysis.add_metric(self.optimization_metric)
+                error_results = run_analysis.measure(recs, validation_test)
+
+                error_metric = np.append(error_metric, error_results)
+                validation_data = pd.concat([validation_data, recs], ignore_index=True)
+        else:
+            for fold in range(self.split_folds):
                 validation_train = self.train
                 validation_test = self.validation
 
-            # split validation data into X and y
-            X_validation_test = validation_test.copy()
-            y_validation_test = validation_test.copy()
+                pipeline = predict_pipeline(scorer=model)
+                fit_pipeline = pipeline.clone()
+                fit_pipeline.train(data=validation_train)
 
-            # process validation split
-            X_validation_test = X_validation_test.drop('rating', inplace=False, axis=1)
-            y_validation_test = y_validation_test[['rating']].iloc[:, 0]
+                recs = predict(fit_pipeline, validation_test)
 
-            # fit and predict model from configuration
-            model.fit(validation_train)
-            predictions = model.predict(X_validation_test)
-            predictions.index = X_validation_test.index
+                run_analysis = RunAnalysis()
+                run_analysis.add_metric(self.optimization_metric)
+                error_results = run_analysis.measure(recs, validation_test)
 
-            # calculate error_metric and append to numpy array
-            error_metric = np.append(error_metric,
-                                     self.optimization_metric(predictions, y_validation_test, missing='ignore'))
-
-            validation_data = pd.concat([validation_data, predictions], axis=0)
+                error_metric = np.append(error_metric, error_results)
+                validation_data = pd.concat([validation_data, recs], ignore_index=True)
 
         # Save validation data for reproducibility and ensembling
         self.top_n_runs = update_top_n_runs(config_space=config_space,

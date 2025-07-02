@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 from ConfigSpace import ConfigurationSpace
 
@@ -11,18 +10,23 @@ from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
 from lkauto.utils.logging import get_logger
 
-from lenskit.metrics.predict import rmse
-from lenskit.metrics.topn import ndcg
-from lenskit.algorithms import Predictor
-from lenskit import Recommender
+# from lenskit.metrics.predict import rmse
+# from lenskit.metrics.topn import ndcg
+# from lenskit.algorithms import Predictor
+# from lenskit import Recommender
+
+from lenskit.metrics.predict import RMSE
+from lenskit.metrics import NDCG
+from lenskit.pipeline import Component
+from lenskit.data import Dataset, ItemListCollection
 
 from typing import Tuple
 
 
-def get_best_prediction_model(train: pd.DataFrame,
-                              validation: pd.DataFrame = None,
+def get_best_prediction_model(train: Dataset,
+                              validation: ItemListCollection = None,
                               cs: ConfigurationSpace = None,
-                              optimization_metric=rmse,
+                              optimization_metric=RMSE,
                               optimization_strategie: str = 'bayesian',
                               time_limit_in_sec: int = 2700,
                               num_evaluations: int = 500,
@@ -42,7 +46,7 @@ def get_best_prediction_model(train: pd.DataFrame,
                               timestamp_col: str = 'timestamp',
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
-                              filer: Filer = None) -> Tuple[Predictor, dict]:
+                              filer: Filer = None) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -162,7 +166,7 @@ def get_best_prediction_model(train: pd.DataFrame,
                     drop_na_values=drop_na_values,
                     drop_duplicates=drop_duplicates)
 
-    # decide which optimization strategie to use
+    # decide which optimization strategy to use
     if optimization_strategie == 'bayesian':
         incumbent, top_n_runs = bayesian_optimization(train=train,
                                                       cs=cs,
@@ -221,12 +225,12 @@ def get_best_prediction_model(train: pd.DataFrame,
     return model, incumbent
 
 
-def get_best_recommender_model(train: pd.DataFrame,
-                               validation: pd.DataFrame = None,
+def get_best_recommender_model(train: Dataset,
+                               validation: ItemListCollection = None,
                                cs: ConfigurationSpace = None,
-                               optimization_metric=ndcg,
+                               optimization_metric=NDCG,
                                optimization_strategie: str = 'bayesian',
-                               time_limit_in_sec: int = 2700,
+                               time_limit_in_sec: int = 60,
                                num_evaluations: int = 500,
                                random_state=None,
                                split_folds: int = 1,
@@ -244,7 +248,7 @@ def get_best_recommender_model(train: pd.DataFrame,
                                timestamp_col: str = 'timestamp',
                                include_timestamp: bool = True,
                                log_level: str = 'INFO',
-                               filer: Filer = None) -> Tuple[Recommender, dict]:
+                               filer: Filer = None) -> Tuple[Component, dict]:
     """
         returns the best Recommender found in the defined search time
 

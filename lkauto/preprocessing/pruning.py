@@ -1,13 +1,13 @@
-import pandas as pd
+from lenskit.data import Dataset, from_interactions_df
 
 
-def min_ratings_per_user(df: pd.DataFrame, num_ratings: int, count_duplicates: bool = False):
+def min_ratings_per_user(dataset: Dataset, num_ratings: int, count_duplicates: bool = False):
     """Prune users with less than num_ratings ratings
 
     Parameters
     ----------
-    df: pd.DataFrame
-        Dataframe with columns "user", "item", "rating"
+    dataset: Dataset
+        LensKit Dataset object containing user-item interactions with ratings
     num_ratings: int
         Minimum number of ratings per user
     count_duplicates: bool = False
@@ -15,45 +15,47 @@ def min_ratings_per_user(df: pd.DataFrame, num_ratings: int, count_duplicates: b
 
     Returns
     -------
-    pd.DataFrame
-        Dataframe with columns "user", "item", "rating"
+    Dataset
+        Filtered Dataset with only users meeting the minimum rating threshold
+        the Dataset will contain the columns "user_id", "item_id", "rating"
     """
-    # get all relevant user_ids
-    uids = (
-        df['user']
-        if count_duplicates
-        else df.drop_duplicates(['user', 'item'])['user']
-    )
-    cnt_items_per_user = uids.value_counts()
-    users_of_interest = list(cnt_items_per_user[cnt_items_per_user >= num_ratings].index)
+    # get the user statistics from the dataset
+    user_stats = dataset.user_stats()
+    if count_duplicates:
+        valid_users = user_stats[user_stats['count'] >= num_ratings].index  # count: total number of ratings (including duplicates)
+    else:
+        valid_users = user_stats[user_stats['item_count'] >= num_ratings].index  # item_count: number of unique items rated
+    # convert the interaction table to a pandas DataFrame and filter by valid users
+    users_of_interest = dataset.interaction_table(format='pandas', original_ids=True)
+    users_of_interest = users_of_interest[users_of_interest['user_id'].isin(valid_users)]
+    return from_interactions_df(users_of_interest)
 
-    return df[df['user'].isin(users_of_interest)]
 
-
-def max_ratings_per_user(df: pd.DataFrame, num_ratings: int, count_duplicates: bool = False):
+def max_ratings_per_user(dataset: Dataset, num_ratings: int, count_duplicates: bool = False):
     """Prune users with more than num_ratings ratings
 
     Parameters
     ----------
-    df: pd.DataFrame
-        Dataframe with columns "user", "item", "rating"
+    dataset: Dataset
+        LensKit Dataset object containing user-item interactions with ratings
     num_ratings: int
-        Minimum number of ratings per user
+        Maximum number of ratings per user
     count_duplicates: bool = False
         If True, all ratings are counted, otherwise only unique ratings are counted
 
     Returns
     -------
-    pd.DataFrame
-        Dataframe with columns "user", "item", "rating"
+    Dataset
+        Filtered Dataset with only users meeting the minimum rating threshold
+        the Dataset will contain the columns "user_id", "item_id", "rating"
     """
-    # get all relevant user_ids
-    uids = (
-        df['user']
-        if count_duplicates
-        else df.drop_duplicates(['user', 'item'])['user']
-    )
-    cnt_items_per_user = uids.value_counts()
-    users_of_interest = list(cnt_items_per_user[cnt_items_per_user <= num_ratings].index)
 
-    return df[df['user'].isin(users_of_interest)]
+    user_stats = dataset.user_stats()
+    if count_duplicates:
+        valid_users = user_stats[user_stats['count'] <= num_ratings].index  # count: total number of ratings (including duplicates)
+    else:
+        valid_users = user_stats[user_stats['item_count'] <= num_ratings].index  # item_count: number of unique items rated
+    # convert the interaction table to a pandas DataFrame and filter by valid users
+    users_of_interest = dataset.interaction_table(format='pandas', original_ids=True)
+    users_of_interest = users_of_interest[users_of_interest['user_id'].isin(valid_users)]
+    return from_interactions_df(users_of_interest)

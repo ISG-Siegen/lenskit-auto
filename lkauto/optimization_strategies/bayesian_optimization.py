@@ -1,21 +1,28 @@
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
-from smac.facade.smac_hpo_facade import SMAC4HPO
-from smac.scenario.scenario import Scenario
+
+# from smac.facade.smac_hpo_facade import SMAC4HPO
+# from smac.scenario.scenario import Scenario
+
+from smac import HyperparameterOptimizationFacade
+from smac.initial_design import RandomInitialDesign
+from smac.intensifier import Intensifier
+from smac.scenario import Scenario
+
+from lenskit.data import Dataset, ItemListCollection
 
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.filer import Filer
-from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
 from typing import Tuple
 import logging
 
 
-def bayesian_optimization(train: pd.DataFrame,
+def bayesian_optimization(train: Dataset,
                           user_feedback: str,
-                          validation: pd.DataFrame = None,
+                          validation: ItemListCollection = None,
                           cs: ConfigurationSpace = None,
                           optimization_metric=None,
                           time_limit_in_sec: int = 2700,
@@ -90,7 +97,7 @@ def bayesian_optimization(train: pd.DataFrame,
                                 filer=filer,
                                 random_state=random_state,
                                 split_folds=split_folds,
-                                split_strategie=split_strategie,
+                                split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 ensemble_size=ensemble_size,
                                 minimize_error_metric_val=minimize_error_metric_val)
@@ -101,7 +108,7 @@ def bayesian_optimization(train: pd.DataFrame,
                                 filer=filer,
                                 random_state=random_state,
                                 split_folds=split_folds,
-                                split_strategie=split_strategie,
+                                split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 num_recommendations=num_recommendations,
                                 minimize_error_metric_val=minimize_error_metric_val)
@@ -112,38 +119,31 @@ def bayesian_optimization(train: pd.DataFrame,
     if cs is None:
         logger.debug('initializing default ConfigurationSpace')
         cs = get_default_configuration_space(data=train,
-                                             val_fold_indices=evaler.val_fold_indices,
                                              validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)
 
-    # set initial configuraiton
-    initial_configuraition = get_default_configurations(cs)
+    # initial_configuraition = get_default_configurations(cs)
 
-    # define SMAC Scenario for algorithm selection and hyperparameter optimization
-    scenario = Scenario({
-        'run_obj': 'quality',
-        'wallclock_limit': time_limit_in_sec,
-        'ta_run_limit': num_evaluations,
-        'cs': cs,
-        'deterministic': True,
-        'abort_on_first_run_crash': False,
-        'output_dir': output_dir
-    })
+    scenario = Scenario(configspace=cs,
+                        deterministic=True,
+                        n_trials=num_evaluations,
+                        walltime_limit=time_limit_in_sec,
+                        output_directory=output_dir
+                        )
 
-    # define SMAC facade for combined algorithm selection and hyperparameter optimization
-    smac = SMAC4HPO(scenario=scenario,
-                    rng=random_state,
-                    tae_runner=evaler.evaluate,
-                    initial_configurations=initial_configuraition,
-                    initial_design=None)
+    def target_function(config, seed=0, budget=None, instance=None):
+        return evaler.evaluate(config)
 
-    try:
-        # start optimizing
-        smac.optimize()
-    finally:
-        # get best model configuration
-        incumbent = smac.solver.incumbent
+    smac = HyperparameterOptimizationFacade(
+        scenario=scenario,
+        target_function=target_function,
+        initial_design=RandomInitialDesign(scenario),
+        intensifier=Intensifier(scenario),
+        overwrite=True
+    )
+
+    incumbent = smac.optimize()
 
     logger.info('--End Bayesian Optimization--')
 

@@ -1,20 +1,22 @@
 import pandas as pd
 import numpy as np
+from lenskit.data import Dataset
+
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
 
 from lkauto.ensemble.greedy_ensemble_selection import EnsembleSelection
 
 
-def build_ensemble(train: pd.DataFrame,
+def build_ensemble(train: Dataset,
                    top_n_runs: pd.DataFrame,
                    filer: Filer,
                    ensemble_size: int,
                    lenskit_metric,
                    maximize_metric: bool):
     config_ids = top_n_runs.sort_values(by='error', ascending=True)['run_id']
-    ensemble_y = train['rating']
-    ensemble_X = []
+    ensemble_y = train.interaction_table(format="pandas")['rating']
+    ensemble_x = []
     val_indices = None
     bm_cs_list = []
 
@@ -32,12 +34,12 @@ def build_ensemble(train: pd.DataFrame,
         val_indices = bm_pred[list(bm_pred)[0]]
 
         # Append predictions to ensemble train X
-        ensemble_X.append(np.array(bm_pred[list(bm_pred)[1]]))
+        ensemble_x.append(np.array(bm_pred[list(bm_pred)[1]]))
 
     ensemble_y = np.array(ensemble_y.loc[val_indices])
 
     es = EnsembleSelection(ensemble_size=ensemble_size, lenskit_metric=lenskit_metric, maximize_metric=maximize_metric)
-    es.ensemble_fit(ensemble_X, ensemble_y)
+    es.ensemble_fit(ensemble_x, ensemble_y)
     es.base_models = [get_model_from_cs(cs, feedback='explicit') for cs, weight in zip(bm_cs_list, es.weights_) if weight > 0]
     es.old_to_new_idx = {old_i: new_i for new_i, old_i in enumerate([idx for idx, weight in enumerate(es.weights_) if weight > 0])}
 

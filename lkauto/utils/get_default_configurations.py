@@ -16,13 +16,16 @@ def get_default_configurations(config_space: ConfigurationSpace) -> List[Configu
     Returns
     -------
     List[Configuration]
+        List of default configurations for all algorithms in the configuration space
     """
 
     # get all algorithms in the configuration space
     if type(config_space.get('algo')) == Constant:
-        algorithms = [config_space.get('algo').value]
+        # algorithms = [config_space.get('algo').value]
+        algorithms = [config_space['algo'].value]
     else:
-        algorithms = config_space.get('algo').choices
+        # algorithms = config_space.get('algo').choices
+        algorithms = config_space["algo"].choices
     # initialize a list for default configurations for each algorithm
     initial_configuration_list = []
 

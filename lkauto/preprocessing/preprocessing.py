@@ -1,10 +1,11 @@
 import logging
 
-import pandas as pd
 from lkauto.preprocessing.pruning import min_ratings_per_user, max_ratings_per_user
+from lenskit.data import Dataset
+from lenskit.data import from_interactions_df
 
 
-def preprocess_data(data: pd.DataFrame,
+def preprocess_data(data: Dataset,
                     user_col: str,
                     item_col: str,
                     rating_col: str = None,
@@ -13,7 +14,7 @@ def preprocess_data(data: pd.DataFrame,
                     drop_na_values: bool = True,
                     drop_duplicates: bool = True,
                     min_interactions_per_user: int = None,
-                    max_interactions_per_user: int = None) -> pd.DataFrame:
+                    max_interactions_per_user: int = None) -> Dataset:
     """Preprocess data for LensKit
     This method can perform the following steps based on the user input:
     1. rename columns to "user", "item", "rating", "timestamp"
@@ -54,13 +55,17 @@ def preprocess_data(data: pd.DataFrame,
     logger = logging.getLogger('lenskit-auto')
     logger.info('--Start Preprocessing--')
 
+    data = data.interaction_table(format='pandas')
+    # original_cols = data.columns.tolist()
+    # print(original_cols)
+
     # rename columns
     if include_timestamp:
         if rating_col is None:
             data = data[[user_col, item_col, timestamp_col]]
             data.columns = ['user', 'item', 'timestamp']
         else:
-            data = data[[user_col, item_col, rating_col, timestamp_col]]
+            # data = data[[user_col, item_col, rating_col, timestamp_col]]
             data.columns = ['user', 'item', 'rating', 'timestamp']
     else:
         if rating_col is None:
@@ -92,4 +97,4 @@ def preprocess_data(data: pd.DataFrame,
 
     logger.info('--End Preprocessing--')
 
-    return data
+    return from_interactions_df(data)

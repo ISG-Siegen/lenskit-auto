@@ -1,10 +1,12 @@
-from lenskit.algorithms import bias
-from ConfigSpace import UniformFloatHyperparameter, ConfigurationSpace
+from lenskit.basic.bias import BiasScorer
+from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 
 
-class Bias(bias.Bias):
-    def __init__(self, **kwargs):
+class Bias(BiasScorer):
+    def __init__(self, feedback="explicit", **kwargs):
         super().__init__(**kwargs)
+
+        self.feedback = feedback
 
     @staticmethod
     def get_default_configspace(number_item: int, number_user: int):
@@ -23,6 +25,6 @@ class Bias(bias.Bias):
                                                   default_value=0.0025*number_user, log=True)
 
         cs = ConfigurationSpace()
-        cs.add_hyperparameters([item_damping, user_damping])
+        cs.add([item_damping, user_damping])
 
         return cs

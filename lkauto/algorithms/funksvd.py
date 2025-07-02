@@ -1,17 +1,20 @@
-from lenskit.algorithms import funksvd
-from ConfigSpace import Integer, Float, ConfigurationSpace
+from lenskit.funksvd import FunkSVDScorer
+from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, UniformFloatHyperparameter
 
 
-class FunkSVD(funksvd.FunkSVD):
-    def __init__(self, features, **kwargs):
+class FunkSVD(FunkSVDScorer):
+    def __init__(self, features, feedback="explicit", **kwargs):
         super().__init__(features=features, **kwargs)
+        # store feature as an instance variable so we can acces it (for testing)
+        self.feedback = feedback
+        self.features = features
 
     @staticmethod
     def get_default_configspace(**kwargs):
         """
                return default configurationspace
         """
-        features = Integer('features', bounds=(2, 10000), default=1000, log=True)
+        features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=1000, log=True)
 
         """
         The authors of the original FunkSVD paper (https://sifter.org/~simon/journal/20061211.html) stated:
@@ -20,11 +23,10 @@ class FunkSVD(funksvd.FunkSVD):
         current prediction.
         But the original dataset just evaluated the performance on the netflix price dataset. Other datasets
         perform well on ranges around 0.001.
-        Therefore, the default value is set to 0.0001 and the lower and upper bound are a close range around
-        the default value.
-        """
-        lrate = Float('lrate', bounds=(0.0001, 0.01), default=0.001)
+        Therefore, the pip install -e .loatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001)
 
+        """
+        lrate = UniformFloatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001)
         """
         The authors of the original FunkSVD paper (https://sifter.org/~simon/journal/20061211.html) stated:
         The point here is to try to cut down on over fitting, ultimately allowing us to use
@@ -32,11 +34,11 @@ class FunkSVD(funksvd.FunkSVD):
         pairs--if you can still call them that).
         The default value of 0.02 is considered for the range. The range is set to a close range around the 0.02 value.
         The default value is taken from the LensKit Library.
-        """
-        reg = Float('reg', bounds=(0.001, 0.1), default=0.015)
-        damping = Float('damping', bounds=(0.01, 1000), default=5, log=True)
+        """""
+        reg = UniformFloatHyperparameter('reg', lower=0.001, upper=0.1, default_value=0.015)
+        damping = UniformFloatHyperparameter('damping', lower=0.01, upper=1000, default_value=5, log=True)
 
         cs = ConfigurationSpace()
-        cs.add_hyperparameters([features, lrate, reg, damping])
+        cs.add([features, lrate, reg, damping])
 
         return cs
