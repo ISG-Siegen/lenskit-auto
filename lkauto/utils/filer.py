@@ -190,4 +190,3 @@ class Filer:
         output_path = Path(self.output_directory_path)
 
         pickle.dump(incumbent, open(output_path / file_name, 'wb'))
-
