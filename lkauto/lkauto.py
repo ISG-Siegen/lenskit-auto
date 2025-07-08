@@ -46,7 +46,8 @@ def get_best_prediction_model(train: Dataset,
                               timestamp_col: str = 'timestamp',
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
-                              filer: Filer = None) -> Tuple[Component, dict]:
+                              filer: Filer = None,
+                              save: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -219,6 +220,11 @@ def get_best_prediction_model(train: Dataset,
         logger.info('--Best Model--')
         logger.info(incumbent)
 
+    if save:
+        filer.save_model(model)
+        filer.save_incumbent(incumbent)
+        logger.info('Saved model and incumbent to ' + filer.output_directory_path)
+
     logger.info('---LensKit-Auto finished---')
 
     # return model and model configuration
@@ -248,7 +254,8 @@ def get_best_recommender_model(train: Dataset,
                                timestamp_col: str = 'timestamp',
                                include_timestamp: bool = True,
                                log_level: str = 'INFO',
-                               filer: Filer = None) -> Tuple[Component, dict]:
+                               filer: Filer = None,
+                               save: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Recommender found in the defined search time
 
@@ -316,6 +323,8 @@ def get_best_recommender_model(train: Dataset,
             log level to use.
         filer : Filer
             filer to manage LensKit-Auto output
+        save : bool
+            If set to True, the model and incumbent are saved as a pickle
 
         Returns
         -------
@@ -409,6 +418,11 @@ def get_best_recommender_model(train: Dataset,
 
     logger.info('--Best Model--')
     logger.info(incumbent)
+
+    if save:
+        filer.save_model(model)
+        filer.save_incumbent(incumbent)
+        logger.info('Saved model and incumbent to ' + filer.output_directory_path)
 
     logger.info('---LensKit-Auto finished---')
 
