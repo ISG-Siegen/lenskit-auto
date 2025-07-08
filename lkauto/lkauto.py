@@ -116,6 +116,8 @@ def get_best_prediction_model(train: Dataset,
             log level to use.
         filer : Filer
             filer to manage LensKit-Auto output
+        save : bool
+            If set to True, the model and incumbent are saved as a pickle
 
         Returns
         -------

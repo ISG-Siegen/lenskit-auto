@@ -159,6 +159,14 @@ class Filer:
         self.save_dataframe_as_csv(dataframe=predictions, output_path=output_path, name='predictions')
 
     def save_model(self, model):
+        """
+        Saves the model to the output directory specified by the filer
+
+        Parameters
+        ----------
+        model
+            The model to be saved
+        """
         model_name = model.__class__.__name__
         timestamp = pd.Timestamp.now().strftime('%Y%m%d-%H%M')
         file_name = model_name + "_" + timestamp + '.pkl'
@@ -168,6 +176,14 @@ class Filer:
         pickle.dump(model, open(output_path / file_name, 'wb'))
 
     def save_incumbent(self, incumbent):
+        """
+        Saves the incumbent to the output directory specified by the filer
+
+        Parameters
+        ----------
+        incumbent
+                    The incumbent to be saved
+        """
         timestamp = pd.Timestamp.now().strftime('%Y%m%d-%H%M')
         file_name = "incumbent +_" + timestamp + '.pkl'
 
