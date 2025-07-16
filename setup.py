@@ -8,8 +8,8 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="lkauto",
-    version="0.1.1",
+    name="lenskit-kauto",
+    version="0.2.0",
     author="Tobias Vente",
     python_requires=">=3.12, <3.13",
     packages=find_packages(),
