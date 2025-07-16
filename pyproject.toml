@@ -1,7 +1,7 @@
 ## TEMPLATE FILE - update this file based on the individual project!
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "lenskit-auto"
@@ -15,7 +15,7 @@ authors = [
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent",s
+    "Operating System :: OS Independent",
 ]
 readme = "README.md"
 license = { file = "LICENSE.md" }
