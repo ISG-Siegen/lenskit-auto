@@ -1,0 +1,12 @@
+# Include all files in tests/
+recursive-include tests *
+
+# Exclude specific directories and file patterns
+prune .github
+prune docs
+prune data
+prune examples
+prune build-tools
+prune lkbuild
+exclude *.ipynb
+exclude tasks.py
