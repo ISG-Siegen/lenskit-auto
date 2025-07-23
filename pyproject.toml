@@ -72,20 +72,6 @@ doc = [
     "sphinxcontrib-bibtex >= 2.0",
 ]
 
-# Configure Flit to include test sources, and exclude extra directories
-[tools.flit.sdist]
-include = ["tests/*"]
-exclude = [
-    ".github",
-    "*.ipynb",
-    "docs",
-    "data",
-    "examples",
-    "build-tools",
-    "lkbuild",
-    "tasks.py",
-]
-
 # We always use conda-forge for our documentation
 [tool.conda-lock]
 channels = [
