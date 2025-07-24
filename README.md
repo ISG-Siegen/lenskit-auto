@@ -13,7 +13,7 @@ LensKit-Auto is currently developed and tested only on Linux systems.
 
 ## Resources
 
-- Documentation: [LensKit-Auto Documenatation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
+- Documentation: [LensKit-Auto Documentation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
 - RecSys23 Demo: [RecSys23 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys23-Demo.html)
 - RecSys23 Demo Video: [RecSys23 Demo Video](https://youtu.be/OTZAb8E_IZI)
 
@@ -82,7 +82,7 @@ git checkout update_lkauto
 ## Getting Started
 
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
-recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
+recommender-system library. It automates algorithm selection and hyper parameter optimization and can build ensemble
 models based on LensKit models.
 
 
@@ -221,7 +221,7 @@ hyperparameter range. We can use the model in the exact same way like a regular 
 
 #### Scenario 2
 
-In Senario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
+In Scenario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
 custom configuration space with just a single algorithm included.
 
 ```python
