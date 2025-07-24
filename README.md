@@ -9,7 +9,7 @@ LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.read
 recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
 models based on the LensKit models.
 
-LensKit-Auto is currently developed and tested only on Linux systems. 
+> **Note:** LensKit-Auto is currently developed and tested only on Linux systems.
 
 ## Resources
 
@@ -17,66 +17,36 @@ LensKit-Auto is currently developed and tested only on Linux systems.
 - RecSys23 Demo: [RecSys23 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys23-Demo.html)
 - RecSys23 Demo Video: [RecSys23 Demo Video](https://youtu.be/OTZAb8E_IZI)
 
-## Install
+## Installation
 
-Lenskit-Auto requires at least Python 3.12. 
-You can set up your environment in two ways:
-1. using the provided `environment.yml`.
-2. Using `setup.py`
-
-## 1. Using `environment.yml` (Conda)
-This method creates a conda environment withh all dependencies including their versions.
+LensKit-Auto requires Python 3.12 or newer.  
+Install it and all dependencies with:
 
 ```bash
-# Create the environment
-conda env create -f environment.yml
-
-# Activate the environment
-conda activate lkauto-env
+pip install lenskit-auto
 ```
+## Recommended Environment Setup
 
-## 2. Using `setup.py` (pip)
+You can use either **conda** or Python’s built-in **venv**.
 
-This method works in any Python 3.12+ environment (e.g. conda, venv).
+### Using conda
 
 ```bash
-# Create and activate a new environment
-conda create -n lkauto-env python=3.12
-conda activate lkauto-env
-# or use python -m venv venv_name && source venv_name/bin/activate
-
-# Install the package and all dependencies
-pip install .
+conda create -n lenskit-auto python=3.12
+conda activate lenskit-auto-env
+pip install lenskit-auto
 ```
-# Note:
-For now, after using one of these methods, you need to set the PYTHONPATH to your project root to run the scripts, since lkauto is not pip installable yet:
 
-## Option A: Using PYTHONPATH
+
+### Using venv (built-in Python)
+
 ```bash
-export PYTHONPATH=/path/to/your/lenskit-auto
+python3 -m venv lenskit-auto-env
+source lenskit-auto-env/bin/activate
+pip install lenskit-auto
 ```
 
-## Option B: Using .env file (for VSCode)
-create a `.env` file in your project root and add the following path inside it:
-```bash
-export PYTHONPATH=/path/to/your/lenskit-auto
-```
-
-## Getting the path:
-clone our entire repo under a folder named `lenskit-auto`
-```bash
-git clone https://github.com/ISG-Siegen/lenskit-auto.git
-```
-
-navigate to the project directory:
-```bash
-cd lenskit-auto
-```
-
-checkout to the updated branch `update_lkauto`
-```bash
-git checkout update_lkauto
-```
+> **Tip:** You can replace `lenskit-auto-env` with any environment name you prefer.
 
 
 ## Getting Started
