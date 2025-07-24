@@ -28,7 +28,7 @@ setup(
         "test": ["pytest>=8.4.1", "pytest-cov>=6.2.1"],
         "doc": ["sphinx>=4.2", "sphinx-rtd-theme>=1.0.0", "nbsphinx>=0.8.9"],
     },
-    entry_points={},
+    # entry_points={},
     description=SHORT_DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/markdown",
