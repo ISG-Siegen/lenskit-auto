@@ -217,7 +217,7 @@ with tuned hyperparameters and a configuration dictionary that contains all info
 hyperparameter range. We can use the model in the exact same way like a regular LensKit model.
 
 Setting the `save` parameter to `True` enables lenskit-auto to save the trained model and configuration to the ouput
-directory specified by the `filer`. The default value of `save` is `True`, so tat we only have to set it to `False` if
+directory specified by the `filer`. The default value of `save` is `True`, so that we only have to set it to `False` if
 we do not want to save the model and configuration.
 
 #### Scenario 2
