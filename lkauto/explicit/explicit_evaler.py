@@ -48,6 +48,8 @@ class ExplicitEvaler:
         minimize_error_metric_val :
             If True, the error metric is minimized. If False, the error metric is maximized. This parameter needs to be
             set in corelation with the optimization metric.
+        predict_mode : bool
+            If set to true, indicates that a prediction model should be created, a recommender model otherwise
 
         Methods
         ----------

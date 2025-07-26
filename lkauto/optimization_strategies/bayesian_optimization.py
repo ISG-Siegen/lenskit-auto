@@ -60,6 +60,8 @@ def bayesian_optimization(train: Dataset,
             LensKit prediction accuracy metric to optimize for.
         minimize_error_metric_val : bool
             Bool that decides if the error metric should be minimized or maximized.
+        predict_mode : bool
+            If set to true, indicates that a prediction model should be created, a recommender model otherwise
         user_feedback : str
             Defines if the dataset contains explicit or implicit feedback.
         random_state: int
