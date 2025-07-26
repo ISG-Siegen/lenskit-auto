@@ -171,22 +171,23 @@ def get_best_prediction_model(train: Dataset,
 
     # decide which optimization strategy to use
     if optimization_strategie == 'bayesian':
-        incumbent, top_n_runs = bayesian_optimization(train=train,
-                                                      cs=cs,
-                                                      user_feedback='explicit',
-                                                      validation=validation,
-                                                      optimization_metric=optimization_metric,
-                                                      time_limit_in_sec=time_limit_in_sec,
-                                                      num_evaluations=num_evaluations,
-                                                      random_state=random_state,
-                                                      split_folds=split_folds,
-                                                      split_frac=split_frac,
-                                                      split_strategie=split_strategie,
-                                                      ensemble_size=ensemble_size,
-                                                      minimize_error_metric_val=minimize_error_metric_val,
-                                                      filer=filer)
+        incumbent, model, top_n_runs = bayesian_optimization(train=train,
+                                                             cs=cs,
+                                                             user_feedback='explicit',
+                                                             validation=validation,
+                                                             optimization_metric=optimization_metric,
+                                                             time_limit_in_sec=time_limit_in_sec,
+                                                             num_evaluations=num_evaluations,
+                                                             random_state=random_state,
+                                                             split_folds=split_folds,
+                                                             split_frac=split_frac,
+                                                             split_strategie=split_strategie,
+                                                             ensemble_size=ensemble_size,
+                                                             minimize_error_metric_val=minimize_error_metric_val,
+                                                             filer=filer,
+                                                             predict_mode=True)
     elif optimization_strategie == 'random_search':
-        incumbent, top_n_runs = random_search(train=train,
+        incumbent, model, top_n_runs = random_search(train=train,
                                               cs=cs,
                                               user_feedback='explicit',
                                               validation=validation,
@@ -199,7 +200,8 @@ def get_best_prediction_model(train: Dataset,
                                               split_strategie=split_strategie,
                                               ensemble_size=ensemble_size,
                                               minimize_error_metric_val=minimize_error_metric_val,
-                                              filer=filer)
+                                              filer=filer,
+                                              predict_mode=True)
     else:
         raise ValueError('optimization_strategie must be either bayesian or random_search')
 
@@ -378,44 +380,47 @@ def get_best_recommender_model(train: Dataset,
                     drop_na_values=drop_na_values,
                     drop_duplicates=drop_duplicates)
 
-    # define optimization strategie to use
+    # define optimization strategy to use
     if optimization_strategie == 'bayesian':
-        incumbent = bayesian_optimization(train=train,
-                                          validation=validation,
-                                          cs=cs,
-                                          user_feedback='implicit',
-                                          optimization_metric=optimization_metric,
-                                          time_limit_in_sec=time_limit_in_sec,
-                                          num_evaluations=num_evaluations,
-                                          random_state=random_state,
-                                          split_folds=split_folds,
-                                          split_frac=split_frac,
-                                          split_strategie=split_strategie,
-                                          minimize_error_metric_val=minimize_error_metric_val,
-                                          num_recommendations=num_recommendations,
-                                          filer=filer)
+        incumbent, model, top_n_runs = bayesian_optimization(train=train,
+                                                             validation=validation,
+                                                             cs=cs,
+                                                             user_feedback='implicit',
+                                                             optimization_metric=optimization_metric,
+                                                             time_limit_in_sec=time_limit_in_sec,
+                                                             num_evaluations=num_evaluations,
+                                                             random_state=random_state,
+                                                             split_folds=split_folds,
+                                                             split_frac=split_frac,
+                                                             split_strategie=split_strategie,
+                                                             minimize_error_metric_val=minimize_error_metric_val,
+                                                             num_recommendations=num_recommendations,
+                                                             filer=filer,
+                                                             predict_mode=False)
     elif optimization_strategie == 'random_search':
-        incumbent = random_search(train=train,
-                                  validation=validation,
-                                  cs=cs,
-                                  user_feedback='implicit',
-                                  optimization_metric=optimization_metric,
-                                  time_limit_in_sec=time_limit_in_sec,
-                                  num_evaluations=num_evaluations,
-                                  random_state=random_state,
-                                  split_folds=split_folds,
-                                  split_frac=split_frac,
-                                  split_strategie=split_strategie,
-                                  minimize_error_metric_val=minimize_error_metric_val,
-                                  num_recommendations=num_recommendations,
-                                  filer=filer)
+        incumbent, model, top_n_runs = random_search(train=train,
+                                                     validation=validation,
+                                                     cs=cs,
+                                                     user_feedback='implicit',
+                                                     optimization_metric=optimization_metric,
+                                                     time_limit_in_sec=time_limit_in_sec,
+                                                     num_evaluations=num_evaluations,
+                                                     random_state=random_state,
+                                                     split_folds=split_folds,
+                                                     split_frac=split_frac,
+                                                     split_strategie=split_strategie,
+                                                     minimize_error_metric_val=minimize_error_metric_val,
+                                                     num_recommendations=num_recommendations,
+                                                     filer=filer,
+                                                     predict_mode=False)
     else:
         raise ValueError('optimization_strategie must be either bayesian or random_search')
 
-    logger.info('--Start Postrprocessing--')
+    logger.info('--Start Postprocessing--')
 
-    # build model from best model configuration found by SMAC
-    model = get_model_from_cs(incumbent, feedback='implicit')
+    # if model is None, build model from best model configuration found by SMAC
+    if model is None:
+        model = get_model_from_cs(incumbent, feedback='implicit')
     incumbent = incumbent.get_dictionary()
 
     logger.info('--Best Model--')

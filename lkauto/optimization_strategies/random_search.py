@@ -5,6 +5,7 @@ import time
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from lenskit.data import Dataset, ItemListCollection
+from lenskit.pipeline import Pipeline
 
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
@@ -12,7 +13,7 @@ from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
-from typing import Tuple
+from typing import Tuple, Optional
 import logging
 
 
@@ -29,8 +30,9 @@ def random_search(cs: ConfigurationSpace,
                   split_frac: float = 0.25,
                   ensemble_size: int = 50,
                   minimize_error_metric_val: bool = True,
+                  predict_mode: bool = True,
                   num_recommendations: int = 10,
-                  random_state=42) -> Tuple[Configuration, pd.DataFrame]:
+                  random_state=42) -> Tuple[Configuration, Optional[Pipeline], Optional[pd.DataFrame]]:
     """
         returns the best configuration found by random search
 
@@ -82,8 +84,10 @@ def random_search(cs: ConfigurationSpace,
     logger = logging.getLogger('lenskit-auto')
     logger.info('--Start Random Search--')
 
-    # initialize variables to keep track of the best configuration
+    # initialize variables to keep track of the best configuration and model
     best_configuration = None
+    best_model = None
+    best_model_untrained = None
     if minimize_error_metric_val:
         best_error_score = 0
     else:
@@ -100,7 +104,8 @@ def random_search(cs: ConfigurationSpace,
                                 split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 ensemble_size=ensemble_size,
-                                minimize_error_metric_val=minimize_error_metric_val)
+                                minimize_error_metric_val=minimize_error_metric_val,
+                                predict_mode=predict_mode)
     elif user_feedback == 'implicit':
         evaler = ImplicitEvaler(train=train,
                                 optimization_metric=optimization_metric,
@@ -111,7 +116,8 @@ def random_search(cs: ConfigurationSpace,
                                 split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 num_recommendations=num_recommendations,
-                                minimize_error_metric_val=minimize_error_metric_val)
+                                minimize_error_metric_val=minimize_error_metric_val,
+                                predict_mode=predict_mode)
     else:
         raise ValueError('feedback must be either explicit or implicit')
 
@@ -150,17 +156,19 @@ def random_search(cs: ConfigurationSpace,
             # check if configuration has already been tested
             if config not in configuration_list:
                 # calculate error for the configuration
-                error = evaler.evaluate(config)
+                error, model = evaler.evaluate(config)
 
                 # keep track of best performing configuration
                 if minimize_error_metric_val:
                     if error > best_error_score:
                         best_error_score = error
                         best_configuration = config
+                        best_model = model
                 else:
                     if error < best_error_score:
                         best_error_score = error
                         best_configuration = config
+                        best_model = model
                 # add configuration to list of tested configurations
                 configuration_list.append(config)
     else:
@@ -181,17 +189,19 @@ def random_search(cs: ConfigurationSpace,
         # loop through random spampled configurations
         for config in configuration_set:
             # calculate error for the configuration
-            error = evaler.evaluate(config)
+            error, model = evaler.evaluate(config)
 
             # keep track of best performing configuration
             if minimize_error_metric_val:
-                if error > best_error_score:
-                    best_error_score = error
-                    best_configuration = config
-            else:
                 if error < best_error_score:
                     best_error_score = error
                     best_configuration = config
+                    best_model = model
+            else:
+                if error > best_error_score:
+                    best_error_score = error
+                    best_configuration = config
+                    best_model = model
 
             # keep track of time
             if time.time() - start_time > time_limit_in_sec:
@@ -201,8 +211,8 @@ def random_search(cs: ConfigurationSpace,
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
-        return best_configuration, evaler.top_n_runs
+        return best_configuration, best_model, evaler.top_n_runs
     elif user_feedback == 'implicit':
-        return best_configuration
+        return best_configuration, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')
