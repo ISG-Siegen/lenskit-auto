@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import time
 
-from ConfigSpace import ConfigurationSpace, Configuration
+from ConfigSpace import ConfigurationSpace, Configuration, UniformIntegerHyperparameter, UniformFloatHyperparameter, \
+    CategoricalHyperparameter
 
 from lenskit.data import Dataset, ItemListCollection
 
@@ -12,7 +13,7 @@ from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
-from hyperopt import fmin, tpe, space_eval, hp
+from hyperopt import fmin, tpe, space_eval, hp, STATUS_OK, Trials
 
 from typing import Tuple
 import logging
@@ -33,7 +34,7 @@ def tree_parzen(cs: ConfigurationSpace,
                   minimize_error_metric_val: bool = True,
                   num_recommendations: int = 10,
                   random_state=42) -> Tuple[Configuration, pd.DataFrame]:
-                  
+
     """
         returns the best configuration found by random search
 
@@ -82,9 +83,9 @@ def tree_parzen(cs: ConfigurationSpace,
         top_n_runs : pd.DataFrame
             pandas dataframe containing the top n runs of the random search.
    """
-   
+
     logger = logging.getLogger('lenskit-auto')
-    logger.info('--Start Random Search--')
+    logger.info('--Start Tree Parzen Estimator Search--')
 
     # initialize variables to keep track of the best configuration
     best_configuration = None
@@ -127,12 +128,34 @@ def tree_parzen(cs: ConfigurationSpace,
                                              validation=validation,
                                              feedback='explicit',
                                              random_state=random_state)
-                                             
-     hyperopt_space = convert_to_hyperopt_space(cs)
-     
-     #Todo: Optimize hyperparameters using hyperopt.fmin function
-     
-     logger.info('--End Tree of Parzen Estimator--')
+
+    hyperopt_space = convert_to_hyperopt_space(cs)
+
+    #Creating Objective function with fixed context
+    def objective(hyperparams):
+        config = Configuration(cs, hyperparams)
+        error = evaler.evaluate(config)
+        return {
+            'loss': error,
+            'status': STATUS_OK,
+            'config': config
+        }
+
+    trials = Trials()
+
+    best = fmin(fn=objective,
+                space = hyperopt_space,
+                algo=tpe.suggest,
+                max_evals=num_evaluations,
+                trials=trials,
+                rstate=np.random.RandomState(random_state),
+    )
+
+    best_configuration = Configuration(cs, space_eval(hyperopt_space, best))
+
+    #Todo: Optimize hyperparameters using hyperopt.fmin function -> Completed
+
+    logger.info('--End Tree of Parzen Estimator--')
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
@@ -141,9 +164,23 @@ def tree_parzen(cs: ConfigurationSpace,
         return best_configuration
     else:
         raise ValueError('feedback must be either explicit or implicit')
-                                             
-     
-                                             
+
+# def objective(hyperparams, cs: ConfigurationSpace, evaler):
+#     config = Configuration(cs, hyperparams)
+#     error = evaler.evaluate(config)
+#     return {
+#         'loss' : error,
+#         'status' : STATUS_OK,
+#         'config' : config
+#     }
+
+'''
+Two options to define objective function:
+1. As an indep. function outside parzen tree but hyperopt wants an obj fn that only takes one param. Would have to wrap
+it using functools partial to make a new function with partial params defined.
+2. Define inside the parzen tree fn so it knows those other params cs and evaler from the scope.
+I used the second option.
+'''
 def convert_to_hyperopt_space(cs: ConfigurationSpace):
     # Convert ConfigurationSpace cs to hyperopt compatible space
     space = {}
