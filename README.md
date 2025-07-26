@@ -157,9 +157,7 @@ for split in crossfold_users(ml100k, 2, SampleN(5)):
     # Fixme: INSERT SECENARIO CODE HERE
     
     # create pipeline
-    pipeline = topn_pipeline(model)
-    # fit
-    pipeline.train(train_split)
+    pipeline = model
     #recommend
     recs = recommend(pipeline, test_split)
 
@@ -190,8 +188,7 @@ test_split = tt_split.test
 
 # Fixme: INSERT SCENARIO CODE HERE
 
-pipeline = predict_pipeline(model)
-pipeline.train(train_split)
+pipeline = model
 recs = predict(pipeline, test_split)
 
 rla = RunAnalysis()
@@ -208,7 +205,7 @@ This scenario is recommended for inexperienced developers who have no or little 
 LensKit-Auto performs the combined algorithm selection and hyperparameter optimization with a single function call.
 
 ```python
-model, config = get_best_recommender_model(train=train_split, filer=filer)
+model, config = get_best_recommender_model(train=train_split, filer=filer, save=True)
 ```
 
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
@@ -218,6 +215,10 @@ The *get_best_recommender_model()* or *get_best_prediction_model()* function cal
 with tuned hyperparameters and a configuration dictionary that contains all information about the model. In the Scenario
 1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default  
 hyperparameter range. We can use the model in the exact same way like a regular LensKit model.
+
+Setting the `save` parameter to `True` enables lenskit-auto to save the trained model and configuration to the ouput
+directory specified by the `filer`. The default value of `save` is `True`, so tat we only have to set it to `False` if
+we do not want to save the model and configuration.
 
 #### Scenario 2
 
