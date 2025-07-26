@@ -153,7 +153,7 @@ def tree_parzen(cs: ConfigurationSpace,
 
     best_configuration = Configuration(cs, space_eval(hyperopt_space, best))
 
-    #Todo: Optimize hyperparameters using hyperopt.fmin function -> Completed
+    #To-do:Optimize hyperparameters using hyperopt.fmin function -> Completed
 
     logger.info('--End Tree of Parzen Estimator--')
 
