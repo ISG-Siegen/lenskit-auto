@@ -188,20 +188,20 @@ def get_best_prediction_model(train: Dataset,
                                                              predict_mode=True)
     elif optimization_strategie == 'random_search':
         incumbent, model, top_n_runs = random_search(train=train,
-                                              cs=cs,
-                                              user_feedback='explicit',
-                                              validation=validation,
-                                              optimization_metric=optimization_metric,
-                                              time_limit_in_sec=time_limit_in_sec,
-                                              num_evaluations=num_evaluations,
-                                              random_state=random_state,
-                                              split_folds=split_folds,
-                                              split_frac=split_frac,
-                                              split_strategie=split_strategie,
-                                              ensemble_size=ensemble_size,
-                                              minimize_error_metric_val=minimize_error_metric_val,
-                                              filer=filer,
-                                              predict_mode=True)
+                                                     cs=cs,
+                                                     user_feedback='explicit',
+                                                     validation=validation,
+                                                     optimization_metric=optimization_metric,
+                                                     time_limit_in_sec=time_limit_in_sec,
+                                                     num_evaluations=num_evaluations,
+                                                     random_state=random_state,
+                                                     split_folds=split_folds,
+                                                     split_frac=split_frac,
+                                                     split_strategie=split_strategie,
+                                                     ensemble_size=ensemble_size,
+                                                     minimize_error_metric_val=minimize_error_metric_val,
+                                                     filer=filer,
+                                                     predict_mode=True)
     else:
         raise ValueError('optimization_strategie must be either bayesian or random_search')
 

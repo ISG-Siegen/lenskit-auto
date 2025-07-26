@@ -87,7 +87,6 @@ def random_search(cs: ConfigurationSpace,
     # initialize variables to keep track of the best configuration and model
     best_configuration = None
     best_model = None
-    best_model_untrained = None
     if minimize_error_metric_val:
         best_error_score = 0
     else:
