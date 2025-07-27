@@ -150,7 +150,7 @@ class ExplicitEvaler:
                     best_mean = error_results_mean
                     best_model = fit_pipeline
 
-                error_metric = np.append(error_metric, error_results)
+                error_metric = np.append(error_metric, error_results_mean)
                 validation_data = pd.concat([validation_data, recs.to_df()], ignore_index=True)
         else:
             for fold in range(self.split_folds):
@@ -183,7 +183,7 @@ class ExplicitEvaler:
                     best_mean = error_results_mean
                     best_model = fit_pipeline
 
-                error_metric = np.append(error_metric, error_results)
+                error_metric = np.append(error_metric, error_results_mean)
                 validation_data = pd.concat([validation_data, recs.to_df()], ignore_index=True)
 
         # Save validation data for reproducibility and ensembling
