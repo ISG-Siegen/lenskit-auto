@@ -151,7 +151,7 @@ class ExplicitEvaler:
                     best_model = fit_pipeline
 
                 error_metric = np.append(error_metric, error_results)
-                validation_data = pd.concat([validation_data, recs], ignore_index=True)
+                validation_data = pd.concat([validation_data, recs.to_df()], ignore_index=True)
         else:
             for fold in range(self.split_folds):
                 validation_train = self.train
@@ -184,7 +184,7 @@ class ExplicitEvaler:
                     best_model = fit_pipeline
 
                 error_metric = np.append(error_metric, error_results)
-                validation_data = pd.concat([validation_data, recs], ignore_index=True)
+                validation_data = pd.concat([validation_data, recs.to_df()], ignore_index=True)
 
         # Save validation data for reproducibility and ensembling
         self.top_n_runs = update_top_n_runs(config_space=config_space,
