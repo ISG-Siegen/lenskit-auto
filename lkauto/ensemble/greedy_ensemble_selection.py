@@ -6,7 +6,8 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
-from lenskit.data import Dataset
+
+from lenskit.data import Dataset, ItemList
 
 
 class EnsembleSelection:
@@ -30,10 +31,10 @@ class EnsembleSelection:
 
         if maximize_metric:
             def minimized_metric(y_ture, y_pred):
-                return -lenskit_metric(y_pred, y_ture)
+                return -lenskit_metric.measure_list(y_pred, y_ture)
         else:
             def minimized_metric(y_ture, y_pred):
-                return lenskit_metric(y_pred, y_ture)
+                return lenskit_metric.measure_list(y_pred, y_ture)
 
         self.metric = minimized_metric
 
@@ -125,7 +126,21 @@ class EnsembleSelection:
                     out=fant_ensemble_prediction
                 )
 
-                losses[j] = self.metric(labels, fant_ensemble_prediction)
+                labels_df = pd.DataFrame(labels)
+                labels_df.columns = ["rating"]
+                labels_df.insert(0, "item_id", labels_df.index)
+
+                fant_ensemble_prediction_df = pd.DataFrame(fant_ensemble_prediction)
+                fant_ensemble_prediction_df.columns = ["rating"]
+                fant_ensemble_prediction_df.insert(0, "item_id", fant_ensemble_prediction_df.index)
+
+                labels_il = ItemList.from_df(labels_df)
+                fant_ensemble_prediction_il = ItemList.from_df(fant_ensemble_prediction_df)
+
+                print("!!! labels: \n", labels_df)
+                print("!!! fant_ensemble_prediction: \n", fant_ensemble_prediction_df)
+
+                losses[j] = self.metric(labels_il, fant_ensemble_prediction_il)
 
             all_best = np.argwhere(losses == np.nanmin(losses)).flatten()
             best = all_best[0]

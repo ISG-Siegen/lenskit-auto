@@ -15,8 +15,7 @@ from lkauto.utils.logging import get_logger
 # from lenskit.algorithms import Predictor
 # from lenskit import Recommender
 
-from lenskit.metrics.predict import RMSE
-from lenskit.metrics import NDCG
+from lenskit.metrics import RMSE, NDCG
 from lenskit.pipeline import Component
 from lenskit.data import Dataset, ItemListCollection
 
@@ -210,7 +209,8 @@ def get_best_prediction_model(train: Dataset,
 
     logger.info('--Start Postrprocessing--')
     if ensemble_size > 1:
-        model, incumbent = build_ensemble(train=train, top_n_runs=top_n_runs,
+        model, incumbent = build_ensemble(train=train,
+                                          top_n_runs=top_n_runs,
                                           filer=filer,
                                           ensemble_size=ensemble_size,
                                           lenskit_metric=optimization_metric,
