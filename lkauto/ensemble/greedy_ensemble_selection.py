@@ -29,12 +29,14 @@ class EnsembleSelection:
 
         self.ensemble_size = ensemble_size
 
+        self.lenskit_metric = lenskit_metric()
+
         if maximize_metric:
             def minimized_metric(y_ture, y_pred):
-                return -lenskit_metric.measure_list(y_pred, y_ture)
+                return -self.lenskit_metric.measure_list(y_pred, y_ture)
         else:
             def minimized_metric(y_ture, y_pred):
-                return lenskit_metric.measure_list(y_pred, y_ture)
+                return self.lenskit_metric.measure_list(y_pred, y_ture)
 
         self.metric = minimized_metric
 
@@ -131,14 +133,11 @@ class EnsembleSelection:
                 labels_df.insert(0, "item_id", labels_df.index)
 
                 fant_ensemble_prediction_df = pd.DataFrame(fant_ensemble_prediction)
-                fant_ensemble_prediction_df.columns = ["rating"]
+                fant_ensemble_prediction_df.columns = ["score"]
                 fant_ensemble_prediction_df.insert(0, "item_id", fant_ensemble_prediction_df.index)
 
                 labels_il = ItemList.from_df(labels_df)
                 fant_ensemble_prediction_il = ItemList.from_df(fant_ensemble_prediction_df)
-
-                print("!!! labels: \n", labels_df)
-                print("!!! fant_ensemble_prediction: \n", fant_ensemble_prediction_df)
 
                 losses[j] = self.metric(labels_il, fant_ensemble_prediction_il)
 
