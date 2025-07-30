@@ -219,12 +219,12 @@ def get_best_prediction_model(train: Dataset,
         logger.info('GES Ensemble Model')
     else:
         # build model from best model configuration found by SMAC
-        model = get_model_from_cs(incumbent, feedback='explicit')
+        # model = get_model_from_cs(incumbent, feedback='explicit')
         incumbent = incumbent.get_dictionary()
         logger.info('--Best Model--')
         logger.info(incumbent)
 
-    if save:
+    if save and ensemble_size == 1:
         filer.save_model(model)
         filer.save_incumbent(incumbent)
         logger.info('Saved model and incumbent to ' + filer.output_directory_path)
