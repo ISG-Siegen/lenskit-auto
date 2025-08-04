@@ -74,9 +74,6 @@ class EnsembleSelection:
         bm_preds = [predict(bm, x_data) for bm in self.base_models]
         test_ind = bm_preds[0].to_df().index
 
-        for pred in bm_preds:
-            print("!!! pred: \n", pred.to_df().to_string())
-
         ens_predictions = self.ensemble_predict([np.array(bm_pred.to_df()) for bm_pred in bm_preds])
 
         return pd.Series(ens_predictions, index=test_ind)
@@ -207,7 +204,6 @@ class EnsembleSelection:
                 # pred[:, 2] = pred[:, 2] * weight
                 pred = pred[:, 2]
                 np.multiply(pred, weight, out=tmp_predictions)
-                print("!!! pred: \n", pred)
                 np.add(average, tmp_predictions, out=average)
         # if prediction model.shape[0] == len(non_null_weights),
         # predictions do not include those of zero-weight models.
@@ -219,7 +215,6 @@ class EnsembleSelection:
                 # pred[:, 2] = pred[:, 2] * weight
                 pred = pred[:, 2]
                 np.multiply(pred, weight, out=tmp_predictions)
-                print("!!! pred: \n", pred)
                 np.add(average, tmp_predictions, out=average)
 
         # If none of the above applies, then something must have gone wrong.

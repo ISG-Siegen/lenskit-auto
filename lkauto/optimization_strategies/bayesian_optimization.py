@@ -170,10 +170,8 @@ def bayesian_optimization(train: Dataset,
         # save top n runs
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
         # filer.save_model(model=incumbent.)
-        print("Bayesian Optimization returnt: ", incumbent, best_model, evaler.top_n_runs)
         return incumbent, best_model, evaler.top_n_runs
     elif user_feedback == 'implicit':
-        print("Bayesian Optimization returnt: ", incumbent, best_model, None)
         return incumbent, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')
