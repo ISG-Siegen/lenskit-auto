@@ -175,6 +175,9 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on the data rows. The
 Top-N ranking predicion example showcases the data-split based on user data.
 
+Note that we need to call a different `predict()` function on the model now, since this model is an ensemble of multiple
+models.
+
 ```python
 from lenskit.metrics import RMSE, RunAnalysis
 from lenskit.splitting import sample_records
@@ -188,13 +191,8 @@ test_split = tt_split.test
 
 # Fixme: INSERT SCENARIO CODE HERE
 
-pipeline = model
-recs = predict(pipeline, test_split)
-
-rla = RunAnalysis()
-rla.add_metric(RMSE)
-scores = rla.measure(recs, test_split)
-print("Scores:\n", scores)
+preds = model.predict(test_split)
+print("Predictions:\n", preds)
 ```
 
 #### Scenario 1
