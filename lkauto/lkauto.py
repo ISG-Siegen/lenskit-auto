@@ -224,7 +224,7 @@ def get_best_prediction_model(train: Dataset,
         logger.info('--Best Model--')
         logger.info(incumbent)
 
-    if save and ensemble_size == 1:
+    if save:
         filer.save_model(model)
         filer.save_incumbent(incumbent)
         logger.info('Saved model and incumbent to ' + filer.output_directory_path)

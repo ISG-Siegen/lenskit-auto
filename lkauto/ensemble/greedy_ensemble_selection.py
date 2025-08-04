@@ -7,7 +7,8 @@ from typing import List, Union
 import numpy as np
 import pandas as pd
 
-from lenskit.data import Dataset, ItemList
+from lenskit.data import Dataset, ItemList, ItemListCollection
+from lenskit.batch import predict
 
 
 class EnsembleSelection:
@@ -27,21 +28,28 @@ class EnsembleSelection:
     def __init__(self, ensemble_size: int, lenskit_metric,
                  maximize_metric: bool = False) -> None:
 
+        self.maximize_metric = maximize_metric
         self.ensemble_size = ensemble_size
 
         self.lenskit_metric = lenskit_metric()
 
+        '''
         if maximize_metric:
-            def minimized_metric(y_ture, y_pred):
-                return -self.lenskit_metric.measure_list(y_pred, y_ture)
+            def minimized_metric(y_true, y_pred):
+                return -self.lenskit_metric.measure_list(y_pred, y_true)
         else:
-            def minimized_metric(y_ture, y_pred):
-                return self.lenskit_metric.measure_list(y_pred, y_ture)
+            def minimized_metric(y_true, y_pred):
+                return self.lenskit_metric.measure_list(y_pred, y_true)
+                '''
 
-        self.metric = minimized_metric
+        self.metric = self.minimized_metric
 
         # Will be filled later from external
         self.base_models = None
+
+    def minimized_metric(self, y_true, y_pred):
+        result = self.lenskit_metric.measure_list(y_pred, y_true)
+        return -result if self.maximize_metric else result
 
     def fit(self, data: Dataset):
         """ Fit base models (we assume the ensemble part, ensemble_fit, was already fitted here or is fitted later)
@@ -59,13 +67,17 @@ class EnsembleSelection:
 
         return self
 
-    def predict(self, x_data: Dataset):
+    def predict(self, x_data: ItemListCollection):
         """
-        "user", "item" Dataframe
+        "user", "item" ItemListCollection
         """
-        bm_preds = [bm.predict(x_data) for bm in self.base_models]
-        test_ind = bm_preds[0].index
-        ens_predictions = self.ensemble_predict([np.array(bm_pred) for bm_pred in bm_preds])
+        bm_preds = [predict(bm, x_data) for bm in self.base_models]
+        test_ind = bm_preds[0].to_df().index
+
+        for pred in bm_preds:
+            print("!!! pred: \n", pred.to_df().to_string())
+
+        ens_predictions = self.ensemble_predict([np.array(bm_pred.to_df()) for bm_pred in bm_preds])
 
         return pd.Series(ens_predictions, index=test_ind)
 
@@ -181,23 +193,33 @@ class EnsembleSelection:
         self.weights_ = weights
 
     def ensemble_predict(self, predictions: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
-
-        average = np.zeros_like(predictions[0], dtype=np.float64)
-        tmp_predictions = np.empty_like(predictions[0], dtype=np.float64)
+        average = np.zeros_like(predictions[0])
+        tmp_predictions = np.empty_like(predictions[0])
+        average = average[:, 2]
+        tmp_predictions = tmp_predictions[:, 2]
 
         # if predictions.shape[0] == len(self.weights_),
         # predictions include those of zero-weight models.
         if len(predictions) == len(self.weights_):
             for pred, weight in zip(predictions, self.weights_):
+                # The second column of the pred-array is the score prediction
+                # multiply that column with the weights
+                # pred[:, 2] = pred[:, 2] * weight
+                pred = pred[:, 2]
                 np.multiply(pred, weight, out=tmp_predictions)
+                print("!!! pred: \n", pred)
                 np.add(average, tmp_predictions, out=average)
-
         # if prediction model.shape[0] == len(non_null_weights),
         # predictions do not include those of zero-weight models.
         elif len(predictions) == np.count_nonzero(self.weights_):
             non_null_weights = [w for w in self.weights_ if w > 0]
             for pred, weight in zip(predictions, non_null_weights):
+                # The second column of the pred-array is the score prediction
+                # multiply that column with the weights
+                # pred[:, 2] = pred[:, 2] * weight
+                pred = pred[:, 2]
                 np.multiply(pred, weight, out=tmp_predictions)
+                print("!!! pred: \n", pred)
                 np.add(average, tmp_predictions, out=average)
 
         # If none of the above applies, then something must have gone wrong.

@@ -191,7 +191,8 @@ class ExplicitEvaler:
                                             errors=error_metric,
                                             num_models=self.ensemble_size,
                                             run_id=self.run_id,
-                                            top_n_runs=self.top_n_runs)
+                                            top_n_runs=self.top_n_runs,
+                                            pipeline=best_model)
         self.filer.save_validataion_data(config_space=config_space,
                                          predictions=validation_data,
                                          metric_scores=error_metric,
