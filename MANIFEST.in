@@ -5,7 +5,6 @@ recursive-include tests *
 prune .github
 prune docs
 prune data
-prune examples
 prune build-tools
 prune lkbuild
 exclude *.ipynb
