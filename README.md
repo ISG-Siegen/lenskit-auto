@@ -32,7 +32,7 @@ You can use either **conda** or Python’s built-in **venv**.
 ### Using conda
 
 ```bash
-conda create -n lenskit-auto python=3.12
+conda create -n lenskit-auto-env python=3.12
 conda activate lenskit-auto-env
 pip install lenskit-auto
 ```
