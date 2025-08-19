@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-import time
-
-from ConfigSpace import ConfigurationSpace, Configuration, UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    CategoricalHyperparameter
+from ConfigSpace import Configuration
+from hyperopt.pyll import Apply
+from hyperopt.pyll.stochastic import sample
 
 from lenskit.data import Dataset, ItemListCollection
+from pandas import DataFrame
 
 from lkauto.explicit.explicit_evaler import ExplicitEvaler
 from lkauto.implicit.implicit_evaler import ImplicitEvaler
@@ -13,13 +13,13 @@ from lkauto.utils.get_default_configurations import get_default_configurations
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
-from hyperopt import fmin, tpe, space_eval, hp, STATUS_OK, Trials
+from hyperopt import fmin, tpe, space_eval, hp, STATUS_OK, Trials, atpe
 
 from typing import Tuple
 import logging
 
 
-def tree_parzen(cs: ConfigurationSpace,
+def tree_parzen(cs: Apply,
                   train: Dataset,
                   user_feedback: str,
                   optimization_metric,
@@ -33,10 +33,9 @@ def tree_parzen(cs: ConfigurationSpace,
                   ensemble_size: int = 50,
                   minimize_error_metric_val: bool = True,
                   num_recommendations: int = 10,
-                  random_state=42) -> Tuple[Configuration, pd.DataFrame]:
-
+                  random_state=42) -> dict | Tuple[dict, DataFrame]:
     """
-        returns the best configuration found by random search
+        returns the best configuration found by TPE
 
          The random_search method will randomly search through the ConfigurationSpace to find the
          best performing configuration for the given train split. The ConfigurationSpace can consist of
@@ -123,17 +122,18 @@ def tree_parzen(cs: ConfigurationSpace,
     # get pre-defined ConfigurationSpace if none is provided
     if cs is None:
         logger.debug('initializing default ConfigurationSpace')
+
         cs = get_default_configuration_space(data=train,
                                              val_fold_indices=evaler.train_test_splits,
                                              validation=validation,
                                              feedback='explicit',
+                                             hyperopt=True,
                                              random_state=random_state)
 
-    hyperopt_space = convert_to_hyperopt_space(cs)
 
     #Creating Objective function with fixed context
     def objective(hyperparams):
-        config = Configuration(cs, hyperparams)
+        config = sample(cs, rng=random_state)
         error = evaler.evaluate(config)
         return {
             'loss': error,
@@ -144,51 +144,19 @@ def tree_parzen(cs: ConfigurationSpace,
     trials = Trials()
 
     best = fmin(fn=objective,
-                space = hyperopt_space,
+                space = cs,
                 algo=tpe.suggest,
                 max_evals=num_evaluations,
                 trials=trials,
                 rstate=np.random.RandomState(random_state),
     )
 
-    best_configuration = Configuration(cs, space_eval(hyperopt_space, best))
-
-    #To-do:Optimize hyperparameters using hyperopt.fmin function -> Completed
-
     logger.info('--End Tree of Parzen Estimator--')
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
-        return best_configuration, evaler.top_n_runs
+        return best, evaler.top_n_runs
     elif user_feedback == 'implicit':
-        return best_configuration
+        return best
     else:
         raise ValueError('feedback must be either explicit or implicit')
-
-# def objective(hyperparams, cs: ConfigurationSpace, evaler):
-#     config = Configuration(cs, hyperparams)
-#     error = evaler.evaluate(config)
-#     return {
-#         'loss' : error,
-#         'status' : STATUS_OK,
-#         'config' : config
-#     }
-
-'''
-Two options to define objective function:
-1. As an indep. function outside parzen tree but hyperopt wants an obj fn that only takes one param. Would have to wrap
-it using functools partial to make a new function with partial params defined.
-2. Define inside the parzen tree fn so it knows those other params cs and evaler from the scope.
-I used the second option.
-'''
-def convert_to_hyperopt_space(cs: ConfigurationSpace):
-    # Convert ConfigurationSpace cs to hyperopt compatible space
-    space = {}
-    for param in cs.space:
-        if type(param) is UniformFloatHyperparameter:
-            space[param.name] = hp.uniform(param.name, param.lower, param.upper)
-        elif type(param) is UniformIntegerHyperparameter:
-            space[param.name] = hp.uniformint(param.name, param.lower, param.upper, 1)
-        elif type(param) is CategoricalHyperparameter:
-            space[param.name] = hp.choice(param.name, param.choices)
-    return space

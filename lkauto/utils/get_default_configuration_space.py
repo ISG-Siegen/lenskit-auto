@@ -1,6 +1,8 @@
 from typing import Iterator, Union
 from ConfigSpace import Categorical
 from ConfigSpace import ConfigurationSpace
+from hyperopt import hp
+from hyperopt.pyll import Apply
 from lenskit.data import Dataset
 from lenskit.splitting import TTSplit
 
@@ -17,7 +19,8 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
                                     feedback: str,
                                     val_fold_indices=None,
                                     validation: Iterator[TTSplit] = None,
-                                    random_state=42) -> ConfigurationSpace:
+                                    hyperopt: bool = False,
+                                    random_state=42) -> ConfigurationSpace | Apply:
     """
         returns the default configuration space for all included rating prediction algorithms
 
@@ -31,13 +34,15 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
             validation data (provided by user)
         feedback : str
             feedback type (either 'explicit' or 'implicit')
+        hyperopt: bool
+            whether to create hyperopt configuration space
         random_state: int
             random state to use
 
         Returns
         ------
-        ConfigurationSpace
-            The default configuration space
+        ConfigurationSpace | Apply
+            The default (hyperopt) configuration space
     """
 
     if feedback == 'explicit':
@@ -64,12 +69,15 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
             num_users = data.user_count
 
     # define configuration space
-    cs = ConfigurationSpace(
-        seed=random_state,
-        space={
-            "algo": Categorical("algo", algo_list, default="ItemItem"),
-        }
-    )
+    if not hyperopt:
+        cs = ConfigurationSpace(
+            seed=random_state,
+            space={
+                "algo": Categorical("algo", algo_list, default="ItemItem"),
+            }
+        )
+
+    hyperopt_spaces = []
 
     for algo in algo_list:
         if algo == 'UserUser':
@@ -89,12 +97,21 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
         else:
             raise ValueError("Unknown algorithm: {}".format(algo))
 
+        configuration_space = model.get_default_configspace(hyperopt=hyperopt, number_user=num_users, number_item=num_items)
+
         # add configuration space of algorithm
-        cs.add_configuration_space(
-            prefix=algo,
-            delimiter=":",
-            configuration_space=model.get_default_configspace(number_user=num_users, number_item=num_items),
-            parent_hyperparameter={"parent": cs["algo"], "value": algo},
-        )
+        if hyperopt:
+            hyperopt_spaces.append(configuration_space)
+
+        else:
+            cs.add_configuration_space(
+                prefix=algo,
+                delimiter=":",
+                configuration_space=configuration_space,
+                parent_hyperparameter={"parent": cs["algo"], "value": algo},
+            )
+
+    if hyperopt:
+        cs = hp.choice("algo", hyperopt_spaces)
 
     return cs
