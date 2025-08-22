@@ -44,8 +44,6 @@ def build_ensemble(train: Dataset,
     es = EnsembleSelection(ensemble_size=ensemble_size, lenskit_metric=lenskit_metric, maximize_metric=maximize_metric)
     es.ensemble_fit(ensemble_x, ensemble_y)
     es.base_models = get_pipelines_from_top_n_runs(top_n_runs)
-    # es.base_models_tmp = [get_model_from_cs(cs, feedback='explicit') for cs, weight in zip(bm_cs_list, es.weights_) if weight > 0]
-    # es.base_models = models_to_pipelines(base_models=es.base_models_tmp)
     es.old_to_new_idx = {old_i: new_i for new_i, old_i in enumerate([idx for idx, weight in enumerate(es.weights_) if weight > 0])}
 
     incumbent = {"model": str(es),
