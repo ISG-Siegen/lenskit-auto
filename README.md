@@ -155,11 +155,9 @@ for split in crossfold_users(ml100k, 2, SampleN(5)):
     test_split = split.test
     
     # Fixme: INSERT SECENARIO CODE HERE
-    
-    # create pipeline
-    pipeline = model
+
     #recommend
-    recs = recommend(pipeline, test_split)
+    recs = recommend(model, test_split)
 
     # create run analysis
     rla = RunAnalysis()
