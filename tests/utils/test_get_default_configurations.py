@@ -23,6 +23,8 @@ class TestGetDefaultConfigurations(unittest.TestCase):
                 parent_hyperparameter={"parent": self.config_space["algo"], "value": algorithm},
             )
 
+        print(self.config_space)
+
     def test_getDefaultConfigurations_givenValidConfigurationSpace_correctConfigurationSpaceListReturnedExpected(self):
         result = get_default_configurations(self.config_space)
 
