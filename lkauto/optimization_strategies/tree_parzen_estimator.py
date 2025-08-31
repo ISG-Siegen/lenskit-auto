@@ -181,6 +181,7 @@ it using functools partial to make a new function with partial params defined.
 2. Define inside the parzen tree fn so it knows those other params cs and evaler from the scope.
 I used the second option.
 '''
+#Todo: Try to make an if else case for tree of parzen estimator.
 def convert_to_hyperopt_space(cs: ConfigurationSpace):
     # Convert ConfigurationSpace cs to hyperopt compatible space
     space = {}

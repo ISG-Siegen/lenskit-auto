@@ -31,6 +31,7 @@ def build_ensemble(train: Dataset,
         bm_pred = bm_pred.sort_values(by=list(bm_pred)[0])
         if (val_indices is not None) and (not val_indices.equals(bm_pred[list(bm_pred)[0]])):
             raise ValueError("Validation Indices are not identical between base models!")
+        # val_indices = bm_pred[list(bm_pred)[0]]
         val_indices = bm_pred[list(bm_pred)[0]]
 
         # Append predictions to ensemble train X

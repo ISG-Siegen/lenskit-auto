@@ -1,4 +1,5 @@
 import logging
+import sys
 
 import numpy as np
 import pandas as pd
@@ -112,8 +113,10 @@ class ExplicitEvaler:
 
         if self.validation is None:
             for fold in self.train_test_splits:
-                validation_train = self.train_test_splits.train
-                validation_test = self.train_test_splits.test
+                # validation_train = self.train_test_splits.train
+                # validation_test = self.train_test_splits.test
+                validation_train = fold.train
+                validation_test = fold.test
 
                 pipeline = predict_pipeline(scorer=model)
                 fit_pipeline = pipeline.clone()
@@ -122,11 +125,20 @@ class ExplicitEvaler:
                 recs = predict(fit_pipeline, validation_test)
 
                 run_analysis = RunAnalysis()
+
+
                 run_analysis.add_metric(self.optimization_metric)
+                # error_results = run_analysis.measure(recs, validation_test)
+                # print(error_results)
+                # error_metric = np.append(error_metric, error_results)
                 error_results = run_analysis.measure(recs, validation_test)
 
-                error_metric = np.append(error_metric, error_results)
-                validation_data = pd.concat([validation_data, recs], ignore_index=True)
+                metric_name = self.optimization_metric.__name__
+                error_val = error_results.list_summary().loc[metric_name, 'mean']
+
+                error_metric = np.append(error_metric, error_val)
+
+                validation_data = pd.concat([validation_data, pd.DataFrame(recs)], ignore_index=True)
         else:
             for fold in range(self.split_folds):
                 validation_train = self.train
@@ -140,9 +152,18 @@ class ExplicitEvaler:
 
                 run_analysis = RunAnalysis()
                 run_analysis.add_metric(self.optimization_metric)
+                # error_results = run_analysis.measure(recs, validation_test)
+                # print(error_results.result.keys())
+                # sys.stdout.flush()
+                #
+                # error_metric = np.append(error_metric, error_results)
                 error_results = run_analysis.measure(recs, validation_test)
 
-                error_metric = np.append(error_metric, error_results)
+                metric_name = self.optimization_metric.__name__
+                error_val = error_results.list_summary().loc[metric_name, 'mean']
+
+                error_metric = np.append(error_metric, error_val)
+
                 validation_data = pd.concat([validation_data, recs], ignore_index=True)
 
         # Save validation data for reproducibility and ensembling

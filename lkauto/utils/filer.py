@@ -153,6 +153,10 @@ class Filer:
             """
         output_path = os.path.join(output_path, str(run_id))
         dictionary = dict(config_space)
+        print("Saving predictions:")
+        print(predictions.head())
+        print(predictions.columns)
+
         self.save_metric_scores_to_txt(metric_scores=metric_scores, output_path=output_path, name='rmse')
         self.save_dictionary_to_json(dictionary=dictionary, output_path=output_path, name='config_space')
         self.save_dataframe_as_csv(dataframe=predictions, output_path=output_path, name='predictions')
