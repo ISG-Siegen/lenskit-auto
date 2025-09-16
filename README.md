@@ -143,7 +143,7 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
 
 ```python
-from lenskit.batch import recommend
+from lkauto.utils.pred_and_rec_functions import recommend
 from lenskit.splitting import crossfold_users, SampleN
 from lenskit.metrics import RunAnalysis, NDCG
 from lenskit.pipeline import topn_pipeline
@@ -173,14 +173,11 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on the data rows. The
 Top-N ranking predicion example showcases the data-split based on user data.
 
-Note that we need to call a different `predict()` function on the model now, since this model is an ensemble of multiple
-models.
-
 ```python
+from lkauto.utils.pred_and_rec_functions import predict
 from lenskit.metrics import RMSE, RunAnalysis
 from lenskit.splitting import sample_records
 from lenskit.pipeline import predict_pipeline
-from lenskit.batch import predict
 from lkauto.lkauto import get_best_prediction_model
 
 tt_split = sample_records(ml100k, 1000)
@@ -189,7 +186,7 @@ test_split = tt_split.test
 
 # Fixme: INSERT SCENARIO CODE HERE
 
-preds = model.predict(test_split)
+preds = predict(model, test_split)
 print("Predictions:\n", preds)
 ```
 
