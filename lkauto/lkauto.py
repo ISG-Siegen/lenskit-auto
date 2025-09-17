@@ -1,7 +1,9 @@
 import numpy as np
 
 from ConfigSpace import ConfigurationSpace
+from hyperopt.pyll import Apply
 
+from lkauto.optimization_strategies.tree_parzen_estimator import tree_parzen
 from lkauto.utils.get_model_from_cs import get_model_from_cs
 from lkauto.optimization_strategies.bayesian_optimization import bayesian_optimization
 from lkauto.optimization_strategies.random_search import random_search
@@ -25,7 +27,7 @@ from typing import Tuple
 
 def get_best_prediction_model(train: Dataset,
                               validation: ItemListCollection = None,
-                              cs: ConfigurationSpace = None,
+                              cs: ConfigurationSpace | Apply = None,
                               optimization_metric=RMSE,
                               optimization_strategie: str = 'bayesian',
                               time_limit_in_sec: int = 2700,
@@ -197,26 +199,24 @@ def get_best_prediction_model(train: Dataset,
                                               ensemble_size=ensemble_size,
                                               minimize_error_metric_val=minimize_error_metric_val,
                                               filer=filer)
-    elif optimization_strategie == 'tree_parzen_estimator':
-        incumbent, top_n_runs = random_search(train=train,
-            cs=cs,
-            user_feedback='explicit',
-            validation=validation,
-            optimization_metric=optimization_metric,
-            time_limit_in_sec=time_limit_in_sec,
-            num_evaluations=num_evaluations,
-            random_state=random_state,
-            split_folds=split_folds,
-            split_frac=split_frac,
-            split_strategie=split_strategie,
-            ensemble_size=ensemble_size,
-            minimize_error_metric_val=minimize_error_metric_val,
-            filer=filer
-        )
+    elif optimization_strategie == 'tpe':
+        incumbent, top_n_runs = tree_parzen(train=train,
+                                              cs=cs,
+                                              user_feedback='explicit',
+                                              validation=validation,
+                                              optimization_metric=optimization_metric,
+                                              time_limit_in_sec=time_limit_in_sec,
+                                              num_evaluations=num_evaluations,
+                                              random_state=random_state,
+                                              split_folds=split_folds,
+                                              split_frac=split_frac,
+                                              split_strategie=split_strategie,
+                                              ensemble_size=ensemble_size,
+                                              minimize_error_metric_val=minimize_error_metric_val,
+                                              filer=filer)
     else:
-        raise ValueError('optimization_strategie must be either bayesian or random_search')
+        raise ValueError('optimization_strategie must be either bayesian, random_search or tpe')
 
-    #Todo: Add optimization strategie ParzenTreeEstimator
     # save top_n_runs to csv
     filer.save_dataframe_as_csv(top_n_runs, '', 'top_n_runs')
 
@@ -244,7 +244,7 @@ def get_best_prediction_model(train: Dataset,
 
 def get_best_recommender_model(train: Dataset,
                                validation: ItemListCollection = None,
-                               cs: ConfigurationSpace = None,
+                               cs: ConfigurationSpace | Apply = None,
                                optimization_metric=NDCG,
                                optimization_strategie: str = 'bayesian',
                                time_limit_in_sec: int = 60,
@@ -415,10 +415,25 @@ def get_best_recommender_model(train: Dataset,
                                   minimize_error_metric_val=minimize_error_metric_val,
                                   num_recommendations=num_recommendations,
                                   filer=filer)
+    elif optimization_strategie == 'tpe':
+        incumbent = tree_parzen(train=train,
+                                  validation=validation,
+                                  cs=cs,
+                                  user_feedback='implicit',
+                                  optimization_metric=optimization_metric,
+                                  time_limit_in_sec=time_limit_in_sec,
+                                  num_evaluations=num_evaluations,
+                                  random_state=random_state,
+                                  split_folds=split_folds,
+                                  split_frac=split_frac,
+                                  split_strategie=split_strategie,
+                                  minimize_error_metric_val=minimize_error_metric_val,
+                                  num_recommendations=num_recommendations,
+                                  filer=filer)
     else:
-        raise ValueError('optimization_strategie must be either bayesian or random_search')
+        raise ValueError('optimization_strategie must be either bayesian, random_search or tpe')
 
-    logger.info('--Start Postrprocessing--')
+    logger.info('--Start Postprocessing--')
 
     # build model from best model configuration found by SMAC
     model = get_model_from_cs(incumbent, feedback='implicit')
