@@ -22,7 +22,7 @@ setup(
         "scipy>=1.15.3",
         "numba>=0.61.2",
         "typing-extensions>=4.13.2",
-        "matplotlib==3.10.3",
+        "matplotlib>=3.10.3",
     ],
     extras_require={
         "test": ["pytest>=8.4.1", "pytest-cov>=6.2.1"],
