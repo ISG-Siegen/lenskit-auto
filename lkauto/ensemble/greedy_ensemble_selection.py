@@ -76,11 +76,10 @@ class EnsembleSelection:
 
         ens_predictions = self.ensemble_predict([np.array(bm_pred.to_df()) for bm_pred in bm_preds])
 
-        predictions = bm_preds[0].to_df().copy()
+        ens_predictions_df = pd.DataFrame(ens_predictions)
+        ens_predictions_il = ItemListCollection.from_df(ens_predictions_df)
 
-        predictions["score"] = ens_predictions
-
-        return pd.Series(predictions, index=test_ind)
+        return ens_predictions_il
 
     def ensemble_fit(self, predictions: List[np.ndarray], labels: np.ndarray):
         self.ensemble_size = int(self.ensemble_size)
