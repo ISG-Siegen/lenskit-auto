@@ -6,7 +6,7 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
-from lenskit.data import Dataset
+from lenskit.data import Dataset, ItemListCollection
 
 
 class EnsembleSelection:
@@ -64,7 +64,10 @@ class EnsembleSelection:
         test_ind = bm_preds[0].index
         ens_predictions = self.ensemble_predict([np.array(bm_pred) for bm_pred in bm_preds])
 
-        return pd.Series(ens_predictions, index=test_ind)
+        ens_predictions_df = pd.DataFrame(ens_predictions)
+        ens_predictions_il = ItemListCollection.from_df(ens_predictions_df)
+
+        return ens_predictions_il
 
     def ensemble_fit(self, predictions: List[np.ndarray], labels: np.ndarray):
         self.ensemble_size = int(self.ensemble_size)
