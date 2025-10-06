@@ -43,7 +43,7 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
     if feedback == 'explicit':
         algo_list = ['ItemItem', 'UserUser', 'FunkSVD', 'BiasedSVD', 'ALSBiasedMF', 'Bias']
     elif feedback == 'implicit':
-        algo_list = ['ItemItem', 'UserUser', 'ImplicitMF',]
+        algo_list = ['ItemItem', 'UserUser', 'ImplicitMF']
     else:
         raise ValueError("Unknown feedback type: {}".format(feedback))
 
