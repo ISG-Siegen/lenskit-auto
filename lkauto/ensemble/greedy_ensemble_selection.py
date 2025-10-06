@@ -5,8 +5,8 @@ from collections import Counter
 from typing import List, Union
 
 import numpy as np
-import pandas as pd
 from lenskit.data import Dataset, ItemListCollection
+from lenskit.batch import predict
 
 
 class EnsembleSelection:
@@ -56,18 +56,21 @@ class EnsembleSelection:
 
         return self
 
-    def predict(self, x_data: Dataset):
+    def predict(self, x_data: ItemListCollection):
         """
-        "user", "item" Dataframe
+        "user", "item" ItemListCollection
         """
-        bm_preds = [bm.predict(x_data) for bm in self.base_models]
-        test_ind = bm_preds[0].index
-        ens_predictions = self.ensemble_predict([np.array(bm_pred) for bm_pred in bm_preds])
+        bm_preds = [predict(bm, x_data) for bm in self.base_models]
 
-        ens_predictions_df = pd.DataFrame(ens_predictions)
-        ens_predictions_il = ItemListCollection.from_df(ens_predictions_df)
+        ens_predictions = self.ensemble_predict([np.array(bm_pred.to_df()) for bm_pred in bm_preds])
 
-        return ens_predictions_il
+        predictions = bm_preds[0].to_df().copy()
+
+        predictions["score"] = ens_predictions
+
+        predictions_il = ItemListCollection.from_df(predictions, key="user_id")
+
+        return predictions_il
 
     def ensemble_fit(self, predictions: List[np.ndarray], labels: np.ndarray):
         self.ensemble_size = int(self.ensemble_size)
