@@ -1,13 +1,16 @@
 import numpy as np
 import pandas as pd
-from ConfigSpace import ConfigurationSpace
 
-from lenskit.batch import predict
+from typing import Tuple
+from ConfigSpace import ConfigurationSpace
+from lenskit import topn_pipeline
+
+from lenskit.batch import predict, recommend
 from lenskit.data import Dataset
 from lenskit.metrics import RunAnalysis
 import logging
 
-from lenskit.pipeline import predict_pipeline
+from lenskit.pipeline import Pipeline, predict_pipeline
 
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_model_from_cs import get_model_from_cs
@@ -44,6 +47,8 @@ class ImplicitEvaler:
             minimize_error_metric_val :
                 If True, the error metric is minimized. If False, the error metric is maximized. This parameter needs to be
                 set in corelation with the optimization metric.
+            predict_mode : bool
+                If set to true, indicates that a prediction model should be created, a recommender model otherwise
 
              Methods
             ----------
@@ -61,6 +66,7 @@ class ImplicitEvaler:
                  split_frac: float = 0.25,
                  num_recommendations: int = 10,
                  minimize_error_metric_val: bool = True,
+                 predict_mode: bool = True
                  ) -> None:
         self.logger = logging.getLogger('lenskit-auto')
         self.train = train
@@ -73,6 +79,7 @@ class ImplicitEvaler:
         self.filer = filer
         self.num_recommendations = num_recommendations
         self.minimize_error_metric_val = minimize_error_metric_val
+        self.predict_mode = predict_mode
         self.run_id = 0
         # create validation split
         if self.validation is None:
@@ -84,7 +91,7 @@ class ImplicitEvaler:
         else:
             self.val_fold_indices = None
 
-    def evaluate(self, config_space: ConfigurationSpace) -> float:
+    def evaluate(self, config_space: ConfigurationSpace) -> Tuple[float, Pipeline]:
         """ evaluates model defined in config_space
 
             The config_space parameter defines a model.
@@ -104,7 +111,10 @@ class ImplicitEvaler:
         self.run_id += 1
         metric_scores = np.array([])
         validation_data = pd.DataFrame()
-        scores = None
+        error_results = None
+
+        best_mean = float('inf')
+        best_model = None
 
         # get model form configuration space
         model = get_model_from_cs(config_space, feedback='implicit')
@@ -114,44 +124,76 @@ class ImplicitEvaler:
                 validation_train = fold.train
                 validation_test = fold.test
 
-                pipeline = predict_pipeline(scorer=model)
+                # initialize pipeline
+                pipeline = None
+                if self.predict_mode:
+                    pipeline = predict_pipeline(scorer=model)
+                else:
+                    pipeline = topn_pipeline(scorer=model)
+
                 fit_pipeline = pipeline.clone()
                 fit_pipeline.train(validation_train)
 
-                recs = predict(fit_pipeline, validation_test)
+                recs = None
+                if self.predict_mode:
+                    recs = predict(fit_pipeline, validation_test)
+                else:
+                    recs = recommend(fit_pipeline, validation_test)
 
                 # create rec list analysis
                 rla = RunAnalysis()
                 rla.add_metric(self.optimization_metric)
 
-                # compute scores
-                scores = rla.measure(recs, validation_test)
+                # compute error_results
+                error_results = rla.measure(recs, validation_test)
+
+                # if error is smaller than before, save model
+                error_results_mean = error_results.list_summary().loc[self.optimization_metric.__name__, "mean"]
+                if error_results_mean < best_mean:
+                    best_mean = error_results_mean
+                    best_model = fit_pipeline
 
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 # the first (index 0) column should contain the means for the metrics (rows)
-                metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
+                metric_scores = np.append(metric_scores, error_results.list_summary().loc[self.optimization_metric.__name__, "mean"])
         else:
             for fold in range(self.split_folds):
                 validation_train = self.train
                 validation_test = self.validation
 
-                pipeline = predict_pipeline(scorer=model)
+                # initialize pipeline
+                pipeline = None
+                if self.predict_mode:
+                    pipeline = predict_pipeline(scorer=model)
+                else:
+                    pipeline = topn_pipeline(scorer=model)
+
                 fit_pipeline = pipeline.clone()
                 fit_pipeline.train(validation_train)
 
-                recs = predict(fit_pipeline, validation_test)
+                recs = None
+                if self.predict_mode:
+                    recs = predict(fit_pipeline, validation_test)
+                else:
+                    recs = recommend(fit_pipeline, validation_test)
 
                 # create rec list analysis
                 rla = RunAnalysis()
                 rla.add_metric(self.optimization_metric)
 
-                # compute scores
-                scores = rla.measure(recs, validation_test)
+                # compute error_results
+                error_results = rla.measure(recs, validation_test)
+
+                # if error is smaller than before, save model
+                error_results_mean = error_results.list_summary().loc[self.optimization_metric.__name__, "mean"]
+                if error_results_mean < best_mean:
+                    best_mean = error_results_mean
+                    best_model = fit_pipeline
 
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
-                metric_scores = np.append(metric_scores, scores.list_summary().loc[self.optimization_metric.__name__, "mean"])
+                metric_scores = np.append(metric_scores, error_results.list_summary().loc[self.optimization_metric.__name__, "mean"])
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
@@ -162,7 +204,7 @@ class ImplicitEvaler:
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         # the first (index 0) column should contain the means for the metrics (rows)
-        validation_error = scores.list_summary().loc[self.optimization_metric.__name__, "mean"] - 1
+        validation_error = error_results.list_summary().loc[self.optimization_metric.__name__, "mean"] - 1
 
         self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
                          self.optimization_metric.__name__ + '@{}'.format(self.num_recommendations) + ': '
@@ -170,6 +212,6 @@ class ImplicitEvaler:
         self.logger.debug(str(config_space))
 
         if self.minimize_error_metric_val:
-            return validation_error
+            return validation_error, best_model
         else:
-            return 1 - validation_error
+            return 1 - validation_error, best_model

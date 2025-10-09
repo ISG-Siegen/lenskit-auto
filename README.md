@@ -143,7 +143,7 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
 
 ```python
-from lenskit.batch import recommend
+from lkauto.utils.pred_and_rec_functions import recommend
 from lenskit.splitting import crossfold_users, SampleN
 from lenskit.metrics import RunAnalysis, NDCG
 from lenskit.pipeline import topn_pipeline
@@ -155,13 +155,9 @@ for split in crossfold_users(ml100k, 2, SampleN(5)):
     test_split = split.test
     
     # Fixme: INSERT SECENARIO CODE HERE
-    
-    # create pipeline
-    pipeline = topn_pipeline(model)
-    # fit
-    pipeline.train(train_split)
+
     #recommend
-    recs = recommend(pipeline, test_split)
+    recs = recommend(model, test_split)
 
     # create run analysis
     rla = RunAnalysis()
@@ -178,10 +174,10 @@ based on data rows or user data. For the rating prediction example we are splitt
 Top-N ranking predicion example showcases the data-split based on user data.
 
 ```python
+from lkauto.utils.pred_and_rec_functions import predict
 from lenskit.metrics import RMSE, RunAnalysis
 from lenskit.splitting import sample_records
 from lenskit.pipeline import predict_pipeline
-from lenskit.batch import predict
 from lkauto.lkauto import get_best_prediction_model
 
 tt_split = sample_records(ml100k, 1000)
@@ -190,14 +186,8 @@ test_split = tt_split.test
 
 # Fixme: INSERT SCENARIO CODE HERE
 
-pipeline = predict_pipeline(model)
-pipeline.train(train_split)
-recs = predict(pipeline, test_split)
-
-rla = RunAnalysis()
-rla.add_metric(RMSE)
-scores = rla.measure(recs, test_split)
-print("Scores:\n", scores)
+preds = predict(model, test_split)
+print("Predictions:\n", preds)
 ```
 
 #### Scenario 1
@@ -208,7 +198,7 @@ This scenario is recommended for inexperienced developers who have no or little 
 LensKit-Auto performs the combined algorithm selection and hyperparameter optimization with a single function call.
 
 ```python
-model, config = get_best_recommender_model(train=train_split, filer=filer)
+model, config = get_best_recommender_model(train=train_split, filer=filer, save=True)
 ```
 
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
@@ -218,6 +208,10 @@ The *get_best_recommender_model()* or *get_best_prediction_model()* function cal
 with tuned hyperparameters and a configuration dictionary that contains all information about the model. In the Scenario
 1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default  
 hyperparameter range. We can use the model in the exact same way like a regular LensKit model.
+
+Setting the `save` parameter to `True` enables lenskit-auto to save the trained model and configuration to the ouput
+directory specified by the `filer`. The default value of `save` is `True`, so that we only have to set it to `False` if
+we do not want to save the model and configuration.
 
 #### Scenario 2
 
