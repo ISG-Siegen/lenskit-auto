@@ -8,81 +8,77 @@
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
 recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
 models based on the LensKit models.
-
-LensKit-Auto is currently developed and tested only on Linux systems. 
+<!-- 
+> **Note:** LensKit-Auto is currently developed and tested only on Linux systems.
+-->
 
 ## Resources
 
-- Documentation: [LensKit-Auto Documenatation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
+- Documentation: [LensKit-Auto Documentation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
 - RecSys23 Demo: [RecSys23 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys23-Demo.html)
 - RecSys23 Demo Video: [RecSys23 Demo Video](https://youtu.be/OTZAb8E_IZI)
 
-## Install
+## Installation
 
-Lenskit-Auto requires at least Python 3.12. 
-You can set up your environment in two ways:
-1. using the provided `environment.yml`.
-2. Using `setup.py`
-
-## 1. Using `environment.yml` (Conda)
-This method creates a conda environment withh all dependencies including their versions.
+LensKit-Auto requires Python 3.12 or newer.  
+Install it and all dependencies with:
 
 ```bash
-# Create the environment
-conda env create -f environment.yml
-
-# Activate the environment
-conda activate lkauto-env
+pip install lenskit-auto
 ```
+## Recommended Environment Setup
+<!-- uncomment this when lenskit-auto is availbale in conda-forge
+You can use either **conda** or Python’s built-in **venv**.
+-->
+You can use Python’s built-in **venv**.
 
-## 2. Using `setup.py` (pip)
+## On Linux: 
 
-This method works in any Python 3.12+ environment (e.g. conda, venv).
+### Using venv (built-in Python)
 
 ```bash
-# Create and activate a new environment
-conda create -n lkauto-env python=3.12
-conda activate lkauto-env
-# or use python -m venv venv_name && source venv_name/bin/activate
-
-# Install the package and all dependencies
-pip install .
+python3 -m venv lenskit-auto-env
+source lenskit-auto-env/bin/activate
+pip install lenskit-auto
 ```
-# Note:
-For now, after using one of these methods, you need to set the PYTHONPATH to your project root to run the scripts, since lkauto is not pip installable yet:
+<!-- uncomment this when lenskit-auto is availbale in conda-forge
+### Using conda
 
-## Option A: Using PYTHONPATH
 ```bash
-export PYTHONPATH=/path/to/your/lenskit-auto
+conda create -n lenskit-auto-env python=3.12
+conda activate lenskit-auto-env
+conda install -c conda-forge lenskit-auto
 ```
+-->
 
-## Option B: Using .env file (for VSCode)
-create a `.env` file in your project root and add the following path inside it:
-```bash
-export PYTHONPATH=/path/to/your/lenskit-auto
-```
+## On Windows: 
 
-## Getting the path:
-clone our entire repo under a folder named `lenskit-auto`
-```bash
-git clone https://github.com/ISG-Siegen/lenskit-auto.git
-```
+### Using venv (built-in Python)
 
-navigate to the project directory:
 ```bash
-cd lenskit-auto
+py -3.12 -m venv lenskit-auto-env
+lenskit-auto-env\Scripts\activate
+pip install lenskit-auto
 ```
+<!-- uncomment this when lenskit-auto is availbale in conda-forge
+### Using conda
 
-checkout to the updated branch `update_lkauto`
 ```bash
-git checkout update_lkauto
+conda create -n lenskit-auto-env python=3.12
+conda activate lenskit-auto-env
+conda install -c conda-forge lenskit-auto
 ```
+-->
+
+
+
+> **Tip:** You can replace `lenskit-auto-env` with any environment name you prefer.
 
 
 ## Getting Started
 
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
-recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
+recommender-system library. It automates algorithm selection and hyper parameter optimization and can build ensemble
 models based on LensKit models.
 
 
@@ -215,7 +211,7 @@ we do not want to save the model and configuration.
 
 #### Scenario 2
 
-In Senario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
+In Scenario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
 custom configuration space with just a single algorithm included.
 
 ```python
