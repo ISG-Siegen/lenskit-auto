@@ -51,41 +51,43 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # ItemItem
     if algo_name == 'ItemItem':
-        # model = ItemKNNScorer(feedback=feedback, **config)
-        model = ItemKNNScorer(feedback=feedback)
+        model = ItemKNNScorer(feedback=feedback, **config)
+        # model = ItemKNNScorer(feedback=feedback)
     # UserUser
     elif algo_name == 'UserUser':
-        # model = UserKNNScorer(feedback=feedback, **config)
-        model = UserKNNScorer(feedback=feedback)
+        model = UserKNNScorer(feedback=feedback, **config)
+        # model = UserKNNScorer(feedback=feedback)
     # FunkSVD
     elif algo_name == 'FunkSVD':
-        # model = FunkSVDScorer(random_state=random_state, **config)
-        model = FunkSVDScorer(feedback=feedback)
+        model = FunkSVDScorer(random_state=random_state, **config)
+        # model = FunkSVDScorer(feedback=feedback)
     # BiasedSVD
     elif algo_name == 'BiasedSVD':
-        # model = BiasedSVDScorer(**config)
-        model = BiasedSVDScorer(feedback=feedback)
+        model = BiasedSVDScorer(**config)
+        # model = BiasedSVDScorer(feedback=feedback)
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
-        # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
+        reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
+        print(config.keys()) #delete later for debugging
         # del config['ureg']
         # del config['ireg']
-        # model = BiasedMFScorer(reg=reg_touple, rng_spec=random_state, **config)
-        model = BiasedMFScorer(feedback=feedback)
+        model = BiasedMFScorer(reg=reg_touple, rng_spec=random_state, **config)
+        # model = BiasedMFScorer(feedback=feedback)
     # Biased
     elif algo_name == 'Bias':
-        # damping_touple = (config.pop('user_damping'), config.pop('item_damping'))
-        # del config['user_damping']
-        # del config['item_damping']
-        # model = BiasScorer(damping=damping_touple, **config)
-        model = BiasScorer()
+        user_damping = float(config.pop('user_damping'))
+        item_damping = float(config.pop('item_damping'))
+
+        # New API: pass as dict instead of tuple
+        damping_dict = {'user': user_damping, 'item': item_damping}
+        model = BiasScorer(damping=damping_dict, **config)
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
-        # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
+        reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
         # del config['ureg']
         # del config['ireg']
-        # model = ImplicitMFScorer(reg=reg_touple, rng_spec=random_state, **config)
-        model = ImplicitMFScorer(feedback=feedback)
+        model = ImplicitMFScorer(reg=reg_touple, rng_spec=random_state, **config)
+        # model = ImplicitMFScorer(feedback=feedback)
     else:
         raise ValueError("Unknown algorithm: {}".format(algo_name))
 
