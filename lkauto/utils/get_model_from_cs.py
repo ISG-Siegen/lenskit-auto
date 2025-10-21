@@ -46,7 +46,11 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # get algorithm name
     algo_name = cs.get('algo')
-    config = {key.replace("{}:".format(algo_name), ""): value for key, value in cs.items()}
+    # config = {key.replace("{}:".format(algo_name), ""): value for key, value in cs.items()} #changed : to ; in .replace
+    config = {
+        key.replace(f"{algo_name}:", "").replace(f"{algo_name};", ""): value
+        for key, value in cs.items()
+    }
     del config['algo']
 
     # ItemItem
