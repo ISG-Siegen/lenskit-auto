@@ -58,8 +58,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
     if algo_name == 'ItemItem':
         # model = ItemKNNScorer(feedback=feedback, **config)
         cfg = ItemKNNConfig(feedback=feedback,
-                            max_nbrs=config.get('max_nbrs',20),
-                            min_nbrs=config.get('min_nbrs',1),
+                            max_nbrs=config.get('max_nbrs', 20),
+                            min_nbrs=config.get('min_nbrs', 1),
                             min_sim=config.get('min_sim', 1e-6))
         model = ItemKNNScorer(config=cfg)
     # UserUser
@@ -94,7 +94,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
         # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
-        print(config.keys()) #delete later for debugging
+        print(config.keys())  # delete later for debugging
         # del config['ureg']
         # del config['ireg']
         # model = BiasedMFScorer(reg=reg_touple, rng_spec=random_state, **config)
