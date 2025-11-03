@@ -1,5 +1,6 @@
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
+from lenskit import Pipeline
 
 # from smac.facade.smac_hpo_facade import SMAC4HPO
 # from smac.scenario.scenario import Scenario
@@ -16,7 +17,7 @@ from lkauto.implicit.implicit_evaler import ImplicitEvaler
 from lkauto.utils.filer import Filer
 from lkauto.utils.get_default_configuration_space import get_default_configuration_space
 
-from typing import Tuple
+from typing import Tuple, Optional
 import logging
 
 
@@ -34,7 +35,8 @@ def bayesian_optimization(train: Dataset,
                           ensemble_size: int = 50,
                           num_recommendations: int = 10,
                           minimize_error_metric_val: bool = True,
-                          filer: Filer = None) -> Tuple[Configuration, pd.DataFrame]:
+                          predict_mode: bool = True,
+                          filer: Filer = None) -> Tuple[Configuration, Optional[Pipeline], Optional[pd.DataFrame]]:
     """
         returns the best configuration found by bayesian optimization.
         The bayesian_optimization method will use SMAC3 to find the best
@@ -58,6 +60,8 @@ def bayesian_optimization(train: Dataset,
             LensKit prediction accuracy metric to optimize for.
         minimize_error_metric_val : bool
             Bool that decides if the error metric should be minimized or maximized.
+        predict_mode : bool
+            If set to true, indicates that a prediction model should be created, a recommender model otherwise
         user_feedback : str
             Defines if the dataset contains explicit or implicit feedback.
         random_state: int
@@ -100,7 +104,8 @@ def bayesian_optimization(train: Dataset,
                                 split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 ensemble_size=ensemble_size,
-                                minimize_error_metric_val=minimize_error_metric_val)
+                                minimize_error_metric_val=minimize_error_metric_val,
+                                predict_mode=predict_mode)
     elif user_feedback == 'implicit':
         evaler = ImplicitEvaler(train=train,
                                 validation=validation,
@@ -111,7 +116,8 @@ def bayesian_optimization(train: Dataset,
                                 split_strategy=split_strategie,
                                 split_frac=split_frac,
                                 num_recommendations=num_recommendations,
-                                minimize_error_metric_val=minimize_error_metric_val)
+                                minimize_error_metric_val=minimize_error_metric_val,
+                                predict_mode=predict_mode)
     else:
         raise ValueError('feedback must be either explicit or implicit')
 
@@ -131,9 +137,21 @@ def bayesian_optimization(train: Dataset,
                         walltime_limit=time_limit_in_sec,
                         output_directory=output_dir
                         )
+    # Target function that should minimize the error of th evaler
+    # Also saves the model from the smallest error evaluation
+    best_error = float('inf')
+    best_model = None
 
     def target_function(config, seed=0, budget=None, instance=None):
-        return evaler.evaluate(config)
+        error, model = evaler.evaluate(config)
+
+        nonlocal best_error, best_model
+
+        if error < best_error:
+            best_error = error
+            best_model = model
+
+        return error
 
     smac = HyperparameterOptimizationFacade(
         scenario=scenario,
@@ -151,8 +169,9 @@ def bayesian_optimization(train: Dataset,
     if user_feedback == 'explicit':
         # save top n runs
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
-        return incumbent, evaler.top_n_runs
+        # filer.save_model(model=incumbent.)
+        return incumbent, best_model, evaler.top_n_runs
     elif user_feedback == 'implicit':
-        return incumbent
+        return incumbent, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')

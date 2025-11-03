@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import json
+import pickle
 
 
 class Filer:
@@ -160,3 +161,36 @@ class Filer:
         self.save_metric_scores_to_txt(metric_scores=metric_scores, output_path=output_path, name='rmse')
         self.save_dictionary_to_json(dictionary=dictionary, output_path=output_path, name='config_space')
         self.save_dataframe_as_csv(dataframe=predictions, output_path=output_path, name='predictions')
+
+    def save_model(self, model):
+        """
+        Saves the model to the output directory specified by the filer
+
+        Parameters
+        ----------
+        model
+            The model to be saved
+        """
+        model_name = model.__class__.__name__
+        timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
+        file_name = "Trained_" + model_name + "_" + timestamp + '.pkl'
+
+        output_path = Path(self.output_directory_path)
+
+        pickle.dump(model, open(output_path / file_name, 'wb'))
+
+    def save_incumbent(self, incumbent):
+        """
+        Saves the incumbent to the output directory specified by the filer
+
+        Parameters
+        ----------
+        incumbent
+                    The incumbent to be saved
+        """
+        timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
+        file_name = "incumbent _" + timestamp + '.pkl'
+
+        output_path = Path(self.output_directory_path)
+
+        pickle.dump(incumbent, open(output_path / file_name, 'wb'))

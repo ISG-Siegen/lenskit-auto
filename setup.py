@@ -8,8 +8,8 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="lkauto",
-    version="0.1.1",
+    name="lenskit-auto",
+    version="0.2.0",
     author="Tobias Vente",
     python_requires=">=3.12, <3.13",
     packages=find_packages(),
@@ -28,7 +28,7 @@ setup(
         "test": ["pytest>=8.4.1", "pytest-cov>=6.2.1"],
         "doc": ["sphinx>=4.2", "sphinx-rtd-theme>=1.0.0", "nbsphinx>=0.8.9"],
     },
-    entry_points={},
+    # entry_points={},
     description=SHORT_DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/markdown",

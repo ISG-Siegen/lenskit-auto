@@ -17,8 +17,7 @@ from lkauto.utils.logging import get_logger
 # from lenskit.algorithms import Predictor
 # from lenskit import Recommender
 
-from lenskit.metrics.predict import RMSE
-from lenskit.metrics import NDCG
+from lenskit.metrics import RMSE, NDCG
 from lenskit.pipeline import Component
 from lenskit.data import Dataset, ItemListCollection
 
@@ -48,7 +47,8 @@ def get_best_prediction_model(train: Dataset,
                               timestamp_col: str = 'timestamp',
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
-                              filer: Filer = None) -> Tuple[Component, dict]:
+                              filer: Filer = None,
+                              save: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -117,6 +117,8 @@ def get_best_prediction_model(train: Dataset,
             log level to use.
         filer : Filer
             filer to manage LensKit-Auto output
+        save : bool
+            If set to True, the model and incumbent are saved as a pickle
 
         Returns
         -------
@@ -170,21 +172,37 @@ def get_best_prediction_model(train: Dataset,
 
     # decide which optimization strategy to use
     if optimization_strategie == 'bayesian':
-        incumbent, top_n_runs = bayesian_optimization(train=train,
-                                                      cs=cs,
-                                                      user_feedback='explicit',
-                                                      validation=validation,
-                                                      optimization_metric=optimization_metric,
-                                                      time_limit_in_sec=time_limit_in_sec,
-                                                      num_evaluations=num_evaluations,
-                                                      random_state=random_state,
-                                                      split_folds=split_folds,
-                                                      split_frac=split_frac,
-                                                      split_strategie=split_strategie,
-                                                      ensemble_size=ensemble_size,
-                                                      minimize_error_metric_val=minimize_error_metric_val,
-                                                      filer=filer)
+        incumbent, model, top_n_runs = bayesian_optimization(train=train,
+                                                             cs=cs,
+                                                             user_feedback='explicit',
+                                                             validation=validation,
+                                                             optimization_metric=optimization_metric,
+                                                             time_limit_in_sec=time_limit_in_sec,
+                                                             num_evaluations=num_evaluations,
+                                                             random_state=random_state,
+                                                             split_folds=split_folds,
+                                                             split_frac=split_frac,
+                                                             split_strategie=split_strategie,
+                                                             ensemble_size=ensemble_size,
+                                                             minimize_error_metric_val=minimize_error_metric_val,
+                                                             filer=filer,
+                                                             predict_mode=True)
     elif optimization_strategie == 'random_search':
+        incumbent, model, top_n_runs = random_search(train=train,
+                                                     cs=cs,
+                                                     user_feedback='explicit',
+                                                     validation=validation,
+                                                     optimization_metric=optimization_metric,
+                                                     time_limit_in_sec=time_limit_in_sec,
+                                                     num_evaluations=num_evaluations,
+                                                     random_state=random_state,
+                                                     split_folds=split_folds,
+                                                     split_frac=split_frac,
+                                                     split_strategie=split_strategie,
+                                                     ensemble_size=ensemble_size,
+                                                     minimize_error_metric_val=minimize_error_metric_val,
+                                                     filer=filer,
+                                                     predict_mode=True)
         incumbent, top_n_runs = random_search(train=train,
                                               cs=cs,
                                               user_feedback='explicit',
@@ -222,7 +240,8 @@ def get_best_prediction_model(train: Dataset,
 
     logger.info('--Start Postrprocessing--')
     if ensemble_size > 1:
-        model, incumbent = build_ensemble(train=train, top_n_runs=top_n_runs,
+        model, incumbent = build_ensemble(train=train,
+                                          top_n_runs=top_n_runs,
                                           filer=filer,
                                           ensemble_size=ensemble_size,
                                           lenskit_metric=optimization_metric,
@@ -235,6 +254,11 @@ def get_best_prediction_model(train: Dataset,
         incumbent = incumbent.get_dictionary()
         logger.info('--Best Model--')
         logger.info(incumbent)
+
+    if save:
+        filer.save_model(model)
+        filer.save_incumbent(incumbent)
+        logger.info('Saved model and incumbent to ' + filer.output_directory_path)
 
     logger.info('---LensKit-Auto finished---')
 
@@ -265,7 +289,8 @@ def get_best_recommender_model(train: Dataset,
                                timestamp_col: str = 'timestamp',
                                include_timestamp: bool = True,
                                log_level: str = 'INFO',
-                               filer: Filer = None) -> Tuple[Component, dict]:
+                               filer: Filer = None,
+                               save: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Recommender found in the defined search time
 
@@ -333,6 +358,8 @@ def get_best_recommender_model(train: Dataset,
             log level to use.
         filer : Filer
             filer to manage LensKit-Auto output
+        save : bool
+            If set to True, the model and incumbent are saved as a pickle
 
         Returns
         -------
@@ -384,23 +411,39 @@ def get_best_recommender_model(train: Dataset,
                     drop_na_values=drop_na_values,
                     drop_duplicates=drop_duplicates)
 
-    # define optimization strategie to use
+    # define optimization strategy to use
     if optimization_strategie == 'bayesian':
-        incumbent = bayesian_optimization(train=train,
-                                          validation=validation,
-                                          cs=cs,
-                                          user_feedback='implicit',
-                                          optimization_metric=optimization_metric,
-                                          time_limit_in_sec=time_limit_in_sec,
-                                          num_evaluations=num_evaluations,
-                                          random_state=random_state,
-                                          split_folds=split_folds,
-                                          split_frac=split_frac,
-                                          split_strategie=split_strategie,
-                                          minimize_error_metric_val=minimize_error_metric_val,
-                                          num_recommendations=num_recommendations,
-                                          filer=filer)
+        incumbent, model, top_n_runs = bayesian_optimization(train=train,
+                                                             validation=validation,
+                                                             cs=cs,
+                                                             user_feedback='implicit',
+                                                             optimization_metric=optimization_metric,
+                                                             time_limit_in_sec=time_limit_in_sec,
+                                                             num_evaluations=num_evaluations,
+                                                             random_state=random_state,
+                                                             split_folds=split_folds,
+                                                             split_frac=split_frac,
+                                                             split_strategie=split_strategie,
+                                                             minimize_error_metric_val=minimize_error_metric_val,
+                                                             num_recommendations=num_recommendations,
+                                                             filer=filer,
+                                                             predict_mode=False)
     elif optimization_strategie == 'random_search':
+        incumbent, model, top_n_runs = random_search(train=train,
+                                                     validation=validation,
+                                                     cs=cs,
+                                                     user_feedback='implicit',
+                                                     optimization_metric=optimization_metric,
+                                                     time_limit_in_sec=time_limit_in_sec,
+                                                     num_evaluations=num_evaluations,
+                                                     random_state=random_state,
+                                                     split_folds=split_folds,
+                                                     split_frac=split_frac,
+                                                     split_strategie=split_strategie,
+                                                     minimize_error_metric_val=minimize_error_metric_val,
+                                                     num_recommendations=num_recommendations,
+                                                     filer=filer,
+                                                     predict_mode=False)
         incumbent = random_search(train=train,
                                   validation=validation,
                                   cs=cs,
@@ -435,12 +478,18 @@ def get_best_recommender_model(train: Dataset,
 
     logger.info('--Start Postprocessing--')
 
-    # build model from best model configuration found by SMAC
-    model = get_model_from_cs(incumbent, feedback='implicit')
+    # if model is None, build model from best model configuration found by SMAC
+    if model is None:
+        model = get_model_from_cs(incumbent, feedback='implicit')
     incumbent = incumbent.get_dictionary()
 
     logger.info('--Best Model--')
     logger.info(incumbent)
+
+    if save:
+        filer.save_model(model)
+        filer.save_incumbent(incumbent)
+        logger.info('Saved model and incumbent to ' + filer.output_directory_path)
 
     logger.info('---LensKit-Auto finished---')
 

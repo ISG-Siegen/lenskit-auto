@@ -1,8 +1,10 @@
 import pandas as pd
 from ConfigSpace import ConfigurationSpace
+from lenskit import Pipeline
 
 
-def update_top_n_runs(num_models: int, top_n_runs: pd.DataFrame, run_id: int, config_space: ConfigurationSpace, errors):
+def update_top_n_runs(num_models: int, top_n_runs: pd.DataFrame, run_id: int,
+                      config_space: ConfigurationSpace, pipeline: Pipeline, errors):
     """
     updates the top n runs dataframe with the new run
 
@@ -27,7 +29,8 @@ def update_top_n_runs(num_models: int, top_n_runs: pd.DataFrame, run_id: int, co
     # create a dataframe containing the run id, model and error of the new run
     model_performance = pd.DataFrame(data={'run_id': [run_id],
                                            'model': [config_space['algo']],
-                                           'error': [errors.mean()]})
+                                           'error': [errors.mean()],
+                                           'pipeline': [pipeline]})
 
     # if the top n runs dataframe does not contain an entry for each model, add the new run to the dataframe
     if len(top_n_runs) < num_models:
@@ -54,9 +57,11 @@ def update_top_n_runs(num_models: int, top_n_runs: pd.DataFrame, run_id: int, co
                 max_len = len(silo)
                 max_index = i
 
-        # get the runs for the model type with the most runs
+        # get the runs for the model type with the most runs, for that
+        # get the run for the model used in the current run
         silo = top_n_runs[top_n_runs['model'] == config_space['algo']]
 
+        # if model from the current run has the most runs already
         if len(silo) == max_len:
             # get the worst run of the model type with the most runs
             worst_performance = silo['error'].max()
