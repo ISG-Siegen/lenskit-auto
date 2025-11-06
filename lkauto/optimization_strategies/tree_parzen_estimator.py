@@ -125,7 +125,7 @@ def tree_parzen(cs: Apply,
         logger.debug('initializing default ConfigurationSpace')
 
         cs = get_default_configuration_space(data=train,
-                                             val_fold_indices=evaler.val_fold_indices,
+                                             val_fold_indices=evaler.train_test_splits,
                                              validation=validation,
                                              feedback='explicit',
                                              hyperopt=True,
@@ -133,11 +133,12 @@ def tree_parzen(cs: Apply,
 
 
     #Creating Objective function with fixed context
+
     def objective(hyperparams):
         rng = default_rng(random_state)
         config = sample(cs, rng=rng)
         # config = sample(cs, rng=random_state)
-        error = evaler.evaluate(config)
+        error, model = evaler.evaluate(config)
         return {
             'loss': error,
             'status': STATUS_OK,
