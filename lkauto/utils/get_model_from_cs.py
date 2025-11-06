@@ -131,5 +131,5 @@ def get_model_from_cs(cs: ConfigurationSpace,
         raise ValueError("Unknown algorithm: {}".format(algo_name))
 
     final_model = model
-    final_model.config = type(final_model.config)() #added this to test something.
+    final_model.config = type(final_model.config) #added this to test something.
     return final_model
