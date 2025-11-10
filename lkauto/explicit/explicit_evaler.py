@@ -84,11 +84,15 @@ class ExplicitEvaler:
         self.ensemble_size = ensemble_size
         self.top_n_runs = pd.DataFrame(columns=['run_id', 'model', 'error'])
         if self.validation is None:
-            self.train_test_splits = list(validation_split(data=self.train,
-                                                      strategy=self.split_strategy,
-                                                      num_folds=self.split_folds,
-                                                      frac=self.split_frac,
-                                                      random_state=self.random_state))
+            self.train_test_splits = list(
+                validation_split(
+                    data=self.train,
+                    strategy=self.split_strategy,
+                    num_folds=self.split_folds,
+                    frac=self.split_frac,
+                    random_state=self.random_state,
+                )
+            )
         else:
             self.train_test_splits = None
 
@@ -121,8 +125,8 @@ class ExplicitEvaler:
 
         if self.validation is None:
             for fold in self.train_test_splits:
-                validation_train = fold.train
-                validation_test = fold.test
+                validation_train = self.train_test_splits.train
+                validation_test = self.train_test_splits.test
 
                 # initialize pipeline
                 pipeline = None
