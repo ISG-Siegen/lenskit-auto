@@ -125,8 +125,8 @@ class ExplicitEvaler:
 
         if self.validation is None:
             for fold in self.train_test_splits:
-                validation_train = self.train_test_splits.train
-                validation_test = self.train_test_splits.test
+                validation_train = fold.train
+                validation_test = fold.test
 
                 # initialize pipeline
                 pipeline = None
