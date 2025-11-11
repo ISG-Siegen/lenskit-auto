@@ -1,3 +1,5 @@
+import multiprocessing
+
 import numpy as np
 import pandas as pd
 import time
@@ -90,9 +92,9 @@ def random_search(cs: ConfigurationSpace,
     best_configuration = None
     best_model = None
     if minimize_error_metric_val:
-        best_error_score = 0
-    else:
         best_error_score = np.inf
+    else:
+        best_error_score = -np.inf
 
     # initialize evaler based on user feedback
     if user_feedback == "explicit":
@@ -132,7 +134,7 @@ def random_search(cs: ConfigurationSpace,
                                              random_state=random_state)
 
     # get LensKit default configurations
-    initial_configuraition = get_default_configurations(cs)
+    initial_configuration = get_default_configurations(cs)
 
     # run for a specified number of iterations or until time limit is reached
     if num_evaluations == 0:
@@ -142,17 +144,19 @@ def random_search(cs: ConfigurationSpace,
         # track configurations that have already been tested
         configuration_list = []
 
+        stop_time = time.time() + time_limit_in_sec
+
         # loop through random spampled configurations
         while time.time() - start_time < time_limit_in_sec:
             # initialize config
             config = None
             # check if all initial configurations have been tested
-            if all(x in configuration_list for x in initial_configuraition):
+            if all(x in configuration_list for x in initial_configuration):
                 # random sample configuration from configuration space
                 config = cs.sample_configuration()
             else:
                 # pop configuration from initial configurations
-                config = initial_configuraition.pop(0)
+                config = initial_configuration.pop(0)
 
             # check if configuration has already been tested
             if config not in configuration_list:
@@ -176,7 +180,7 @@ def random_search(cs: ConfigurationSpace,
         configuration_set = set()
 
         # add initial configurations to set
-        for config in initial_configuraition:
+        for config in initial_configuration:
             if len(configuration_set) < num_evaluations:
                 configuration_set.add(config)
 
@@ -186,26 +190,38 @@ def random_search(cs: ConfigurationSpace,
 
         # track time to support random_search on a time base
         start_time = time.time()
+        stop_time = time.time() + time_limit_in_sec
+        time_left = time_limit_in_sec
+
+        result_queue = multiprocessing.Queue()
 
         # loop through random spampled configurations
         for config in configuration_set:
-            # calculate error for the configuration
-            error, model = evaler.evaluate(config)
+            if time_left > 0:
+                process = multiprocessing.Process(target=evaler_worker_function,
+                                                  args=(evaler,
+                                                        config,
+                                                        minimize_error_metric_val,
+                                                        best_error_score,
+                                                        result_queue
+                                                        ),
+                                                  name='loop')
+                process.start()
 
-            # keep track of best performing configuration
-            if minimize_error_metric_val:
-                if error < best_error_score:
-                    best_error_score = error
-                    best_configuration = config
-                    best_model = model
+                try:
+                    result = result_queue.get(timeout=time_left)
+                    if result['best'] is True:
+                        best_error_score = result['error']
+                        best_configuration = result['config']
+                        best_model = result['model']
+                except multiprocessing.queues.Empty:
+                    if process.is_alive():
+                        print("Time limit reached, random search stopped")
+                        process.terminate()
+                        process.join()
+
+                time_left = stop_time - time.time()
             else:
-                if error > best_error_score:
-                    best_error_score = error
-                    best_configuration = config
-                    best_model = model
-
-            # keep track of time
-            if time.time() - start_time > time_limit_in_sec:
                 break
 
     logger.info('--End Random Search--')
@@ -217,3 +233,26 @@ def random_search(cs: ConfigurationSpace,
         return best_configuration, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')
+
+
+def evaler_worker_function(evaler,
+                           config,
+                           minimize_error_metric_val,
+                           best_error_score,
+                           queue):
+    # calculate error for the configuration
+    error, model = evaler.evaluate(config)
+
+    result_dict = {}
+    best = False
+
+    # keep track of best performing configuration
+    if minimize_error_metric_val:
+        if error < best_error_score:
+            best = True
+    else:
+        if error > best_error_score:
+            best = True
+
+    result_dict = {'best': best, 'error': error, 'config': config, 'model': model}
+    queue.put(result_dict)
