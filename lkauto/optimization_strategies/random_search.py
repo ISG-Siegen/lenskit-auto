@@ -246,10 +246,8 @@ def random_search(cs: ConfigurationSpace,
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
-        print("in explicit and model: ", best_model)
         return best_configuration, best_model, evaler.top_n_runs
     elif user_feedback == 'implicit':
-        print("in implicit")
         return best_configuration, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')
