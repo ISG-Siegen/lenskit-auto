@@ -136,8 +136,9 @@ def tree_parzen(cs: Apply,
 
     def objective(hyperparams):
         rng = default_rng(random_state)
-        config = sample(cs, rng=rng)
+        # config = sample(cs, rng=rng)
         # config = sample(cs, rng=random_state)
+        config = hyperparams
         error, model = evaler.evaluate(config)
         return {
             'loss': error,

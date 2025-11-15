@@ -61,7 +61,7 @@ class TestGetModelFromCS(unittest.TestCase):
             ('FunkSVD', [('algo', 'FunkSVD'), ('FunkSVD:attr1', 'val1')], FunkSVDScorer),
             ('BiasedSVD', [('algo', 'BiasedSVD'), ('BiasedSVD:attr1', 'val1')], BiasedSVDScorer),
             ('ALSBiasedMF', [('algo', 'ALSBiasedMF'), ('ALSBiasedMF:ureg', 1), ('BiasedMFScorer:ireg', 2)], BiasedMFScorer),
-            ('Bias', [('algo', 'Bias'), ('Bias:user_damping', '5.0'), ('Bias:item_damping', '3.0')], BiasScorer)
+            ('Bias', [('algo', 'Bias'), ('Bias:user_damping', '5.0'), ('BiasScorer:item_damping', '3.0')], BiasScorer)
         ]
 
         for algorithm_params in algorithm_params_list:

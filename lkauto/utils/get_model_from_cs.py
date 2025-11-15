@@ -6,6 +6,7 @@ from lenskit.als import BiasedMFScorer, BiasedMFConfig
 from lenskit.data.types import UIPair
 from lenskit.als import ImplicitMFScorer, ImplicitMFConfig
 from lenskit.basic import BiasScorer
+from lenskit.basic.bias import BiasConfig #changed to basic.BiasConfig in newer versions
 from lenskit.funksvd import FunkSVDScorer, FunkSVDConfig
 from lenskit.knn import ItemKNNScorer, ItemKNNConfig
 from lenskit.sklearn.svd import BiasedSVDScorer, BiasedSVDConfig
@@ -61,7 +62,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
                             max_nbrs=config.get('max_nbrs', 20),
                             min_nbrs=config.get('min_nbrs', 1),
                             min_sim=config.get('min_sim', 1e-6))
-        model = ItemKNNScorer(config=cfg)
+        cfg = ItemKNNConfig(**config)
+        model = ItemKNNScorer(cfg)
     # UserUser
     elif algo_name == 'UserUser':
         # model = UserKNNScorer(feedback=feedback, **config)
@@ -69,7 +71,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
                             max_nbrs=config.get('max_nbrs', 20),
                             min_nbrs=config.get('min_nbrs', 1),
                             min_sim=config.get('min_sim', 1e-6))
-        model = UserKNNScorer(config=cfg)
+        cfg = UserKNNConfig(**config)
+        model = UserKNNScorer(cfg)
     # FunkSVD
     elif algo_name == 'FunkSVD':
         # model = FunkSVDScorer(random_state=random_state, **config)
@@ -79,7 +82,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
             regularization=float(config.get('reg', 0.015)),  # default 0.015
             damping=float(config.get('damping', 5.0)),  # default 5.0
         )
-        model = FunkSVDScorer(config=cfg)
+        cfg = FunkSVDConfig(**config)
+        model = FunkSVDScorer(cfg)
     # BiasedSVD
     elif algo_name == 'BiasedSVD':
         # model = BiasedSVDScorer(**config)
@@ -87,10 +91,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
             'user': float(config.get('user_damping', 5.0)),  # default 5
             'item': float(config.get('item_damping', 5.0))  # default 5
         }
-        cfg = BiasedSVDConfig(
-            damping=damping_dict
-        )
-        model = BiasedSVDScorer(config=cfg)
+        cfg = BiasedSVDConfig(damping=damping_dict)
+        model = BiasedSVDScorer(**damping_dict)
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
         # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
@@ -107,7 +109,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
             regularization=reg,
             user_embeddings=True if config.get('bias', True) else 'prefer',
         )
-        model = BiasedMFScorer(config=cfg)
+        cfg = BiasedMFConfig(**config)
+        model = BiasedMFScorer(cfg)
     # Biased
     elif algo_name == 'Bias':
         user_damping = float(config.get('user_damping'))
@@ -115,7 +118,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
         # New API: pass as dict instead of tuple
         damping_dict = {'user': user_damping, 'item': item_damping}
-        model = BiasScorer(damping=damping_dict)
+        cfg = BiasConfig(damping=damping_dict)
+        model = BiasScorer(cfg)
         # model = BiasScorer(damping=damping_dict, **config)
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
@@ -126,7 +130,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
             # regularization=reg_touple,
             user_embeddings=True if config.get('bias', True) else 'prefer',
         )
-        model = ImplicitMFScorer(config=cfg)
+        cfg = ImplicitMFConfig(**config)
+        model = ImplicitMFScorer(cfg)
     else:
         raise ValueError("Unknown algorithm: {}".format(algo_name))
 
