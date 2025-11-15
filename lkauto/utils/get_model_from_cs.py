@@ -53,6 +53,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
         key.replace(f"{algo_name}:", "").replace(f"{algo_name};", ""): value
         for key, value in cs.items()
     }
+    print("Algo:", algo_name)
+    print("Incoming config:", config)
     del config['algo']
 
     # ItemItem
@@ -62,7 +64,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
                             max_nbrs=config.get('max_nbrs', 20),
                             min_nbrs=config.get('min_nbrs', 1),
                             min_sim=config.get('min_sim', 1e-6))
-        cfg = ItemKNNConfig(**config)
+        cfg = ItemKNNConfig(feedback=feedback, **config)
         model = ItemKNNScorer(cfg)
     # UserUser
     elif algo_name == 'UserUser':
@@ -71,7 +73,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
                             max_nbrs=config.get('max_nbrs', 20),
                             min_nbrs=config.get('min_nbrs', 1),
                             min_sim=config.get('min_sim', 1e-6))
-        cfg = UserKNNConfig(**config)
+        cfg = UserKNNConfig(feedback=feedback, **config)
         model = UserKNNScorer(cfg)
     # FunkSVD
     elif algo_name == 'FunkSVD':
@@ -82,7 +84,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
             regularization=float(config.get('reg', 0.015)),  # default 0.015
             damping=float(config.get('damping', 5.0)),  # default 5.0
         )
-        cfg = FunkSVDConfig(**config)
+        cfg = FunkSVDConfig(feedback=feedback, **config)
         model = FunkSVDScorer(cfg)
     # BiasedSVD
     elif algo_name == 'BiasedSVD':
@@ -96,7 +98,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
         # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
-        print(config.keys())  # delete later for debugging
         # del config['ureg']
         # del config['ireg']
         # model = BiasedMFScorer(reg=reg_touple, rng_spec=random_state, **config)
@@ -109,7 +110,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
             regularization=reg,
             user_embeddings=True if config.get('bias', True) else 'prefer',
         )
-        cfg = BiasedMFConfig(**config)
+        cfg = BiasedMFConfig(feedback=feedback, **config)
         model = BiasedMFScorer(cfg)
     # Biased
     elif algo_name == 'Bias':
@@ -130,7 +131,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
             # regularization=reg_touple,
             user_embeddings=True if config.get('bias', True) else 'prefer',
         )
-        cfg = ImplicitMFConfig(**config)
+        cfg = ImplicitMFConfig(feedback=feedback, **config)
         model = ImplicitMFScorer(cfg)
     else:
         raise ValueError("Unknown algorithm: {}".format(algo_name))
