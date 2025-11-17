@@ -49,11 +49,9 @@ LensKit-Auto allows three application scenarios:
 
 Note: All application scenarios apply to Top-N ranking prediction and rating prediction use-cases.
 
-* **Scenario 1:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a given
-  dataset.
+* **Scenario 1:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a given dataset.
 * **Scenario 2:** LensKit-Auto performs hyperparameter optimization on a single algorithm for a given dataset.
-* **Scenario 3:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a specified set
-  of algorithms and/or different hyperparameter ranges for the provided dataset.
+* **Scenario 3:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a specified set of algorithms and/or different hyperparameter ranges for the provided dataset.
 
 In order to take advantage of LensKit-Auto, a developer needs to read in a dataset.
 
@@ -129,8 +127,11 @@ analysis.add_metric(RMSE())
 # evaluate recommendations against the test interactions
 scores = analysis.measure(predictions, test_split)
 ```
+### Application Scenarios
 
-#### Scenario 1
+The following scenarios can be used in both Top-N ranking prediction and rating prediction use cases. Simply insert the scenario code where indicated by `# INSERT SCENARIO CODE HERE` in the examples above.
+
+#### Scenario 1: Fully Automated Model Selection & Hyperparameter Optimization
 
 Scenario 1 describes the fully automated combined algorithm selection and hyperparameter optimization (CASH problem).
 This scenario is recommended for inexperienced developers who have no or little experience in model selection.
@@ -150,7 +151,7 @@ We can use the model in the exact same way like a regular LensKit model. (nicht 
 For rating prediction with ensemble models, use the *predict()* wrapper function from *lkauto.utils.pred_and_rec_functions* instead of *lenskit.batch.predict()* directly (as shown in the Rating Prediction example above).
 )
 
-#### Scenario 2
+#### Scenario 2: Single-Algorithm Hyperparameter Optimization
 
 In Scenario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our custom configuration space with just a single algorithm included.
 
@@ -173,7 +174,7 @@ Note: As described above, the *get_best_recommender_model()* is used for Top-N r
 
 The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing ItemItem model. Besides the model, the *get_best_recommender_model()* function returns a configuration dictionary with all information about the model.
 
-#### Scenario 3
+#### Scenario 3: Custom Search Space Model Selection & Hyperparameter Optimization
 
 Scenario 3 describes the automated combined algorithm selection and hyperparameter optimization of a custom configuration space. A developer that wants to use Scenario 3 needs to provide hyperparameter ranges for the hyperparameter optimization process.
 
