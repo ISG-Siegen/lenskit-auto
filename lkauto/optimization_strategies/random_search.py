@@ -18,6 +18,8 @@ from lkauto.utils.get_default_configuration_space import get_default_configurati
 from typing import Tuple, Optional
 import logging
 
+from lkauto.utils.get_model_from_cs import get_model_from_cs
+
 
 def random_search(cs: ConfigurationSpace,
                   train: Dataset,
@@ -246,8 +248,10 @@ def random_search(cs: ConfigurationSpace,
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
+        print("in explicit and model: ", best_model)
         return best_configuration, best_model, evaler.top_n_runs
     elif user_feedback == 'implicit':
+        print("in implicit")
         return best_configuration, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')
