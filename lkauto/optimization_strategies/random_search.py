@@ -18,8 +18,6 @@ from lkauto.utils.get_default_configuration_space import get_default_configurati
 from typing import Tuple, Optional
 import logging
 
-from lkauto.utils.get_model_from_cs import get_model_from_cs
-
 
 def random_search(cs: ConfigurationSpace,
                   train: Dataset,
