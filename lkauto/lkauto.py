@@ -208,7 +208,8 @@ def get_best_prediction_model(train: Dataset,
     filer.save_dataframe_as_csv(top_n_runs, '', 'top_n_runs')
 
     logger.info('--Start Postrprocessing--')
-    if ensemble_size > 1:
+    print("!!! top n runs: ", top_n_runs)
+    if ensemble_size > 1 and not top_n_runs.empty:
         model, incumbent = build_ensemble(train=train,
                                           top_n_runs=top_n_runs,
                                           filer=filer,
