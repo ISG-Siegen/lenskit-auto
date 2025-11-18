@@ -18,6 +18,8 @@ from lkauto.utils.get_default_configuration_space import get_default_configurati
 from typing import Tuple, Optional
 import logging
 
+from lkauto.utils.get_model_from_cs import get_model_from_cs
+
 
 def random_search(cs: ConfigurationSpace,
                   train: Dataset,
@@ -135,6 +137,7 @@ def random_search(cs: ConfigurationSpace,
 
     # get LensKit default configurations
     initial_configuration = get_default_configurations(cs)
+    found_at_least_one_config = False
 
     # run for a specified number of iterations or until time limit is reached
     if num_evaluations == 0:
@@ -197,29 +200,46 @@ def random_search(cs: ConfigurationSpace,
 
         # loop through random spampled configurations
         for config in configuration_set:
-            if time_left > 0:
-                process = multiprocessing.Process(target=evaler_worker_function,
-                                                  args=(evaler,
-                                                        config,
-                                                        minimize_error_metric_val,
-                                                        best_error_score,
-                                                        result_queue
-                                                        ),
-                                                  name='loop')
-                process.start()
+            process = multiprocessing.Process(target=evaler_worker_function,
+                                              args=(evaler,
+                                                    config,
+                                                    minimize_error_metric_val,
+                                                    best_error_score,
+                                                    result_queue
+                                                    ),
+                                              name='loop')
 
+            if not found_at_least_one_config:
+                process.start()
                 try:
-                    result = result_queue.get(timeout=time_left)
+                    result = result_queue.get()
+                    process.join()
                     if result['best'] is True:
                         best_error_score = result['error']
                         best_configuration = result['config']
                         best_model = result['model']
+                        found_at_least_one_config = True
                 except multiprocessing.queues.Empty:
                     if process.is_alive():
                         print("Time limit reached, random search stopped")
                         process.terminate()
                         process.join()
 
+                time_left = stop_time - time.time()
+            elif time_left > 0:
+                process.start()
+                try:
+                    result = result_queue.get()
+                    process.join(timeout=time_left)
+                    if result['best'] is True:
+                        best_error_score = result['error']
+                        best_configuration = result['config']
+                        best_model = result['model']
+                        found_at_least_one_config = True
+                except multiprocessing.queues.Empty:
+                    if process.is_alive():
+                        process.terminate()
+                        process.join()
                 time_left = stop_time - time.time()
             else:
                 break
@@ -228,8 +248,10 @@ def random_search(cs: ConfigurationSpace,
 
     if user_feedback == "explicit":
         filer.save_dataframe_as_csv(evaler.top_n_runs, '', 'top_n_runs')
+        print("in explicit and model: ", best_model)
         return best_configuration, best_model, evaler.top_n_runs
     elif user_feedback == 'implicit':
+        print("in implicit")
         return best_configuration, best_model, None
     else:
         raise ValueError('feedback must be either explicit or implicit')
