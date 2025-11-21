@@ -109,7 +109,9 @@ from lkauto.lkauto import get_best_prediction_model
 from lkauto.utils.pred_and_rec_functions import predict
 
 # record-based split: hold out 25k random interactions
-split = sample_records(ml100k, size=25_000)
+# Use 25% of interactions for test set
+test_size = int(ml100k.interaction_count * 0.25)
+split = sample_records(ml100k, size=test_size)
 train_split = split.train
 test_split = split.test
 
