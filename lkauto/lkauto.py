@@ -48,6 +48,7 @@ def get_best_prediction_model(train: Dataset,
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
                               filer: Filer = None,
+                              parallelize_predictions = -1,
                               save: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time

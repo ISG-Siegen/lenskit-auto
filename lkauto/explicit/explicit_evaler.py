@@ -177,7 +177,7 @@ class ExplicitEvaler:
 
                 recs = None
                 if self.predict_mode:
-                    recs = predict(fit_pipeline, validation_test)
+                    recs = predict(fit_pipeline, validation_test, n_jobs=1)
                 else:
                     recs = recommend(fit_pipeline, validation_test)
 

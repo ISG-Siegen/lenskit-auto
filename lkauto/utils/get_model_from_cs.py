@@ -59,56 +59,28 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # ItemItem
     if algo_name == 'ItemItem':
-        # model = ItemKNNScorer(feedback=feedback, **config)
-        cfg = ItemKNNConfig(feedback=feedback,
-                            max_nbrs=config.get('max_nbrs', 20),
-                            min_nbrs=config.get('min_nbrs', 1),
-                            min_sim=config.get('min_sim', 1e-6))
         cfg = ItemKNNConfig(feedback=feedback, **config)
         model = ItemKNNScorer(cfg)
     # UserUser
     elif algo_name == 'UserUser':
-        # model = UserKNNScorer(feedback=feedback, **config)
-        cfg = UserKNNConfig(feedback=feedback,
-                            max_nbrs=config.get('max_nbrs', 20),
-                            min_nbrs=config.get('min_nbrs', 1),
-                            min_sim=config.get('min_sim', 1e-6))
         cfg = UserKNNConfig(feedback=feedback, **config)
         model = UserKNNScorer(cfg)
     # FunkSVD
     elif algo_name == 'FunkSVD':
-        # model = FunkSVDScorer(random_state=random_state, **config)
-        cfg = FunkSVDConfig(
-            embedding_size=int(config.get('features', 50)),  # default 50
-            learning_rate=float(config.get('lrate', 0.001)),  # default 0.001
-            regularization=float(config.get('reg', 0.015)),  # default 0.015
-            damping=float(config.get('damping', 5.0)),  # default 5.0
-        )
         cfg = FunkSVDConfig(feedback=feedback, **config)
         model = FunkSVDScorer(cfg)
     # BiasedSVD
     elif algo_name == 'BiasedSVD':
-        # model = BiasedSVDScorer(**config)
         damping_dict = {
             'user': float(config.get('user_damping', 5.0)),  # default 5
             'item': float(config.get('item_damping', 5.0))  # default 5
         }
-        cfg = BiasedSVDConfig(damping=damping_dict)
         model = BiasedSVDScorer(**damping_dict)
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
-        # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
-        # del config['ureg']
-        # del config['ireg']
-        # model = BiasedMFScorer(reg=reg_touple, rng_spec=random_state, **config)
         reg = UIPair(
             user=config.get('ureg', 0.1),
             item=config.get('ireg', 0.1)
-        )
-        cfg = BiasedMFConfig(
-            embedding_size=int(config.get('features', 50)),
-            regularization=reg,
-            user_embeddings=True if config.get('bias', True) else 'prefer',
         )
         cfg = BiasedMFConfig(feedback=feedback, **config)
         model = BiasedMFScorer(cfg)
@@ -121,16 +93,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
         damping_dict = {'user': user_damping, 'item': item_damping}
         cfg = BiasConfig(damping=damping_dict)
         model = BiasScorer(cfg)
-        # model = BiasScorer(damping=damping_dict, **config)
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
-        # reg_touple = (config.pop('ureg'), config.pop('ireg'))
-        # model = ImplicitMFScorer(reg=reg_touple, rng_spec=random_state, **config)
-        cfg = ImplicitMFConfig(
-            embedding_size=int(config.get('features', 50)),
-            # regularization=reg_touple,
-            user_embeddings=True if config.get('bias', True) else 'prefer',
-        )
         cfg = ImplicitMFConfig(feedback=feedback, **config)
         model = ImplicitMFScorer(cfg)
     else:
