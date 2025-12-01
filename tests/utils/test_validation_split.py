@@ -27,17 +27,6 @@ class TestValidationSplit(unittest.TestCase):
                                          [5, 3, 3]]), columns=["user", "item", "rating", ])
         self.ds = from_interactions_df(self.df)
 
-    """
-    def test_validationSplit_givenValidDataFrame_correctSplitTrainAndValidationDataframesReturnedExpected(self):
-        val_fold_indices = validation_split(data=self.ds, frac=0.25, random_state=42)
-
-        validation_train = self.df.loc[val_fold_indices[0]["train"], :]
-        validation_test = self.df.loc[val_fold_indices[0]["validation"], :]
-
-        self.assertTrue(validation_train.shape == (75, 3))
-        self.assertTrue(validation_test.shape == (25, 3))
-        """
-
     def test_validationSplit_givenUnknownStrategy(self):
         self.assertRaises(ValueError,
                           validation_split, strategy="unknown", data=self.ds, frac=0.25, random_state=42)
