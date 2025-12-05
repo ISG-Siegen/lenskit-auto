@@ -45,8 +45,6 @@ class TestUpdateTopNRuns(unittest.TestCase):
         pipeline = MagicMock()
         new_top_n_runs = update_top_n_runs(4, self.top_n_runs, 5, configSpace, pipeline, np.array([0.54, 0.55, 0.56]))
 
-        print(self.top_n_runs.to_string())
-        print(new_top_n_runs.to_string())
         self.assertTrue(new_top_n_runs.shape[0] == 4)
         self.assertFalse(5 in new_top_n_runs["run_id"].values)
 
@@ -56,8 +54,6 @@ class TestUpdateTopNRuns(unittest.TestCase):
         pipeline = MagicMock()
         new_top_n_runs = update_top_n_runs(4, self.top_n_runs, 5, configSpace, pipeline, np.array([0.44, 0.45, 0.46]))
 
-        print(self.top_n_runs.to_string())
-        print(new_top_n_runs.to_string())
         self.assertTrue(new_top_n_runs.shape[0] == 4)
         # run 2 gets replaced by run 5
         self.assertTrue(5 in new_top_n_runs["run_id"].values)
