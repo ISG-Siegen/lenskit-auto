@@ -66,7 +66,7 @@ def update_top_n_runs(num_models: int, top_n_runs: pd.DataFrame, run_id: int,
             # get the worst run of the model type with the most runs
             worst_performance = silo['error'].max()
 
-            # remove the worst run of the model type with the most runs
+            # remove the runs of the current model type
             top_n_runs = top_n_runs[top_n_runs['model'] != config_space['algo']]
 
             # add the new run to the dataframe
