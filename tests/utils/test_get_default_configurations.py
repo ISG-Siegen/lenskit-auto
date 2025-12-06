@@ -23,10 +23,12 @@ class TestGetDefaultConfigurations(unittest.TestCase):
                 parent_hyperparameter={"parent": self.config_space["algo"], "value": algorithm},
             )
 
-        print(self.config_space)
-
     def test_getDefaultConfigurations_givenValidConfigurationSpace_correctConfigurationSpaceListReturnedExpected(self):
         result = get_default_configurations(self.config_space)
+
+        # check if the result is a list of configurations with correct length
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 3)
 
         for i, algorithm in enumerate(self.algorithm_list):
             self.assertEqual(algorithm, result[i].get("algo"))
