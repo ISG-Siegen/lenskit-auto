@@ -65,7 +65,6 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
     #     if data.user_count < num_users or num_users == 0:
     #         num_users = data.user_count
 
-
     # get minimum number of items and users from data
     if isinstance(data, Dataset):
         # Case 1: data is a Lenskit Dataset
@@ -78,7 +77,6 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
         # get minimum number of items and users
         num_items = min(fold.train.item_count for fold in folds_list)
         num_users = min(fold.train.user_count for fold in folds_list)
-
 
     # define configuration space
     cs = ConfigurationSpace(
