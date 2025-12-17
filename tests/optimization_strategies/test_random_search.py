@@ -28,3 +28,21 @@ class TestRandomSearch(unittest.TestCase):
 
         # Create mock optimization metric
         self.optimization_metric = MagicMock()
+
+    def test_randomSearch_givenInvalidFeedback_valueErrorThrown(self):
+        """Test that ValueError is raised for invalid feedback types"""
+        invalid_feedbacks = ["", "IMPLICIT", "EXPLICIT", None, 12345, "both", "random"]
+
+        for invalid_feedback in invalid_feedbacks:
+            with self.subTest(feedback=invalid_feedback):
+                with self.assertRaises(ValueError) as cm:
+                    random_search(
+                        train=self.train,
+                        user_feedback=invalid_feedback,
+                        validation=self.validation,
+                        cs=self.cs,
+                        optimization_metric=self.optimization_metric,
+                        filer=self.filer,
+                        num_evaluations=5
+                    )
+                self.assertIn("feedback must be either explicit or implicit", str(cm.exception))
