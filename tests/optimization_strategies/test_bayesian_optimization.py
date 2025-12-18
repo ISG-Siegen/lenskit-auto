@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+import pandas as pd
 
 from ConfigSpace import ConfigurationSpace, Categorical
 
@@ -47,3 +48,28 @@ class TestBayesianOptimization(unittest.TestCase):
                         filer=self.filer
                     )
                 self.assertIn("feedback must be either explicit or implicit", str(cm.exception))  
+
+    @patch('lkauto.optimization_strategies.bayesian_optimization.ExplicitEvaler')
+    @patch('lkauto.optimization_strategies.bayesian_optimization.HyperparameterOptimizationFacade')
+    def test_bayesianOptimization_givenExplicitFeedback_explicitEvalerCreated(self, mock_smac, mock_evaler):
+        """Test that ExplicitEvaler is created when the feedback is explicit"""
+        # Setup mocks
+        mock_evaler_instance = MagicMock()
+        mock_evaler.return_value = mock_evaler_instance
+        mock_evaler_instance.top_n_runs = pd.DataFrame()
+
+        mock_smac_instance = MagicMock()
+        mock_smac.return_value = mock_smac_instance
+
+        # run the bayesian optimization function
+        bayesian_optimization(
+            train=self.train,
+            user_feedback='explicit',
+            validation=self.validation,
+            cs=self.cs,
+            optimization_metric=self.optimization_metric,
+            filer=self.filer,
+            random_state=42
+        )
+        # Verify ExplicitEvaler was called
+        mock_evaler.assert_called_once()
