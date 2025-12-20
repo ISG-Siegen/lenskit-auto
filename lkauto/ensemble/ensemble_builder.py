@@ -53,6 +53,8 @@ def build_ensemble(train: Dataset,
                  "train_loss": es.train_loss_,
                  "weights": list(es.weights_)}
 
+    print(f"!!! incumbent: {incumbent}")
+
     return es, incumbent
 
 
