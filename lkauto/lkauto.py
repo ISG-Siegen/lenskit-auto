@@ -10,11 +10,6 @@ from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
 from lkauto.utils.logging import get_logger
 
-# from lenskit.metrics.predict import rmse
-# from lenskit.metrics.topn import ndcg
-# from lenskit.algorithms import Predictor
-# from lenskit import Recommender
-
 from lenskit.metrics import RMSE, NDCG
 from lenskit.pipeline import Component
 from lenskit.data import Dataset, ItemListCollection
@@ -63,10 +58,10 @@ def get_best_prediction_model(train: Dataset,
 
         Parameters
         ----------
-        train : pd.DataFrame
-            Pandas Dataframe train split.
-        validation : pd.DataFrame
-            Pandas Dataframe validation split.
+        train : Dataset
+            LensKit Dataset containing the training data.
+        validation : ItemListCollection
+            LensKit ItemListCollection containing the validation split.
             if a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
@@ -120,8 +115,8 @@ def get_best_prediction_model(train: Dataset,
 
         Returns
         -------
-        model : Predictor
-            the best suited (untrained) predictor for the train dataset, cs parameters.
+        model : Component
+            the best prediction model (trained pipeline) for the train dataset.
         incumbent : dict
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
    """
@@ -276,10 +271,10 @@ def get_best_recommender_model(train: Dataset,
 
         Parameters
         ----------
-        train : pd.DataFrame
-            Pandas Dataframe train split.
-        validation : pd.DataFrame
-            Pandas Dataframe validation split.
+        train : Dataset
+            LensKit Dataset containing the training data.
+        validation : ItemListCollection
+            LensKit ItemListCollection containing the validation split.
             if a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
@@ -296,7 +291,7 @@ def get_best_recommender_model(train: Dataset,
         split_folds : int
             number of folds of the inner split
         split_frac : float
-            fraction of the inner split. If split_folds is not None, split_frac will be ignored.
+            fraction of the inner split. If split_folds is not None (split_folds > 1), split_frac will be ignored.
             Value must be between 0 and 1.
         split_strategie : str
             split strategie to use. Either 'user_based' or 'item_based'.
@@ -332,8 +327,8 @@ def get_best_recommender_model(train: Dataset,
 
         Returns
         -------
-        model : Predictor
-            the best suited (untrained) predictor for the train dataset, cs parameters.
+        model : Component
+            the best recommender model (trained pipeline) for the train dataset.
         incumbent : dict
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
     """
