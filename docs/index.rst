@@ -56,6 +56,15 @@ LensKit-Auto is licensed under the MIT license. See `LICENSE <https://github.com
    :maxdepth: 2
    :caption: Subpackages:
 
+   lkauto.algorithms
+   lkauto.ensemble
+   lkauto.explicit
+   lkauto.implicit
+   lkauto.optimization_strategies
+   lkauto.preprocessing
+   lkauto.utils
+
+
 Indices and tables
 ==================
 
