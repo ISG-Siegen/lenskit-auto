@@ -73,3 +73,28 @@ class TestBayesianOptimization(unittest.TestCase):
         )
         # Verify ExplicitEvaler was called
         mock_evaler.assert_called_once()
+
+    @patch('lkauto.optimization_strategies.bayesian_optimization.ImplicitEvaler')
+    @patch('lkauto.optimization_strategies.bayesian_optimization.HyperparameterOptimizationFacade')
+    def test_bayesianOptimization_givenImplicitFeedback_implicitEvalerCreated(self, mock_smac, mock_evaler):
+        """Test that ImplicitEvaler is created for implicit feedback"""
+        # Setup mocks
+        mock_evaler_instance = MagicMock()
+        mock_evaler.return_value = mock_evaler_instance
+
+        mock_smac_instance = MagicMock()
+        mock_smac.return_value = mock_smac_instance
+    
+        # Call function
+        bayesian_optimization(
+            train=self.train,
+            user_feedback='implicit',
+            validation=self.validation,
+            cs=self.cs,
+            optimization_metric=self.optimization_metric,
+            filer=self.filer,
+            random_state=42
+        )
+
+        # Verify ExplicitEvaler was called
+        mock_evaler.assert_called_once()
