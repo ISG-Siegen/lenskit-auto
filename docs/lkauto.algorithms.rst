@@ -51,11 +51,3 @@ lkauto.algorithms.user\_knn module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: lkauto.algorithms
-   :members:
-   :undoc-members:
-   :show-inheritance:
