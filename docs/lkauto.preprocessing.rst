@@ -20,10 +20,3 @@ lkauto.preprocessing.pruning module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: lkauto.preprocessing
-   :members:
-   :undoc-members:
-   :show-inheritance:

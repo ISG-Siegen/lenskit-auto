@@ -12,10 +12,3 @@ lkauto.explicit.explicit\_evaler module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: lkauto.explicit
-   :members:
-   :undoc-members:
-   :show-inheritance:
