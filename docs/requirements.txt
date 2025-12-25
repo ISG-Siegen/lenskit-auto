@@ -6,5 +6,5 @@ matplotlib>=3.10.3
 lenskit>=2025.2.0
 tables>=3.10.2
 sphinx_rtd_theme>=3.0.2
-furo>=2024.1.29
 sphinx>=7.0,<8.2
+furo>=2024.1.29
