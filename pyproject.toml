@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lenskit-auto"
-version = "0.2.0"
+dynamic = ["version"]
 description = "LensKit-Auto is built as a wrapper around the Python LensKit recommender-system library. It automates algorithm selection and hyper parameter optimization and can build ensemble models based on the LensKit models."
 authors = [
     {name = "Tobias Vente", email = "tobias.vente@uni-siegen.de"},
@@ -76,3 +76,6 @@ doc = [
 channels = [
     "conda-forge"
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "lkauto.__version__"}
