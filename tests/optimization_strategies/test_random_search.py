@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from ConfigSpace import ConfigurationSpace, Categorical
 
@@ -46,3 +46,26 @@ class TestRandomSearch(unittest.TestCase):
                         num_evaluations=5
                     )
                 self.assertIn("feedback must be either explicit or implicit", str(cm.exception))
+
+    @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
+    @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
+    def test_randomSearch_givenExplicitFeedback_explicitEvalerCreated(self, mock_get_defaults, mock_evaler):
+        """Test that ExplicitEvaler is initialized for explicit feedback"""
+        # Setup mocks
+        mock_evaler_instance = MagicMock()
+        mock_evaler.return_value = mock_evaler_instance
+
+        # Call function
+        random_search(
+            train=self.train,
+            user_feedback='explicit',
+            validation=self.validation,
+            cs=self.cs,
+            optimization_metric=self.optimization_metric,
+            filer=self.filer,
+            num_evaluations=5,
+            random_state=42
+        )
+
+        # Verify ExplicitEvaler was called
+        mock_evaler.assert_called_once()
