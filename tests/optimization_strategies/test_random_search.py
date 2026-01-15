@@ -79,3 +79,34 @@ class TestRandomSearch(unittest.TestCase):
         self.assertEqual(call_kwargs['train'], self.train)
         self.assertEqual(call_kwargs['validation'], self.validation)
         self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)
+
+        @patch('lkauto.optimization_strategies.random_search.ImplicitEvaler')
+        @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
+        def test_randomSearch_givenImplicitFeedback_implicitEvalerCreated(self, mock_get_defaults, mock_evaler):
+            """Test that ImplicitEvaler is initialized for implicit feedback"""
+            # Setup mocks
+            mock_evaler_instance = MagicMock()
+            mock_evaler.return_value = mock_evaler_instance
+            mock_evaler_instance.evaluate.return_value = (0.9, MagicMock())
+            mock_get_defaults.return_value = []
+
+            # Call function
+            random_search(
+                train=self.train,
+                user_feedback='implicit',
+                validation=self.validation,
+                cs=self.cs,
+                optimization_metric=self.optimization_metric,
+                filer=self.filer,
+                num_evaluations=5,
+                random_state=42
+            )
+
+            # Verify ImplicitEvaler was called
+            mock_evaler.assert_called_once()
+            # extract call arguments to verify
+            call_kwargs = mock_evaler.call_args[1]
+            # verify that correct arguments are passed
+            self.assertEqual(call_kwargs['train'], self.train)
+            self.assertEqual(call_kwargs['validation'], self.validation)
+            self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)
