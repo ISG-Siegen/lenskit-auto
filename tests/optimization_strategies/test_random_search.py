@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
+import pandas as pd
 
 from ConfigSpace import ConfigurationSpace, Categorical
 
@@ -54,6 +55,9 @@ class TestRandomSearch(unittest.TestCase):
         # Setup mocks
         mock_evaler_instance = MagicMock()
         mock_evaler.return_value = mock_evaler_instance
+        mock_evaler_instance.evaluate.return_value = (0.9, MagicMock())
+        mock_evaler_instance.top_n_runs = pd.DataFrame()
+        mock_get_defaults.return_value = []
 
         # Call function
         random_search(
@@ -69,3 +73,9 @@ class TestRandomSearch(unittest.TestCase):
 
         # Verify ExplicitEvaler was called
         mock_evaler.assert_called_once()
+        # extract call arguments to verify
+        call_kwargs = mock_evaler.call_args[1]
+        # verify that correct arguments are passed
+        self.assertEqual(call_kwargs['train'], self.train)
+        self.assertEqual(call_kwargs['validation'], self.validation)
+        self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)
