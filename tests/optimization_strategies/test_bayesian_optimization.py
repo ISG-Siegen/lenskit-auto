@@ -7,8 +7,6 @@ from ConfigSpace import ConfigurationSpace, Categorical
 from lkauto.optimization_strategies.bayesian_optimization import bayesian_optimization
 
 
-
-
 class TestBayesianOptimization(unittest.TestCase):
 
     def setUp(self):
@@ -31,7 +29,6 @@ class TestBayesianOptimization(unittest.TestCase):
         # Mock optimization metric
         self.optimization_metric = MagicMock()
 
-
     def test_bayesianOptimization_givenInvalidFeedback_valueErrorThrown(self):
         """Test that ValueError is raised for invalid feedback types"""
         invalid_feedbacks = ["", "IMPLICIT", "EXPLICIT", None, 12345, "both", "random"]
@@ -47,7 +44,7 @@ class TestBayesianOptimization(unittest.TestCase):
                         optimization_metric=self.optimization_metric,
                         filer=self.filer
                     )
-                self.assertIn("feedback must be either explicit or implicit", str(cm.exception))  
+                self.assertIn("feedback must be either explicit or implicit", str(cm.exception))
 
     @patch('lkauto.optimization_strategies.bayesian_optimization.ExplicitEvaler')
     @patch('lkauto.optimization_strategies.bayesian_optimization.HyperparameterOptimizationFacade')
@@ -84,7 +81,7 @@ class TestBayesianOptimization(unittest.TestCase):
 
         mock_smac_instance = MagicMock()
         mock_smac.return_value = mock_smac_instance
-    
+
         # Call function
         bayesian_optimization(
             train=self.train,
