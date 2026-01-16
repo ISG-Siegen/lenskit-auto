@@ -14,7 +14,7 @@ class FunkSVD(FunkSVDScorer):
         """
                return default configurationspace
         """
-        features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=1000, log=True)
+        features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=50, log=True)
 
         """
         The authors of the original FunkSVD paper (https://sifter.org/~simon/journal/20061211.html) stated:
@@ -26,7 +26,7 @@ class FunkSVD(FunkSVDScorer):
         Therefore, the pip install -e .loatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001)
 
         """
-        lrate = UniformFloatHyperparameter('lrate', lower=0.0001, upper=0.01, default_value=0.001)
+        learning_rate = UniformFloatHyperparameter('learning_rate', lower=0.0001, upper=0.01, default_value=0.001)
         """
         The authors of the original FunkSVD paper (https://sifter.org/~simon/journal/20061211.html) stated:
         The point here is to try to cut down on over fitting, ultimately allowing us to use
@@ -35,10 +35,10 @@ class FunkSVD(FunkSVDScorer):
         The default value of 0.02 is considered for the range. The range is set to a close range around the 0.02 value.
         The default value is taken from the LensKit Library.
         """""
-        reg = UniformFloatHyperparameter('reg', lower=0.001, upper=0.1, default_value=0.015)
+        regularization = UniformFloatHyperparameter('regularization', lower=0.001, upper=0.1, default_value=0.015)
         damping = UniformFloatHyperparameter('damping', lower=0.01, upper=1000, default_value=5, log=True)
 
         cs = ConfigurationSpace()
-        cs.add([features, lrate, reg, damping])
+        cs.add([features, learning_rate, regularization, damping])
 
         return cs

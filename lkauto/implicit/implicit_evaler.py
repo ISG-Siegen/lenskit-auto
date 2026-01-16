@@ -113,7 +113,7 @@ class ImplicitEvaler:
         validation_data = pd.DataFrame()
         error_results = None
 
-        best_mean = float('inf')
+        best_mean = -float('inf')
         best_model = None
 
         # get model form configuration space
@@ -148,15 +148,17 @@ class ImplicitEvaler:
                 error_results = rla.measure(recs, validation_test)
 
                 # if error is smaller than before, save model
-                error_results_mean = error_results.list_summary().loc[self.optimization_metric.__name__, "mean"]
-                if error_results_mean < best_mean:
+                summary = error_results.list_summary()
+                error_results_mean = summary.loc[self.optimization_metric.__name__, "mean"]
+                if error_results_mean > best_mean:
                     best_mean = error_results_mean
                     best_model = fit_pipeline
 
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 # the first (index 0) column should contain the means for the metrics (rows)
-                metric_scores = np.append(metric_scores, error_results.list_summary().loc[self.optimization_metric.__name__, "mean"])
+                metric_scores = np.append(metric_scores, error_results_mean)
+            last_summary = summary
         else:
             for fold in range(self.split_folds):
                 validation_train = self.train
@@ -186,14 +188,16 @@ class ImplicitEvaler:
                 error_results = rla.measure(recs, validation_test)
 
                 # if error is smaller than before, save model
-                error_results_mean = error_results.list_summary().loc[self.optimization_metric.__name__, "mean"]
-                if error_results_mean < best_mean:
+                summary = error_results.list_summary()
+                error_results_mean = summary.loc[self.optimization_metric.__name__, "mean"]
+                if error_results_mean > best_mean:
                     best_mean = error_results_mean
                     best_model = fit_pipeline
 
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
-                metric_scores = np.append(metric_scores, error_results.list_summary().loc[self.optimization_metric.__name__, "mean"])
+                metric_scores = np.append(metric_scores, error_results_mean)
+            last_summary = summary
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,
@@ -204,7 +208,7 @@ class ImplicitEvaler:
 
         # store score mean and subtract by 1 to enable SMAC to minimize returned value
         # the first (index 0) column should contain the means for the metrics (rows)
-        validation_error = error_results.list_summary().loc[self.optimization_metric.__name__, "mean"] - 1
+        validation_error = last_summary.loc[self.optimization_metric.__name__, "mean"] - 1
 
         self.logger.info('Run ID: ' + str(self.run_id) + ' | ' + str(config_space.get('algo')) + ' | ' +
                          self.optimization_metric.__name__ + '@{}'.format(self.num_recommendations) + ': '
