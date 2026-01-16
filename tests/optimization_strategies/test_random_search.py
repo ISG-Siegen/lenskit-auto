@@ -48,9 +48,10 @@ class TestRandomSearch(unittest.TestCase):
                     )
                 self.assertIn("feedback must be either explicit or implicit", str(cm.exception))
 
+    @patch('lkauto.optimization_strategies.random_search.ImplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
-    def test_randomSearch_givenExplicitFeedback_explicitEvalerCreated(self, mock_get_defaults, mock_evaler):
+    def test_randomSearch_givenExplicitFeedback_explicitEvalerCreated(self, mock_get_defaults, mock_evaler, mock_implicit_evaler):
         """Test that ExplicitEvaler is initialized for explicit feedback"""
         # Setup mocks
         mock_evaler_instance = MagicMock()
@@ -67,7 +68,7 @@ class TestRandomSearch(unittest.TestCase):
             cs=self.cs,
             optimization_metric=self.optimization_metric,
             filer=self.filer,
-            num_evaluations=5,
+            num_evaluations=1,
             random_state=42
         )
 
@@ -80,9 +81,10 @@ class TestRandomSearch(unittest.TestCase):
         self.assertEqual(call_kwargs['validation'], self.validation)
         self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)
 
+    @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.ImplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
-    def test_randomSearch_givenImplicitFeedback_implicitEvalerCreated(self, mock_get_defaults, mock_evaler):
+    def test_randomSearch_givenImplicitFeedback_implicitEvalerCreated(self, mock_get_defaults, mock_evaler, mock_explicit_evaler):
         """Test that ImplicitEvaler is initialized for implicit feedback"""
         # Setup mocks
         mock_evaler_instance = MagicMock()
@@ -98,7 +100,7 @@ class TestRandomSearch(unittest.TestCase):
             cs=self.cs,
             optimization_metric=self.optimization_metric,
             filer=self.filer,
-            num_evaluations=5,
+            num_evaluations=1,
             random_state=42
         )
 
@@ -111,10 +113,11 @@ class TestRandomSearch(unittest.TestCase):
         self.assertEqual(call_kwargs['validation'], self.validation)
         self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)  
       
+    @patch('lkauto.optimization_strategies.random_search.ImplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.get_default_configuration_space')
     @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
-    def test_randomSearch_givenNoConfigSpace_defaultConfigSpaceCreated(self, mock_get_defaults, mock_evaler, mock_get_cs):
+    def test_randomSearch_givenNoConfigSpace_defaultConfigSpaceCreated(self, mock_get_defaults, mock_evaler, mock_get_cs, mock_implicit_evaler):
         """Test that default ConfigurationSpace is created when cs=None"""
         # Setup mocks
         mock_evaler_instance = MagicMock()
@@ -137,14 +140,15 @@ class TestRandomSearch(unittest.TestCase):
             cs=None, # Passing None instead of a ConfigurationSpace
             optimization_metric=self.optimization_metric,
             filer=self.filer,
-            num_evaluations=5,
+            num_evaluations=1,
             random_state=42
         )
 
-        # Verify get_default_configuration_space was called with correct args
+        # verify get_default_configuration_space was called
         mock_get_cs.assert_called_once()
+        # get the call arguments to verify
         call_args = mock_get_cs.call_args
-        # Verify it was called with the train data and evaler's train_test_splits
+        # verify that correct arguments are passed
         self.assertEqual(call_args[1]['data'], self.train)
         self.assertEqual(call_args[1]['val_fold_indices'], [])
         self.assertEqual(call_args[1]['feedback'], 'explicit')  
