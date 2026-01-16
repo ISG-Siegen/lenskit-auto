@@ -48,20 +48,35 @@ def get_default_configuration_space(data: Union[Dataset, Iterator[TTSplit]],
         raise ValueError("Unknown feedback type: {}".format(feedback))
 
     # get minimum number of items and users for the given train split
-    num_items = 0
-    num_users = 0
+    # num_items = 0
+    # num_users = 0
 
-    if validation is None and not isinstance(data, Dataset):
-        for fold in data:
-            if fold.train.item_count < num_items or num_items == 0:
-                num_items = fold.train.item_count
-            if fold.train.user_count < num_users or num_users == 0:
-                num_users = fold.train.user_count
+    # if validation is None and not isinstance(data, Dataset): # what does validation is None has to do with the data type???
+    #     # Case 1: data is a Train-Test-Split iterator
+    #     for fold in data:
+    #         if fold.train.item_count < num_items or num_items == 0:
+    #             num_items = fold.train.item_count
+    #         if fold.train.user_count < num_users or num_users == 0:
+    #             num_users = fold.train.user_count
+    # else:
+    #     # Case 2: data is a Dataset
+    #     if data.item_count < num_items or num_items == 0:
+    #         num_items = data.item_count
+    #     if data.user_count < num_users or num_users == 0:
+    #         num_users = data.user_count
+
+    # get minimum number of items and users from data
+    if isinstance(data, Dataset):
+        # Case 1: data is a Lenskit Dataset
+        num_items = data.item_count
+        num_users = data.user_count
     else:
-        if data.item_count < num_items or num_items == 0:
-            num_items = data.item_count
-        if data.user_count < num_users or num_users == 0:
-            num_users = data.user_count
+        # Case 2: data is a TTSplit iterator
+        # convert iterator to list to use it more than once
+        folds_list = list(data)
+        # get minimum number of items and users
+        num_items = min(fold.train.item_count for fold in folds_list)
+        num_users = min(fold.train.user_count for fold in folds_list)
 
     # define configuration space
     cs = ConfigurationSpace(
