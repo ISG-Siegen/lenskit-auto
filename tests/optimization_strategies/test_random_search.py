@@ -111,8 +111,8 @@ class TestRandomSearch(unittest.TestCase):
         # verify that correct arguments are passed
         self.assertEqual(call_kwargs['train'], self.train)
         self.assertEqual(call_kwargs['validation'], self.validation)
-        self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)  
-      
+        self.assertEqual(call_kwargs['optimization_metric'], self.optimization_metric)
+
     @patch('lkauto.optimization_strategies.random_search.ImplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.get_default_configuration_space')
     @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
@@ -137,7 +137,7 @@ class TestRandomSearch(unittest.TestCase):
             train=self.train,
             user_feedback='explicit',
             validation=self.validation,
-            cs=None, # Passing None instead of a ConfigurationSpace
+            cs=None,  # Passing None instead of a ConfigurationSpace
             optimization_metric=self.optimization_metric,
             filer=self.filer,
             num_evaluations=1,
@@ -151,5 +151,4 @@ class TestRandomSearch(unittest.TestCase):
         # verify that correct arguments are passed
         self.assertEqual(call_args[1]['data'], self.train)
         self.assertEqual(call_args[1]['val_fold_indices'], [])
-        self.assertEqual(call_args[1]['feedback'], 'explicit')  
-
+        self.assertEqual(call_args[1]['feedback'], 'explicit')
