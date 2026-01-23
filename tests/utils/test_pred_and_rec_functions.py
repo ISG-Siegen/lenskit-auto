@@ -8,7 +8,6 @@ from lenskit.pipeline import Pipeline
 from lenskit.data import ItemListCollection
 
 
-
 class TestPredAndRecFunctions(unittest.TestCase):
 
     def setUp(self):
@@ -56,4 +55,3 @@ class TestPredAndRecFunctions(unittest.TestCase):
         model = "just a strig, not a model"
 
         self.assertRaises(TypeError, recommend, model, self.test_split)
-
