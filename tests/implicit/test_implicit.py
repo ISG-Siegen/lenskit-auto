@@ -12,6 +12,7 @@ from lkauto.implicit.implicit_evaler import ImplicitEvaler
 def ndcg():
     pass
 
+
 ndcg.__name__ = "ndcg"
 
 

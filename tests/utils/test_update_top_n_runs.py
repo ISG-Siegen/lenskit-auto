@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 from lkauto.utils.update_top_n_runs import update_top_n_runs
 
+
 class TestUpdateTopNRuns(unittest.TestCase):
 
     def setUp(self):
@@ -14,7 +15,7 @@ class TestUpdateTopNRuns(unittest.TestCase):
         ii_pipeline2 = MagicMock()
         uu_pipeline = MagicMock()
         b_pipeline = MagicMock()
-        self.top_n_runs = pd.DataFrame({"run_id": [1,2,3,4],
+        self.top_n_runs = pd.DataFrame({"run_id": [1, 2, 3, 4],
                                         "model": ["ItemItem", "ItemItem", "UserUser", "Bias"],
                                         "error": [0.51, 0.52, 0.53, 0.54],
                                         "pipeline": [ii_pipeline, ii_pipeline2, uu_pipeline, b_pipeline]})
