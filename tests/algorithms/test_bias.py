@@ -172,7 +172,10 @@ class TestBiasStrict(unittest.TestCase):
 
                 return  # test passes (legacy pair matches)
             # Neither damping nor item/user damping present -> fail
-            self.fail("LensKit expects a 'damping' parameter, but project CS has neither 'damping' nor both 'item_damping' and 'user_damping'. CS params: " + ", ".join(sorted(pmap.keys())))
+            self.fail(
+                "LensKit expects a 'damping' parameter, but project CS has "
+                "neither 'damping' nor both 'item_damping' and 'user_damping'. "
+                "CS params: " + ", ".join(sorted(pmap.keys())))
         else:
             # If LensKit does not have damping (unlikely per docs), ensure project exposes item/user damping at least
             missing = []
@@ -182,6 +185,7 @@ class TestBiasStrict(unittest.TestCase):
                 missing.append("user_damping")
             if missing:
                 self.fail("LensKit BiasConfig does not expose 'damping' (unexpected), and project CS is missing: " + ", ".join(missing))
+
 
 if __name__ == "__main__":
     unittest.main()
