@@ -7,7 +7,6 @@ import numpy as np
 from unittest.mock import MagicMock
 
 from lenskit.batch import predict
-from lenskit.funksvd import FunkSVDScorer
 from lenskit.metrics import RMSE
 from lenskit.data import ItemList, load_movielens, ItemListCollection
 from lenskit.knn.item import ItemKNNScorer
@@ -16,6 +15,7 @@ from lenskit.pipeline import predict_pipeline
 from lenskit.splitting import sample_records
 
 from lkauto.ensemble.greedy_ensemble_selection import EnsembleSelection
+
 
 class TestGreedyEnsembleSelection(unittest.TestCase):
 
@@ -29,8 +29,8 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
         self.test = ttsplit.test
 
     def test_minimized_metric_with_minimize(self):
-        y_pred = ItemList.from_df(pd.DataFrame({'item_id': [0,1,2,3,4], 'scores': [1,2,3,4,5]}))
-        y_true = ItemList.from_df(pd.DataFrame({'item_id': [0,1,2,3,4], 'rating': [1.5, 2, 3, 5, 4.5]}))
+        y_pred = ItemList.from_df(pd.DataFrame({'item_id': [0, 1, 2, 3, 4], 'scores': [1, 2, 3, 4, 5]}))
+        y_true = ItemList.from_df(pd.DataFrame({'item_id': [0, 1, 2, 3, 4], 'rating': [1.5, 2, 3, 5, 4.5]}))
         metric = RMSE()
         true_result = metric.measure_list(y_pred, y_true)
 
@@ -66,9 +66,11 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
         # used with a pipeline that is not fitted, so this should throw
         # an exception
         with self.assertRaises(Exception):
-            preds_i_before = predict(itemknn, self.test)
+            # preds_i_before = predict(itemknn, self.test)  commented out due to flake8 error (variable assigned but not used)
+            predict(itemknn, self.test)
         with self.assertRaises(Exception):
-            preds_u_before = predict(userknn, self.test)
+            # preds_u_before = predict(userknn, self.test)  commented out due to flake8 error (variable assigned but not used)
+            predict(userknn, self.test)
 
         es.fit(self.train)
 
@@ -109,14 +111,14 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
     def test_fast(self):
         es = EnsembleSelection(ensemble_size=3, lenskit_metric=RMSE, maximize_metric=False)
 
-        preds = [np.array([2.5,3,3,4,2]),
-                 np.array([2.5,2.5,3.5,4,1.5]),
+        preds = [np.array([2.5, 3, 3, 4, 2]),
+                 np.array([2.5, 2.5, 3.5, 4, 1.5]),
                  np.array([1.5, 3, 3.5, 5, 3])]
-        labels = np.array([2,3,4,5,1])
+        labels = np.array([2, 3, 4, 5, 1])
 
         es._fast(predictions=preds, labels=labels)
 
-        self.assertEqual(es.indices_, [1,1,2])
+        self.assertEqual(es.indices_, [1, 1, 2])
         for actual, expected in zip(es.trajectory_, [0.63, 0.63, 0.6]):
             self.assertAlmostEqual(actual, expected, delta=0.1)
         self.assertAlmostEqual(es.train_loss_, 0.6, delta=0.1)
@@ -125,7 +127,7 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
         es = EnsembleSelection(ensemble_size=3, lenskit_metric=RMSE, maximize_metric=False)
 
         preds = []
-        labels = np.array([2,3,4,5,1])
+        labels = np.array([2, 3, 4, 5, 1])
 
         self.assertRaises(ValueError, es._fast, predictions=preds, labels=labels)
 
@@ -145,7 +147,7 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
         preds = [np.array([2.5, 3, 3, 4, 2]),
                  np.array([2.5, 2.5, 3.5, 4, 1.5]),
                  np.array([1.5, 3, 3.5, 5, 3])]
-        labels = np.array([2,3])
+        labels = np.array([2, 3])
 
         self.assertRaises(ValueError, es._fast, predictions=preds, labels=labels)
 
@@ -153,7 +155,7 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
         es = EnsembleSelection(ensemble_size=3, lenskit_metric=RMSE, maximize_metric=False)
 
         preds = [np.array([2.5, 2.5, 3.5, 4, 1.5])]
-        labels = np.array([2,3,4,5,1])
+        labels = np.array([2, 3, 4, 5, 1])
 
         es._fast(preds, labels)
 
@@ -163,12 +165,12 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
 
     def test_apply_use_best(self):
         es = EnsembleSelection(ensemble_size=3, lenskit_metric=RMSE, maximize_metric=False)
-        es.indices_ = [1,1,2,3]
+        es.indices_ = [1, 1, 2, 3]
         es.trajectory_ = [0.63, 0.63, 0.6, 0.65]
 
         es._apply_use_best()
 
-        self.assertEqual(es.indices_, [1,1,2])
+        self.assertEqual(es.indices_, [1, 1, 2])
         self.assertEqual(es.trajectory_, [0.63, 0.63, 0.6])
         self.assertEqual(es.ensemble_size, 3)
         self.assertEqual(es.train_loss_, 0.6)
@@ -187,12 +189,12 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
 
     def test_calculate_weights(self):
         es = EnsembleSelection(ensemble_size=3, lenskit_metric=RMSE, maximize_metric=False)
-        es.indices_ = [1,1,2,3]
+        es.indices_ = [1, 1, 2, 3]
         es.num_input_models_ = 10
 
         es._calculate_weights()
 
-        expected_weights = np.array([0, 2/3, 1/3, 1/3, 0, 0, 0, 0, 0, 0])
+        expected_weights = np.array([0, 2 / 3, 1 / 3, 1 / 3, 0, 0, 0, 0, 0, 0])
         self.assertTrue(np.array_equal(es.weights_, expected_weights))
 
     def test_calculate_weights_sum_under_one(self):
@@ -201,9 +203,9 @@ class TestGreedyEnsembleSelection(unittest.TestCase):
         es.num_input_models_ = 10
 
         es._calculate_weights()
-
-        expected_weights = np.array([0, 2/5, 1/ 5, 1/3, 0, 0, 0, 0, 0, 0])
-        adjusted_expected_weigths = np.array([0, 10/20, 5/20, 5/20, 0, 0, 0, 0, 0, 0])
+        # commented out due to flake8 error (varaible assigned but not used)
+        # expected_weights = np.array([0, 2/5, 1/ 5, 1/3, 0, 0, 0, 0, 0, 0])
+        adjusted_expected_weigths = np.array([0, 10 / 20, 5 / 20, 5 / 20, 0, 0, 0, 0, 0, 0])
         self.assertTrue(np.array_equal(es.weights_, adjusted_expected_weigths))
 
     def test_ensemble_fit_too_small_ensemble(self):
