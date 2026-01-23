@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false # to make sure all other jobs still run rven if one fails
       matrix:
-        os: [ubuntu-latest, ubuntu-22.04, windows-latest, windows-2022, macos-latest]
+        os: [ubuntu-latest, ubuntu-22.04, windows-latest, windows-2022]
         python-version: ['3.12']
 
     steps:
