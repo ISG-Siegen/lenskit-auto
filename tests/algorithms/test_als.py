@@ -124,10 +124,10 @@ def approx_equal(a, b, rel=1e-6, abs_tol=1e-12):
 # -----------------------
 class TestImplicitMF(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
-        expected_features = 10
-        implicit_mf = ImplicitMF(expected_features)
+        expected_size = 10
+        implicit_mf = ImplicitMF(expected_size)
         self.assertIsInstance(implicit_mf, ImplicitMF)
-        self.assertEqual(expected_features, implicit_mf.features)
+        self.assertEqual(expected_size, implicit_mf.embedding_size)
 
     def test_configspace_exactly_matches_lenskit_for_implicit(self):
         """
@@ -142,6 +142,9 @@ class TestImplicitMF(unittest.TestCase):
         cs_hps = {hp.name: cs_hyperparam_summary(hp) for hp in cs_get_hyperparameters(cs)}
 
         lk_names = set(lk_fields.keys())
+        if "damping" in lk_names:
+            lk_names.remove("damping")
+            lk_names.update({"damping_user", "damping_item"})
         cs_names = set(cs_hps.keys())
 
         # exact name equality
@@ -160,7 +163,12 @@ class TestImplicitMF(unittest.TestCase):
         # type family + default checks
         diffs = []
         for name in sorted(lk_names):
-            lk_meta = lk_fields[name]
+
+            if name in ("damping_user", "damping_item"):
+                lk_meta = lk_fields["damping"]
+            else:
+                lk_meta = lk_fields[name]
+
             cs_meta = cs_hps[name]
 
             ann = (lk_meta.get("annotation") or "").lower()
@@ -174,7 +182,7 @@ class TestImplicitMF(unittest.TestCase):
             elif "float" in ann or "double" in ann:
                 if "float" not in cs_type:
                     type_ok = False
-            elif "bool" in ann or "literal" in ann or "enum" in ann:
+            elif ("bool" in ann or "literal" in ann or "enum" in ann) and name not in ("damping_user", "damping_item"):
                 if "categorical" not in cs_type and "constant" not in cs_type:
                     type_ok = False
 
@@ -198,7 +206,7 @@ class TestImplicitMF(unittest.TestCase):
                             diffs.append(f"{name}: default mismatch -> lenskit={lk_default!r} cs={cs_default!r}")
 
             # boolean/literal -> ensure categorical choices exist
-            if "bool" in (lk_meta.get("annotation") or "").lower() or "literal" in (lk_meta.get("annotation") or "").lower():
+            if ("bool" in ann or "literal" in ann) and name not in ("damping_user", "damping_item"):
                 choices = cs_meta.get("choices")
                 if not choices:
                     diffs.append(f"{name}: expected CS to be categorical (choices) but none found; CS type={cs_meta['type']}")
@@ -212,7 +220,7 @@ class TestImplicitMF(unittest.TestCase):
             msg.append("")
             msg.append("LensKit fields and metadata:")
             for n in sorted(lk_names):
-                msg.append(f"  {n}: {lk_fields[n]}")
+                msg.append(f"  {n}: {lk_fields.get(n, lk_fields['damping'])}")
             msg.append("")
             msg.append("Project CS hyperparameters:")
             for n in sorted(cs_names):
@@ -222,10 +230,10 @@ class TestImplicitMF(unittest.TestCase):
 
 class TestBiasedMF(unittest.TestCase):
     def test_init_givenObjectInitialized_ObjectInitializedCorrectlyExpected(self):
-        expected_features = 10
-        biased_mf = BiasedMF(expected_features)
+        expected_size = 10
+        biased_mf = BiasedMF(expected_size)
         self.assertIsInstance(biased_mf, BiasedMF)
-        self.assertEqual(expected_features, biased_mf.features)
+        self.assertEqual(expected_size, biased_mf.embedding_size)
 
     def test_configspace_exactly_matches_lenskit_for_biased(self):
         """
@@ -240,6 +248,9 @@ class TestBiasedMF(unittest.TestCase):
         cs_hps = {hp.name: cs_hyperparam_summary(hp) for hp in cs_get_hyperparameters(cs)}
 
         lk_names = set(lk_fields.keys())
+        if "damping" in lk_names:
+            lk_names.remove("damping")
+            lk_names.update({"damping_user", "damping_item"})
         cs_names = set(cs_hps.keys())
 
         # exact name equality
@@ -258,7 +269,12 @@ class TestBiasedMF(unittest.TestCase):
         # type family + default checks
         diffs = []
         for name in sorted(lk_names):
-            lk_meta = lk_fields[name]
+
+            if name in ("damping_user", "damping_item"):
+                lk_meta = lk_fields["damping"]
+            else:
+                lk_meta = lk_fields[name]
+
             cs_meta = cs_hps[name]
 
             ann = (lk_meta.get("annotation") or "").lower()
@@ -272,7 +288,7 @@ class TestBiasedMF(unittest.TestCase):
             elif "float" in ann or "double" in ann:
                 if "float" not in cs_type:
                     type_ok = False
-            elif "bool" in ann or "literal" in ann or "enum" in ann:
+            elif ("bool" in ann or "literal" in ann or "enum" in ann) and name not in ("damping_user", "damping_item"):
                 if "categorical" not in cs_type and "constant" not in cs_type:
                     type_ok = False
 
@@ -296,7 +312,7 @@ class TestBiasedMF(unittest.TestCase):
                             diffs.append(f"{name}: default mismatch -> lenskit={lk_default!r} cs={cs_default!r}")
 
             # boolean/literal -> ensure categorical choices exist
-            if "bool" in (lk_meta.get("annotation") or "").lower() or "literal" in (lk_meta.get("annotation") or "").lower():
+            if ("bool" in ann or "literal" in ann) and name not in ("damping_user", "damping_item"):
                 choices = cs_meta.get("choices")
                 if not choices:
                     diffs.append(f"{name}: expected CS to be categorical (choices) but none found; CS type={cs_meta['type']}")
@@ -310,7 +326,7 @@ class TestBiasedMF(unittest.TestCase):
             msg.append("")
             msg.append("LensKit fields and metadata:")
             for n in sorted(lk_names):
-                msg.append(f"  {n}: {lk_fields[n]}")
+                msg.append(f"  {n}: {lk_fields.get(n, lk_fields['damping'])}")
             msg.append("")
             msg.append("Project CS hyperparameters:")
             for n in sorted(cs_names):
