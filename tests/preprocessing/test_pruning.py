@@ -92,12 +92,37 @@ class TestPruning(unittest.TestCase):
         self.assertEqual(len(unique_users), 1)
         self.assertIn(4, unique_users)
 
-    def test_minRatingsPerUser_returnsDatasetType(self):
+    def test_minRatingsPerUser_givenValidInput_datasetReturned(self):
         """Test that min_ratings_per_user function returns a Dataset object"""
         result = min_ratings_per_user(self.dataset, num_ratings=2)
         self.assertIsInstance(result, Dataset)
 
-    def test_maxRatingsPerUser_returnsDatasetType(self):
+    def test_maxRatingsPerUser_givenValidInput_datasetReturned(self):
         """Test that max_ratings_per_user function returns a Dataset object"""
         result = max_ratings_per_user(self.dataset, num_ratings=3)
         self.assertIsInstance(result, Dataset)
+
+    def test_minRatingsPerUser_givenCountDuplicatesTrue_usersFiltered(self):
+        """Test min_ratings_per_user with count_duplicates=True"""
+        result = min_ratings_per_user(self.dataset, num_ratings=3, count_duplicates=True)
+
+        result_df = result.interaction_table(format='pandas', original_ids=True)
+        unique_users = result_df['user_id'].unique()
+
+        self.assertEqual(len(unique_users), 2)
+        self.assertIn(1, unique_users)
+        self.assertIn(2, unique_users)
+
+    def test_maxRatingsPerUser_givenCountDuplicatesTrue_usersFiltered(self):
+        """Test max_ratings_per_user with count_duplicates=True"""
+        result = max_ratings_per_user(self.dataset, num_ratings=3, count_duplicates=True)
+
+        result_df = result.interaction_table(format='pandas', original_ids=True)
+        unique_users = result_df['user_id'].unique()
+
+        # check that only users with 3 or fewer ratings remain (users 2, 3, 4)
+        self.assertEqual(len(unique_users), 3)
+        self.assertNotIn(1, unique_users)
+        self.assertIn(2, unique_users)
+        self.assertIn(3, unique_users)
+        self.assertIn(4, unique_users)
