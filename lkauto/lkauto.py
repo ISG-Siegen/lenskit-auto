@@ -431,5 +431,3 @@ def get_best_recommender_model(train: Dataset,
 
     # return model and model configuration
     return model, incumbent
-
-
