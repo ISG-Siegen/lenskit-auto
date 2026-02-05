@@ -10,10 +10,6 @@ from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
 from lkauto.utils.logging import get_logger
 
-# from lenskit.metrics.predict import rmse
-# from lenskit.metrics.topn import ndcg
-# from lenskit.algorithms import Predictor
-# from lenskit import Recommender
 
 from lenskit.metrics import RMSE, NDCG
 from lenskit.pipeline import Component
@@ -63,11 +59,11 @@ def get_best_prediction_model(train: Dataset,
 
         Parameters
         ----------
-        train : pd.DataFrame
-            Pandas Dataframe train split.
-        validation : pd.DataFrame
-            Pandas Dataframe validation split.
-            if a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
+        train : Dataset
+            LensKit Dataset containing the training data.
+        validation : ItemListCollection
+            LensKit ItemListCollection containing validation data.
+            If a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
         optimization_metric : function
@@ -120,8 +116,8 @@ def get_best_prediction_model(train: Dataset,
 
         Returns
         -------
-        model : Predictor
-            the best suited (untrained) predictor for the train dataset, cs parameters.
+        model : Component
+            The best suited (untrained) predictor for the train dataset and configuration space parameters.
         incumbent : dict
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
    """
@@ -157,16 +153,16 @@ def get_best_prediction_model(train: Dataset,
         split_folds = 1
 
     # preprocess data
-    preprocess_data(data=train,
-                    user_col=user_column,
-                    item_col=item_column,
-                    rating_col=rating_column,
-                    timestamp_col=timestamp_col,
-                    include_timestamp=include_timestamp,
-                    min_interactions_per_user=min_number_of_ratings,
-                    max_interactions_per_user=max_number_of_ratings,
-                    drop_na_values=drop_na_values,
-                    drop_duplicates=drop_duplicates)
+    train = preprocess_data(data=train,
+                            user_col=user_column,
+                            item_col=item_column,
+                            rating_col=rating_column,
+                            timestamp_col=timestamp_col,
+                            include_timestamp=include_timestamp,
+                            min_interactions_per_user=min_number_of_ratings,
+                            max_interactions_per_user=max_number_of_ratings,
+                            drop_na_values=drop_na_values,
+                            drop_duplicates=drop_duplicates)
 
     # decide which optimization strategy to use
     if optimization_strategie == 'bayesian':
@@ -276,11 +272,11 @@ def get_best_recommender_model(train: Dataset,
 
         Parameters
         ----------
-        train : pd.DataFrame
-            Pandas Dataframe train split.
-        validation : pd.DataFrame
-            Pandas Dataframe validation split.
-            if a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
+        train : Dataset
+            LensKit Dataset containing the training data.
+        validation : ItemListCollection
+            LensKit ItemListCollection containing validation data.
+            If a validation split is provided, split_folds, split_strategy and split_frac will be ignored.
         cs : ConfigurationSpace
             ConfigurationSpace with all algorithms and parameter ranges defined.
         optimization_strategie: str
@@ -332,8 +328,8 @@ def get_best_recommender_model(train: Dataset,
 
         Returns
         -------
-        model : Predictor
-            the best suited (untrained) predictor for the train dataset, cs parameters.
+        model : Component
+            The best suited (untrained) recommender for the train dataset and configuration space parameters.
         incumbent : dict
             a dictionary containing the algorithm name and hyperparameter configuration of the returned model
     """
@@ -369,16 +365,16 @@ def get_best_recommender_model(train: Dataset,
         split_folds = 1
 
     # preprocess data
-    preprocess_data(data=train,
-                    user_col=user_column,
-                    item_col=item_column,
-                    rating_col=rating_column,
-                    timestamp_col=timestamp_col,
-                    include_timestamp=include_timestamp,
-                    min_interactions_per_user=min_interactions_per_user,
-                    max_interactions_per_user=max_interactions_per_user,
-                    drop_na_values=drop_na_values,
-                    drop_duplicates=drop_duplicates)
+    train = preprocess_data(data=train,
+                            user_col=user_column,
+                            item_col=item_column,
+                            rating_col=rating_column,
+                            timestamp_col=timestamp_col,
+                            include_timestamp=include_timestamp,
+                            min_interactions_per_user=min_interactions_per_user,
+                            max_interactions_per_user=max_interactions_per_user,
+                            drop_na_values=drop_na_values,
+                            drop_duplicates=drop_duplicates)
 
     # define optimization strategy to use
     if optimization_strategie == 'bayesian':
