@@ -60,12 +60,12 @@ class TestGetModelFromCS(unittest.TestCase):
         """Test each explicit algorithm individually to ensure correct type is returned"""
         # algorithm_name, mock_items_return_value, expected_model_class
         algorithm_params_list = [
-            ('ItemItem', [('algo', 'ItemItem')], ItemKNNScorer),
-            ('UserUser', [('algo', 'UserUser')], UserKNNScorer),
-            ('FunkSVD', [('algo', 'FunkSVD')], FunkSVDScorer),
-            ('BiasedSVD', [('algo', 'BiasedSVD')], BiasedSVDScorer),
-            ('ALSBiasedMF', [('algo', 'ALSBiasedMF')], BiasedMFScorer),
-            ('Bias', [('algo', 'Bias')], BiasScorer)
+            ('ItemItem', [('algo', 'ItemItem'), ('ItemItem:attr1', 'val1')], ItemKNNScorer),
+            ('UserUser', [('algo', 'UserUser'), ('UserUser:attr1', 'val1')], UserKNNScorer),
+            ('FunkSVD', [('algo', 'FunkSVD'), ('FunkSVD:attr1', 'val1')], FunkSVDScorer),
+            ('BiasedSVD', [('algo', 'BiasedSVD'), ('BiasedSVD:attr1', 'val1')], BiasedSVDScorer),
+            ('ALSBiasedMF', [('algo', 'ALSBiasedMF'), ('ALSBiasedMF:ureg', 1), ('BiasedMFScorer:ireg', 2)], BiasedMFScorer),
+            ('Bias', [('algo', 'Bias'), ('Bias:user_damping', '5.0'), ('Bias:item_damping', '3.0')], BiasScorer)
         ]
 
         for algorithm_params in algorithm_params_list:
