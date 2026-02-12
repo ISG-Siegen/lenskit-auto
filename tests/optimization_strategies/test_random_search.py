@@ -188,7 +188,7 @@ class TestRandomSearch(unittest.TestCase):
     @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
     @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
     def test_randomSearch_givenTimeBased_loopsUntilTimeLimit(self, mock_get_defaults, mock_evaler, mock_time):
-        """Test lines: time-based search (num_evaluations=0) with both minimize branches"""
+        """Test time-based search (num_evaluations=0) with both minimize branches"""
         # Test both minimize=True and minimize=False to cover both branches
         for minimize in [True, False]:
             with self.subTest(minimize=minimize):
@@ -227,8 +227,8 @@ class TestRandomSearch(unittest.TestCase):
                     cs=mock_cs,
                     optimization_metric=self.optimization_metric,
                     filer=self.filer,
-                    num_evaluations=0, 
-                    time_limit_in_sec=1,  
+                    num_evaluations=0,
+                    time_limit_in_sec=1,
                     minimize_error_metric_val=minimize,  # Test both True and False branches
                     random_state=42
                 )
@@ -273,5 +273,3 @@ class TestRandomSearch(unittest.TestCase):
 
         # only 1 eval should have run before time limit started
         self.assertEqual(mock_evaler_instance.evaluate.call_count, 1)
-
-
