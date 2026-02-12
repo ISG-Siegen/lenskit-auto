@@ -204,3 +204,40 @@ class TestGetBestPredictionModel(unittest.TestCase):
         # check if split_folds became 1 when validation is provided (if validation is not None)
         call_kwargs = mock_bayesian.call_args[1]
         self.assertEqual(call_kwargs['split_folds'], 1)
+
+    @patch('lkauto.lkauto.Filer')
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestPredictionModel_givenSaveTrue_modelAndIncumbentSaved(
+            self, mock_preprocess, mock_bayesian, mock_filer_cls):
+        """Test that save=True triggers filer.save_model and filer.save_incumbent 
+                since save_model() should be called with the model and 
+                save_incumbent() should be called with the incumbent dict"""
+        # Set up mocks
+        mock_preprocess.return_value = self.train
+
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()
+        mock_top_n_runs = pd.DataFrame({'run': [1], 'error': [0.5]})
+        mock_bayesian.return_value = (mock_incumbent, mock_model, mock_top_n_runs)
+
+        # Set up the filer mock instance returned by Filer()
+        mock_filer = MagicMock()
+        mock_filer.output_directory_path = 'output/'
+        mock_filer_cls.return_value = mock_filer
+
+        # Call with save=True
+        model, incumbent = get_best_prediction_model(
+            train=self.train,
+            optimization_strategie='bayesian',
+            num_evaluations=5,
+            ensemble_size=1,
+            save=True
+        )
+
+        # check if save_model() was called with the model
+        mock_filer.save_model.assert_called_once_with(mock_model)
+        # check if save_incumbent() was called with the incumbent dict
+        mock_filer.save_incumbent.assert_called_once_with(
+            mock_incumbent.get_dictionary.return_value)
