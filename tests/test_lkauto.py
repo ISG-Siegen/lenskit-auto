@@ -108,3 +108,99 @@ class TestGetBestPredictionModel(unittest.TestCase):
         self.assertIn('optimization_strategie must be either bayesian or random_search',
                      str(cm.exception))
   
+    @patch('lkauto.lkauto.build_ensemble')
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestPredictionModel_givenEnsembleSizeOne_noEnsembleBuilt(
+            self, mock_preprocess, mock_bayesian, mock_ensemble):
+        """Test that ensemble is not built when ensemble_size=1:
+                if ensemble_size > 1 --> build_ensemble() is called
+                else --> incumbent = incumbent.get_dictionary()
+        """
+        # mock process_data to return the train dataset
+        mock_preprocess.return_value = self.train
+        # Set up the mock return value for bayesian_optimization
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()
+        mock_top_n_runs = pd.DataFrame({'run': [1], 'error': [0.5]})
+        mock_bayesian.return_value = (mock_incumbent, mock_model, mock_top_n_runs)
+
+        # Call function with ensemble_size=1
+        model, incumbent = get_best_prediction_model(
+            train=self.train,
+            optimization_strategie='bayesian',
+            ensemble_size=1,
+            num_evaluations=5,
+            save=False
+        )
+        # check that build_ensemble was not called
+        mock_ensemble.assert_not_called()
+        
+        # check that the model is returned from the optimization and from not ensemble
+        self.assertIsNotNone(model)
+        self.assertEqual(model, mock_model) 
+        
+        # check that incumbent is a dict (by checking if get_dictionary() was called in else branch)
+        self.assertIsNotNone(incumbent)
+        self.assertIsInstance(incumbent, dict)
+        self.assertEqual(incumbent, {'algo': 'ItemItem'})
+        
+
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestPredictionModel_givenNumEvaluationsNone_setsToInfinity(
+            self, mock_preprocess, mock_bayesian):
+        """Test that num_evaluations=None is set to np.inf in bayesian_optimization"""
+        # setup mocks
+        mock_preprocess.return_value = self.train
+
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()
+        mock_top_n_runs = pd.DataFrame({'run': [1], 'error': [0.5]})
+        mock_bayesian.return_value = (mock_incumbent, mock_model, mock_top_n_runs)
+
+        # Call function with num_evaluations=None
+        model, incumbent = get_best_prediction_model(
+            train=self.train,
+            optimization_strategie='bayesian',
+            num_evaluations=None,
+            ensemble_size=1,
+            save=False
+        )
+
+        # check that bayesian_optimization received np.inf for num_evaluations
+        call_kwargs = mock_bayesian.call_args[1] # get the keyword arguments passed to bayesian_optimization
+        self.assertEqual(call_kwargs['num_evaluations'], np.inf)
+
+
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestPredictionModel_givenValidation_splitFoldsSetToOne(
+            self, mock_preprocess, mock_bayesian):
+        """Test that providing validation makes split_folds = 1"""
+        mock_preprocess.return_value = self.train
+
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()
+        mock_top_n_runs = pd.DataFrame({'run': [1], 'error': [0.5]})
+        mock_bayesian.return_value = (mock_incumbent, mock_model, mock_top_n_runs)
+
+        mock_validation = MagicMock()
+
+        # Call with validation + split_folds=5 to hit line 153
+        model, incumbent = get_best_prediction_model(
+            train=self.train,
+            validation=mock_validation,
+            optimization_strategie='bayesian',
+            split_folds=5,
+            num_evaluations=5,
+            ensemble_size=1,
+            save=False
+        )
+
+        # check if split_folds became 1 when validation is provided (if validation is not None)
+        call_kwargs = mock_bayesian.call_args[1]
+        self.assertEqual(call_kwargs['split_folds'], 1)
