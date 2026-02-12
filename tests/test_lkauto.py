@@ -179,7 +179,8 @@ class TestGetBestPredictionModel(unittest.TestCase):
     @patch('lkauto.lkauto.preprocess_data')
     def test_getBestPredictionModel_givenValidation_splitFoldsSetToOne(
             self, mock_preprocess, mock_bayesian):
-        """Test that providing validation makes split_folds = 1"""
+        """Test that providing validation overrides split_folds to 1"""
+        # Set up mocks
         mock_preprocess.return_value = self.train
 
         mock_incumbent = MagicMock()
@@ -241,3 +242,84 @@ class TestGetBestPredictionModel(unittest.TestCase):
         # check if save_incumbent() was called with the incumbent dict
         mock_filer.save_incumbent.assert_called_once_with(
             mock_incumbent.get_dictionary.return_value)
+        
+########### TESTS FOR get_best_recommender_model() #############
+
+class TestGetBestRecommenderModel(unittest.TestCase):
+
+    def setUp(self):
+        """Set up test fixtures"""
+        # Create a minimal dataset
+        interactions = pd.DataFrame({
+            'user_id': [1, 1, 2, 2, 3, 3],
+            'item_id': [101, 102, 201, 202, 301, 302],
+            'rating': [5.0, 4.0, 3.0, 4.0, 2.0, 3.0],
+            'timestamp': [1, 2, 3, 4, 5, 6]
+        })
+        self.train = from_interactions_df(interactions)
+
+
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestRecommenderModel_givenBayesianStrategy_bayesianOptimizationCalled(
+            self, mock_preprocess, mock_bayesian):
+        """Test that bayesian_optimization is called for recommender model"""
+        # Setup mocks
+        mock_preprocess.return_value = self.train
+        
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()
+        mock_bayesian.return_value = (mock_incumbent, mock_model, None)
+
+        # Call function
+        model, incumbent = get_best_recommender_model(
+            train=self.train,
+            optimization_strategie='bayesian',
+            optimization_metric=NDCG,
+            num_evaluations=5,
+            save=False 
+        )
+
+        # check if bayesian_optimization was called
+        mock_bayesian.assert_called_once()
+        # Check that predict_mode=False was passed 
+        # (since it's a recommender model, not a prediction model)
+        call_kwargs = mock_bayesian.call_args[1]
+        self.assertFalse(call_kwargs['predict_mode'])
+        # check if model is returned and not None
+        self.assertIsNotNone(model)
+
+
+    @patch('lkauto.lkauto.random_search')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestRecommenderModel_givenRandomSearchStrategy_randomSearchCalled(
+            self, mock_preprocess, mock_random):
+        """Test that random_search is called for recommender model"""
+        # Setup mocks
+        mock_preprocess.return_value = self.train
+        
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'UserUser'}
+        mock_model = MagicMock()
+        mock_random.return_value = (mock_incumbent, mock_model, None)
+
+        # Call function
+        model, incumbent = get_best_recommender_model(
+            train=self.train,
+            optimization_strategie='random_search',
+            optimization_metric=NDCG,
+            num_evaluations=5,
+            save=False
+        )
+
+        # Verify random_search was called
+        mock_random.assert_called_once()
+        # Check that predict_mode=False was passed
+        # (since it's a recommender model, not a prediction model)
+        call_kwargs = mock_random.call_args[1]
+        self.assertFalse(call_kwargs['predict_mode'])
+        # check if model is returned and not None
+        self.assertIsNotNone(model)
+
+
