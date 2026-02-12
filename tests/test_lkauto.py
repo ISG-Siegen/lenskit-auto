@@ -322,4 +322,77 @@ class TestGetBestRecommenderModel(unittest.TestCase):
         # check if model is returned and not None
         self.assertIsNotNone(model)
 
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestRecommenderModel_givenInvalidStrategy_valueErrorRaised(self, mock_preprocess):
+        """Test that ValueError is raised for invalid optimization strategy"""
+        # Setup mocks
+        mock_preprocess.return_value = self.train
+
+        with self.assertRaises(ValueError) as cm:
+            get_best_recommender_model(
+                train=self.train,
+                optimization_strategie='gradient_descent',
+                num_evaluations=5
+            )
+
+        # check that the error message is the same as the expected one in the function
+        self.assertIn('optimization_strategie must be either bayesian or random_search',
+                     str(cm.exception))
+        
+
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestRecommenderModel_givenNumEvaluationsNone_setsToInfinity(
+            self, mock_preprocess, mock_bayesian):
+        """Test that num_evaluations=None is set to np.inf in bayesian_optimization for recommender model"""
+        # Setup mocks
+        mock_preprocess.return_value = self.train
+
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()
+        mock_bayesian.return_value = (mock_incumbent, mock_model, None)
+
+        # Call with num_evaluations=None
+        model, incumbent = get_best_recommender_model(
+            train=self.train,
+            optimization_strategie='bayesian',
+            num_evaluations=None,
+            save=False
+        )
+
+        # check that bayesian_optimization received np.inf for num_evaluations
+        call_kwargs = mock_bayesian.call_args[1]
+        self.assertEqual(call_kwargs['num_evaluations'], np.inf)
+
+
+    @patch('lkauto.lkauto.bayesian_optimization')
+    @patch('lkauto.lkauto.preprocess_data')
+    def test_getBestRecommenderModel_givenValidation_splitFoldsSetToOne(
+            self, mock_preprocess, mock_bayesian):
+        """Test that providing validation overrides split_folds to 1"""
+        # Setup mocks
+        mock_preprocess.return_value = self.train
+
+        mock_incumbent = MagicMock()
+        mock_incumbent.get_dictionary.return_value = {'algo': 'ItemItem'}
+        mock_model = MagicMock()    
+        mock_bayesian.return_value = (mock_incumbent, mock_model, None)
+
+        mock_validation = MagicMock()
+
+        # Call with validation + split_folds=5 to hit line 365
+        model, incumbent = get_best_recommender_model(
+            train=self.train,
+            validation=mock_validation,
+            optimization_strategie='bayesian',
+            split_folds=5,
+            num_evaluations=5,
+            save=False
+        )
+
+        # check if split_folds became 1 when validation is provided
+        call_kwargs = mock_bayesian.call_args[1]
+        self.assertEqual(call_kwargs['split_folds'], 1)
+
 
