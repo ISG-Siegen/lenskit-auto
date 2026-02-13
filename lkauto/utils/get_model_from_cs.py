@@ -82,13 +82,10 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = FunkSVDScorer(config=cfg)
     # BiasedSVD
     elif algo_name == 'BiasedSVD':
-        # model = BiasedSVDScorer(**config)
-        damping_dict = {
-            'user': float(config.get('user_damping', 5.0)),  # default 5
-            'item': float(config.get('item_damping', 5.0))  # default 5
-        }
+        # BiasedSVD configspace provides 'damping' (single value), default is 5
+        damping = float(config.get('damping', 5.0))  # LensKit default is 5
         cfg = BiasedSVDConfig(
-            damping=damping_dict
+            damping=damping
         )
         model = BiasedSVDScorer(config=cfg)
     # ALSBiasedMF
@@ -110,13 +107,20 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = BiasedMFScorer(config=cfg)
     # Biased
     elif algo_name == 'Bias':
-        user_damping = float(config.get('user_damping'))
-        item_damping = float(config.get('item_damping'))
+        # build damping dict only if parameters are provided in config
+        # if not provided, BiasScorer will use LensKit's default (0.0)
+        damping_dict = {}
+        if 'user_damping' in config:
+            damping_dict['user'] = float(config['user_damping'])
+        if 'item_damping' in config:
+            damping_dict['item'] = float(config['item_damping'])
 
-        # New API: pass as dict instead of tuple
-        damping_dict = {'user': user_damping, 'item': item_damping}
-        model = BiasScorer(damping=damping_dict)
-        # model = BiasScorer(damping=damping_dict, **config)
+        # pass damping only if we have at least one value
+        if damping_dict:
+            model = BiasScorer(damping=damping_dict)
+        else:
+            # use LensKit's default damping (0.0)
+            model = BiasScorer()
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
         # reg_touple = (config.pop('ureg'), config.pop('ireg'))
