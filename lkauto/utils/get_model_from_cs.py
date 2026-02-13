@@ -10,7 +10,6 @@ from lenskit.funksvd import FunkSVDScorer, FunkSVDConfig
 from lenskit.knn import ItemKNNScorer, ItemKNNConfig
 from lenskit.sklearn.svd import BiasedSVDScorer, BiasedSVDConfig
 from lenskit.knn import UserKNNScorer, UserKNNConfig
-# from lenskit.scored import Scorer
 
 
 def get_model_from_cs(cs: ConfigurationSpace,
@@ -90,11 +89,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = BiasedSVDScorer(config=cfg)
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
-        # reg_touple = (float(config.pop('ureg')), float(config.pop('ireg')))
-        print(config.keys())  # delete later for debugging
-        # del config['ureg']
-        # del config['ireg']
-        # model = BiasedMFScorer(reg=reg_touple, rng_spec=random_state, **config)
         reg = UIPair(
             user=config.get('ureg', 0.1),
             item=config.get('ireg', 0.1)
@@ -123,11 +117,8 @@ def get_model_from_cs(cs: ConfigurationSpace,
             model = BiasScorer()
     # ImplicitMF
     elif algo_name == 'ImplicitMF':
-        # reg_touple = (config.pop('ureg'), config.pop('ireg'))
-        # model = ImplicitMFScorer(reg=reg_touple, rng_spec=random_state, **config)
         cfg = ImplicitMFConfig(
             embedding_size=int(config.get('features', 50)),
-            # regularization=reg_touple,
             user_embeddings=True if config.get('bias', True) else 'prefer',
         )
         model = ImplicitMFScorer(config=cfg)
