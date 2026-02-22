@@ -14,7 +14,7 @@ class FunkSVD(FunkSVDScorer):
         """
                return default configurationspace
         """
-        features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=50, log=True)
+        embedding_size = UniformIntegerHyperparameter('embedding_size', lower=2, upper=10000, default_value=50, log=True)
 
         """
         The authors of the original FunkSVD paper (https://sifter.org/~simon/journal/20061211.html) stated:
@@ -39,6 +39,6 @@ class FunkSVD(FunkSVDScorer):
         damping = UniformFloatHyperparameter('damping', lower=0.01, upper=1000, default_value=5, log=True)
 
         cs = ConfigurationSpace()
-        cs.add([features, learning_rate, regularization, damping])
+        cs.add([embedding_size, learning_rate, regularization, damping])
 
         return cs
