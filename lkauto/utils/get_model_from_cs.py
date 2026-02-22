@@ -106,7 +106,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
             damping_dict['user'] = float(config['user_damping'])
         if 'item_damping' in config:
             damping_dict['item'] = float(config['item_damping'])
-        
+
         # Pass damping only if we have at least one value
         if damping_dict:
             model = BiasScorer(damping=damping_dict)
