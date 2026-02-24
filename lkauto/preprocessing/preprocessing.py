@@ -25,8 +25,8 @@ def preprocess_data(data: Dataset,
 
     Parameters
     ----------
-    data: pd.DataFrame
-        Dataframe with columns "user", "item", "rating"
+    data: Lenskit Dataset
+        Dataset with columns "user", "item", "rating"
     user_col: str
         Name of the user column
     item_col: str
@@ -48,16 +48,15 @@ def preprocess_data(data: Dataset,
 
     Returns
     -------
-    pd.DataFrame
-        Dataframe with columns "user", "item", "rating"
+    Dataset
+        LensKit Dataset with preprocessed data
     """
 
     logger = logging.getLogger('lenskit-auto')
     logger.info('--Start Preprocessing--')
 
+    # convert Lenskit Dataset to pandas dataframe
     data = data.interaction_table(format='pandas')
-    # original_cols = data.columns.tolist()
-    # print(original_cols)
 
     # rename columns
     if include_timestamp:
@@ -85,16 +84,19 @@ def preprocess_data(data: Dataset,
         logger.debug('Dropping duplicate rows...')
         data = data.drop_duplicates(keep='first', inplace=False)
 
+    # Convert DataFrame to Dataset for all pruning operations
+    dataset = from_interactions_df(data)
+
     # drop users with less than min_interactions_per_user interactions
     if min_interactions_per_user is not None:
         logger.debug('Dropping users with less than {} interactions...'.format(min_interactions_per_user))
-        data = min_ratings_per_user(data, min_interactions_per_user)
+        dataset = min_ratings_per_user(dataset, min_interactions_per_user)
 
     # drop users with more than max_interactions_per_user interactions
     if max_interactions_per_user is not None:
         logger.debug('Dropping users with more than {} interactions...'.format(max_interactions_per_user))
-        data = max_ratings_per_user(data, max_interactions_per_user)
+        dataset = max_ratings_per_user(dataset, max_interactions_per_user)
 
     logger.info('--End Preprocessing--')
 
-    return from_interactions_df(data)
+    return dataset
