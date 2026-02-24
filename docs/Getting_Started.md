@@ -88,7 +88,7 @@ for split in crossfold_users(ml100k, 1, SampleN(5)):
     # See Scenario 1, 2, and 3 sections below
    
     # recommend
-    recs = recommend(model, users=tuple(test_split.keys()), n=5, n_jobs=1)
+    recs = recommend(model, test_split.keys(), n=5, n_jobs=1)
 
     # initialize analysis
     analysis = RunAnalysis()
@@ -149,9 +149,7 @@ Note: As described above, the *get_best_recommender_model()* is used for Top-N r
 The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing model, with tuned hyperparameters and a configuration dictionary that contains all information about the model. In the Scenario 1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default hyperparameter range. 
 
 
-We can use the model in the exact same way like a regular LensKit model. (nicht mehr true sondern:
-For rating prediction with ensemble models, use the *predict()* wrapper function from *lkauto.utils.pred_and_rec_functions* instead of *lenskit.batch.predict()* directly (as shown in the Rating Prediction example above).
-)
+We can use the model in the exact same way like a regular LensKit model. For rating prediction with ensemble models, use the *predict()* wrapper function from *lkauto.utils.pred_and_rec_functions* instead of *lenskit.batch.predict()* directly (as shown in the Rating Prediction example above).
 
 #### Scenario 2: Single-Algorithm Hyperparameter Optimization
 
