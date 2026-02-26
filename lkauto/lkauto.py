@@ -8,7 +8,7 @@ from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
 from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
-from lkauto.utils.logging import get_logger
+from lkauto.utils.logging_utils import get_logger
 
 
 from lenskit.metrics import RMSE, NDCG
@@ -42,7 +42,8 @@ def get_best_prediction_model(train: Dataset,
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
                               filer: Filer = None,
-                              save: bool = True) -> Tuple[Component, dict]:
+                              save: bool = True,
+                              visualization: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -180,7 +181,8 @@ def get_best_prediction_model(train: Dataset,
                                                              ensemble_size=ensemble_size,
                                                              minimize_error_metric_val=minimize_error_metric_val,
                                                              filer=filer,
-                                                             predict_mode=True)
+                                                             predict_mode=True,
+                                                             visualization=visualization)
     elif optimization_strategie == 'random_search':
         incumbent, model, top_n_runs = random_search(train=train,
                                                      cs=cs,
