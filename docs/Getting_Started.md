@@ -8,16 +8,8 @@ models based on LensKit models.
 
 Lenskit-auto can be installed on both Linux and Windows:
 
-### Pip Install:
-
 ```bash
 pip install lenskit-auto
-```
-
-### Conda Install:
-
-```bash
-conda install -c conda-forge lenskit-auto
 ```
 
 ## Getting Started

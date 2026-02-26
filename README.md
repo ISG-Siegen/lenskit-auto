@@ -8,9 +8,6 @@
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
 recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
 models based on the LensKit models.
-<!-- 
-> **Note:** LensKit-Auto is currently developed and tested only on Linux systems.
--->
 
 ## Resources
 
@@ -26,15 +23,10 @@ Install it and all dependencies with:
 ```bash
 pip install lenskit-auto
 ```
+
 ## Recommended Environment Setup
 
-You can use either **conda** or Python’s built-in **venv**.
-
-You can use Python’s built-in **venv**.
-
-## On Linux: 
-
-### Using venv (built-in Python)
+### On Linux:
 
 ```bash
 python3 -m venv lenskit-auto-env
@@ -42,34 +34,13 @@ source lenskit-auto-env/bin/activate
 pip install lenskit-auto
 ```
 
-### Using conda
-
-```bash
-conda create -n lenskit-auto-env python=3.12
-conda activate lenskit-auto-env
-conda install -c conda-forge lenskit-auto
-```
-
-
-## On Windows: 
-
-### Using venv (built-in Python)
+### On Windows:
 
 ```bash
 py -3.12 -m venv lenskit-auto-env
 lenskit-auto-env\Scripts\activate
 pip install lenskit-auto
 ```
-
-### Using conda
-
-```bash
-conda create -n lenskit-auto-env python=3.12
-conda activate lenskit-auto-env
-conda install -c conda-forge lenskit-auto
-```
-
-
 
 > **Tip:** You can replace `lenskit-auto-env` with any environment name you prefer.
 
