@@ -5,10 +5,11 @@ from pathlib import Path
 from lkauto.utils.filer import Filer
 
 
-class MyTestCase(unittest.TestCase):
+class TestSaveVisualizationFigures(unittest.TestCase):
 
     def test_save_visualization_figures(self):
-        run_path = Path("visualization_test_dir/test_data/0")
+        current_dir = Path(__file__).resolve().parent
+        run_path = current_dir / "visualization_test_dir" / "test_data" / "0"
         filer = Filer()
 
         filer.save_visualization_figures(run_path=run_path)
