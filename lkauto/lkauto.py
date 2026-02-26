@@ -114,6 +114,8 @@ def get_best_prediction_model(train: Dataset,
             filer to manage LensKit-Auto output
         save : bool
             If set to True, the model and incumbent are saved as a pickle
+        visualization : bool
+            If set to True, figures that visualize the bayesian_optimization run are saved
 
         Returns
         -------
@@ -257,7 +259,8 @@ def get_best_recommender_model(train: Dataset,
                                include_timestamp: bool = True,
                                log_level: str = 'INFO',
                                filer: Filer = None,
-                               save: bool = True) -> Tuple[Component, dict]:
+                               save: bool = True,
+                               visualization: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Recommender found in the defined search time
 
@@ -327,6 +330,8 @@ def get_best_recommender_model(train: Dataset,
             filer to manage LensKit-Auto output
         save : bool
             If set to True, the model and incumbent are saved as a pickle
+        visualization : bool
+            If set to True, figures that visualize the bayesian_optimization run are saved
 
         Returns
         -------
@@ -394,7 +399,8 @@ def get_best_recommender_model(train: Dataset,
                                                              minimize_error_metric_val=minimize_error_metric_val,
                                                              num_recommendations=num_recommendations,
                                                              filer=filer,
-                                                             predict_mode=False)
+                                                             predict_mode=False,
+                                                             visualization=visualization)
     elif optimization_strategie == 'random_search':
         incumbent, model, top_n_runs = random_search(train=train,
                                                      validation=validation,
