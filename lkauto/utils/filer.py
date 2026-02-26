@@ -1,8 +1,6 @@
 from pathlib import Path
 from ConfigSpace import ConfigurationSpace
 from deepcave.plugins.hyperparameter.ablation_paths import AblationPaths
-from deepcave.plugins.hyperparameter.importances import Importances
-from deepcave.plugins.hyperparameter.parallel_coordinates import ParallelCoordinates
 from deepcave.plugins.hyperparameter.pdp import PartialDependencies
 from deepcave.plugins.objective.cost_over_time import CostOverTime
 from deepcave.plugins.objective.pareto_front import ParetoFront
@@ -210,7 +208,7 @@ class Filer:
         budget_id = run.get_budget_ids()[-1]
 
         if not os.path.exists(Path(run_path) / 'visualization'):
-            os.mkdir(Path(run_path)  / "visualization")
+            os.mkdir(Path(run_path) / "visualization")
         figure_save_path = Path(Path(run_path) / "visualization")
 
         hp_names = [hp.name for hp in run.configspace.values()]
@@ -310,6 +308,6 @@ class Filer:
         figures = plugin.load_outputs(run, inputs, outputs)
         for idx, figure in enumerate(figures):
             if idx == 0:
-                figure.write_image(save_path / f"cost_configuration_footprint_performance.png")
+                figure.write_image(save_path / "cost_configuration_footprint_performance.png")
             if idx == 1:
-                figure.write_image(save_path / f"cost_configuration_footprint_coverage.png")
+                figure.write_image(save_path / "cost_configuration_footprint_coverage.png")
