@@ -11,7 +11,7 @@ setup(
     name="lenskit-auto",
     version="0.2.0",
     author="Tobias Vente",
-    python_requires=">=3.12, <3.13",
+    python_requires=">=3.12, <3.14",
     packages=find_packages(),
     install_requires=[
         "smac>=2.3.1",
