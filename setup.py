@@ -1,6 +1,11 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 
+# import version
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+from lkauto import __version__
+
 SHORT_DESCRIPTION = """LensKit-Auto is built as a wrapper around the Python LensKit recommender-system library.
                     It automates algorithm selection and hyper parameter optimization an can build ensemble models based on the LensKit models."""
 
@@ -9,7 +14,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="lenskit-auto",
-    version="0.2.0",
+    version=__version__,
     author="Tobias Vente",
     python_requires=">=3.12, <3.13",
     packages=find_packages(),

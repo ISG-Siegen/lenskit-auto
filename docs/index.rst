@@ -42,15 +42,27 @@ LensKit-Auto is licensed under the MIT license. See `LICENSE <https://github.com
 
 .. toctree::
    :maxdepth: 1
-   :caption: RecSys23-Demo:
+   :caption: RecSys25-Demo:
 
-   RecSys23-Demo
+   RecSys25-Demo
 
 .. toctree::
    :maxdepth: 2
    :caption: API Reference:
 
    lkauto
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Subpackages:
+
+   lkauto.algorithms
+   lkauto.ensemble
+   lkauto.explicit
+   lkauto.implicit
+   lkauto.optimization_strategies
+   lkauto.preprocessing
+   lkauto.utils
 
 
 Indices and tables
