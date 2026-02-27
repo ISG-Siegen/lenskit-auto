@@ -43,7 +43,6 @@ class BiasedMF(BiasedMFScorer):
         but set the default value to 1000.
         """
         # features = Integer('features', bounds=(2, 10000), default=1000, log=True)  # No default value given
-        # no default value given but we set the default value to 1000???
         features = UniformIntegerHyperparameter('features', lower=2, upper=10000, default_value=1000, log=True)
         """
         The authors of the original ALS paper set the range of the regularization hyperparameter to from 0.03 - 0.065.
