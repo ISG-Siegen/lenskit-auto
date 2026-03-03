@@ -141,7 +141,7 @@ from lenskit.metrics import RunAnalysis, RMSE
 from lkauto.lkauto import get_best_prediction_model
 from lkauto.utils.pred_and_rec_functions import predict
 
-# random split using sample_records(): hold out 25% of interactions for testing
+# random split: hold out 25% of interactions for testing
 test_size = int(ml100k.interaction_count * 0.25)
 split = sample_records(ml100k, size=test_size)
 train_split = split.train
@@ -180,7 +180,7 @@ model, config = get_best_recommender_model(train=train_split, filer=filer)
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
 predictor instead of a recommender, replace the function call with *get_best_prediction_model()*
 
-The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing model, with tuned hyperparameters and a configuration dictionary that contains all information about the model. In the Scenario 1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default hyperparameter range. 
+The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing model, with tuned hyperparameters and a configuration dictionary that contains the best configuration found during the optimization. In the Scenario 1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default hyperparameter range. 
 
 We can use the model in the exact same way like a regular LensKit model. For rating prediction with ensemble models, use the *predict()* wrapper function from *lkauto.utils.pred_and_rec_functions* instead of *lenskit.batch.predict()* directly (as shown in the Rating Prediction example above). 
 
@@ -213,7 +213,7 @@ predictor instead of a recommender, replace the function call with *get_best_pre
 
 The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing
 ItemItem model. Besides the model, the *get_best_recommender_model()* function returns a configuration dictionary with
-all information about the model.
+the best configuration found during the optimization.
 
 #### Scenario 3: Custom Search Space Model Selection & Hyperparameter Optimization
 
