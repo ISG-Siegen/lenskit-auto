@@ -13,7 +13,7 @@ models based on the LensKit models.
 
 - Documentation: [LensKit-Auto Documentation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
 - RecSys23 Demo Video: [RecSys23 Demo Video](https://youtu.be/OTZAb8E_IZI)
-- RecSys25 Demo: [RecSys25 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys25-Demo.html)
+- RecSys Demo: [RecSys Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys-Demo.html)
 
 ## Installation
 
@@ -212,8 +212,7 @@ Note: As described above, the *get_best_recommender_model()* is used for Top-N r
 predictor instead of a recommender, replace the function call with *get_best_prediction_model()*
 
 The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing
-ItemItem model. Besides the model, the *get_best_recommender_model()* function returns a configuration dictionary with
-the best configuration found during the optimization.
+ItemItem model. Besides the model, the *get_best_recommender_model()* function returns a configuration dictionary with the best configuration found during the optimization.
 
 #### Scenario 3: Custom Search Space Model Selection & Hyperparameter Optimization
 
