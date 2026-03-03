@@ -33,16 +33,6 @@ html_theme_options = {
     "source_directory": "docs/",
 }
 
-# Read the Docs Theme
-# html_theme = 'sphinx_rtd_theme'
-# html_context = {
-#     "display_github": True,
-#     "github_user": "tvnte",
-#     "github_repo": "lenskit-auto",
-#     "github_version": "main",
-#     "conf_py_path": "/docs/",
-# }
-
 templates_path = ['_templates']
 
 intersphinx_mapping = {
