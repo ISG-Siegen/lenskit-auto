@@ -20,10 +20,3 @@ lkauto.ensemble.greedy\_ensemble\_selection module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: lkauto.ensemble
-   :members:
-   :undoc-members:
-   :show-inheritance:

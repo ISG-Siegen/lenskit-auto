@@ -59,11 +59,3 @@ lkauto.utils.validation\_split module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: lkauto.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
