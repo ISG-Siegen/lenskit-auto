@@ -141,8 +141,7 @@ from lenskit.metrics import RunAnalysis, RMSE
 from lkauto.lkauto import get_best_prediction_model
 from lkauto.utils.pred_and_rec_functions import predict
 
-# record-based split: hold out 25k random interactions
-# Use 25% of interactions for test set
+# random split using sample_records(): hold out 25% of interactions for testing
 test_size = int(ml100k.interaction_count * 0.25)
 split = sample_records(ml100k, size=test_size)
 train_split = split.train
