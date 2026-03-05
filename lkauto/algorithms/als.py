@@ -4,18 +4,18 @@ from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, Unifor
 
 class ImplicitMF(ImplicitMFScorer):
     def __init__(self, embedding_size, feedback="implicit", **kwargs):
-            if "damping_user" in kwargs and "damping_item" in kwargs:
-                kwargs["damping"] = {
-                    "user": kwargs.pop("damping_user"),
-                    "item": kwargs.pop("damping_item")
-                }
+        if "damping_user" in kwargs and "damping_item" in kwargs:
+            kwargs["damping"] = {
+                "user": kwargs.pop("damping_user"),
+                "item": kwargs.pop("damping_item")
+            }
 
-            super().__init__(
-                feedback=feedback,
-                embedding_size=embedding_size,
-                **kwargs
-            )
-            self.embedding_size = embedding_size
+        super().__init__(
+            feedback=feedback,
+            embedding_size=embedding_size,
+            **kwargs
+        )
+        self.embedding_size = embedding_size
 
     @staticmethod
     def get_default_configspace(**kwargs):
@@ -61,18 +61,18 @@ class ImplicitMF(ImplicitMFScorer):
 
 class BiasedMF(BiasedMFScorer):
     def __init__(self, embedding_size, feedback="explicit", **kwargs):
-            if "damping_user" in kwargs and "damping_item" in kwargs:
-                kwargs["damping"] = {
-                    "user": kwargs.pop("damping_user"),
-                    "item": kwargs.pop("damping_item")
-                }
+        if "damping_user" in kwargs and "damping_item" in kwargs:
+            kwargs["damping"] = {
+                "user": kwargs.pop("damping_user"),
+                "item": kwargs.pop("damping_item")
+            }
 
-            super().__init__(
-                embedding_size=embedding_size,
-                **kwargs
-            )
-            self.feedback = feedback
-            self.embedding_size = embedding_size
+        super().__init__(
+            embedding_size=embedding_size,
+            **kwargs
+        )
+        self.feedback = feedback
+        self.embedding_size = embedding_size
 
     @staticmethod
     def get_default_configspace(**kwargs):
