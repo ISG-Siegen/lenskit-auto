@@ -158,6 +158,8 @@ class EnsembleSelection:
                 fant_ensemble_prediction_df = pd.DataFrame(fant_ensemble_prediction)
                 fant_ensemble_prediction_df.columns = ["score"]
                 fant_ensemble_prediction_df.insert(0, "item_id", fant_ensemble_prediction_df.index)
+                fant_ensemble_prediction_df = fant_ensemble_prediction_df.sort_values("score", ascending=False)
+                fant_ensemble_prediction_df["rank"] = np.arange(1, len(fant_ensemble_prediction_df) + 1) #need to sort everything based on the ranks for newer versions of lenskti
 
                 labels_il = ItemList.from_df(labels_df)
                 fant_ensemble_prediction_il = ItemList.from_df(fant_ensemble_prediction_df)
