@@ -92,9 +92,10 @@ def discover_lenskit_config_fields() -> Dict[str, Dict[str, Any]]:
 
 def cs_get_hyperparameters(cs: CS.ConfigurationSpace):
     """Return list of hyperparameters from ConfigurationSpace in a uniform manner."""
-    if hasattr(cs, "get_hyperparameters"):
-        return cs.get_hyperparameters()
-    return list(cs.values())
+    if hasattr(cs, "values"):
+        return list(cs.values())
+    #left the get_hyperparameters() for backward compatibility and wrapped the output in an if clause.
+    return cs.get_hyperparameters()
 
 
 def cs_hyperparam_summary(hp) -> Dict[str, Any]:
