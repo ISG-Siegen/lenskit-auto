@@ -7,8 +7,6 @@ from lkauto.utils.visualizer import Visualizer
 
 class TestSaveVisualizationFigures():
 
-    IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
-    @pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="GitHub can't install deepcave")
     def test_save_visualization_figures(self):
         current_dir = Path(__file__).resolve().parent
         run_path = current_dir / "visualization_test_dir" / "test_data" / "0"
