@@ -20,6 +20,8 @@ from lkauto.utils.get_default_configuration_space import get_default_configurati
 from typing import Tuple, Optional
 import logging
 
+from lkauto.utils.visualizer import Visualizer
+
 
 def bayesian_optimization(train: Dataset,
                           user_feedback: str,
@@ -167,7 +169,8 @@ def bayesian_optimization(train: Dataset,
     logger.info('--End Bayesian Optimization--')
 
     if visualization:
-        filer.save_visualization_figures(scenario.output_directory)
+        visualizer = Visualizer()
+        visualizer.save_visualization_figures(scenario.output_directory)
 
     # return best model configuration
     if user_feedback == 'explicit':
