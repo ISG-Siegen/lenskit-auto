@@ -1,4 +1,24 @@
 from lenskit.data import Dataset, from_interactions_df
+from lenskit.data.builder import DatasetBuilder
+
+
+def _dataset_from_filtered_interactions(interactions):
+    """Create a LensKit Dataset from filtered interactions, including empty results."""
+    if interactions.empty:
+        dsb = DatasetBuilder()
+        dsb.add_entities("user", interactions["user_id"])
+        dsb.add_entities("item", interactions["item_id"])
+        dsb.add_interactions(
+            "rating",
+            interactions,
+            entities=["user", "item"],
+            missing="filter",
+            allow_repeats=False,
+            default=True,
+        )
+        return dsb.build()
+
+    return from_interactions_df(interactions)
 
 
 def min_ratings_per_user(dataset: Dataset, num_ratings: int, count_duplicates: bool = False):
@@ -28,7 +48,7 @@ def min_ratings_per_user(dataset: Dataset, num_ratings: int, count_duplicates: b
     # convert the interaction table to a pandas DataFrame and filter by valid users
     users_of_interest = dataset.interaction_table(format='pandas', original_ids=True)
     users_of_interest = users_of_interest[users_of_interest['user_id'].isin(valid_users)]
-    return from_interactions_df(users_of_interest)
+    return _dataset_from_filtered_interactions(users_of_interest)
 
 
 def max_ratings_per_user(dataset: Dataset, num_ratings: int, count_duplicates: bool = False):
@@ -58,4 +78,4 @@ def max_ratings_per_user(dataset: Dataset, num_ratings: int, count_duplicates: b
     # convert the interaction table to a pandas DataFrame and filter by valid users
     users_of_interest = dataset.interaction_table(format='pandas', original_ids=True)
     users_of_interest = users_of_interest[users_of_interest['user_id'].isin(valid_users)]
-    return from_interactions_df(users_of_interest)
+    return _dataset_from_filtered_interactions(users_of_interest)

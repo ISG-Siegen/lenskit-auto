@@ -14,7 +14,7 @@ from lenskit.batch import predict
 class EnsembleSelection:
     """An ensemble of selected algorithms
 
-    Fitting an EnsembleSelection generates an ensemble from the the models
+    Fitting an EnsembleSelection generates an ensemble from the models
     generated during the search process. Can be further used for prediction.
 
     Parameters
@@ -63,7 +63,7 @@ class EnsembleSelection:
             raise ValueError("Base Models is None; we need a list of base models to fit them here!")
 
         for bm in self.base_models:
-            bm.fit(data)
+            bm.train(data)
 
         return self
 
@@ -96,9 +96,14 @@ class EnsembleSelection:
 
     def _fast(self, predictions: List[np.ndarray], labels: np.ndarray) -> None:
         """Fast version of Rich Caruana's ensemble selection method."""
+        if (len(predictions) == 0) or (labels.size == 0):
+            raise ValueError("Predictions and labels cannot be empty!")
+        if predictions[0].shape != labels.shape:
+            raise ValueError('Predictions and labels must have the same shape!')
+
         self.num_input_models_ = len(predictions)
 
-        ensemble = []  # type: List[np.ndarray]
+        ensemble = []  # type; List[np.ndarray]
         trajectory = []
         order = []
 
@@ -142,19 +147,27 @@ class EnsembleSelection:
                     out=fant_ensemble_prediction
                 )
 
+                # transforms the labels into a dataframe and inserts a column "item_id" in front
+                # of the labels
                 labels_df = pd.DataFrame(labels)
                 labels_df.columns = ["rating"]
                 labels_df.insert(0, "item_id", labels_df.index)
 
+                # transforms the fant_ensemble_predictions into a dataframe and inserts a column "item_id" in front
+                # of the predictions
                 fant_ensemble_prediction_df = pd.DataFrame(fant_ensemble_prediction)
                 fant_ensemble_prediction_df.columns = ["score"]
                 fant_ensemble_prediction_df.insert(0, "item_id", fant_ensemble_prediction_df.index)
+                fant_ensemble_prediction_df = fant_ensemble_prediction_df.sort_values("score", ascending=False)
+                # line 163: need to sort everything based on the ranks for newer versions of lenskti
+                fant_ensemble_prediction_df["rank"] = np.arange(1, len(fant_ensemble_prediction_df) + 1)
 
                 labels_il = ItemList.from_df(labels_df)
                 fant_ensemble_prediction_il = ItemList.from_df(fant_ensemble_prediction_df)
 
                 losses[j] = self.metric(labels_il, fant_ensemble_prediction_il)
 
+            # contains the indices where the loss is minimal
             all_best = np.argwhere(losses == np.nanmin(losses)).flatten()
             best = all_best[0]
 
@@ -195,6 +208,19 @@ class EnsembleSelection:
         self.weights_ = weights
 
     def ensemble_predict(self, predictions: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
+        """
+        Returns for every item the average prediction of the models
+        Parameters
+        ----------
+        predictions: Union[np.ndarray, List[np.ndarray]]
+            The predictions which should be averaged.
+        Returns
+        -------
+        averages: np.ndarray
+            The average predictions of the models.
+        """
+        print("==============ensemble predict=================")
+        print(predictions)
         average = np.zeros_like(predictions[0])
         tmp_predictions = np.empty_like(predictions[0])
         average = average[:, 2]

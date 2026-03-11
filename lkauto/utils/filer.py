@@ -185,7 +185,7 @@ class Filer:
                     The incumbent to be saved
         """
         timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
-        file_name = "incumbent _" + timestamp + '.pkl'
+        file_name = "incumbent_" + timestamp + '.pkl'
 
         output_path = Path(self.output_directory_path)
 
