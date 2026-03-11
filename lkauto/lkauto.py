@@ -10,7 +10,6 @@ from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
 from lkauto.utils.logging import get_logger
 
-
 from lenskit.metrics import RMSE, NDCG
 from lenskit.pipeline import Component
 from lenskit.data import Dataset, ItemListCollection
@@ -204,7 +203,8 @@ def get_best_prediction_model(train: Dataset,
     filer.save_dataframe_as_csv(top_n_runs, '', 'top_n_runs')
 
     logger.info('--Start Postrprocessing--')
-    if ensemble_size > 1:
+    print("!!! top n runs: ", top_n_runs)
+    if ensemble_size > 1 and not top_n_runs.empty:
         model, incumbent = build_ensemble(train=train,
                                           top_n_runs=top_n_runs,
                                           filer=filer,
@@ -292,7 +292,7 @@ def get_best_recommender_model(train: Dataset,
         split_folds : int
             number of folds of the inner split
         split_frac : float
-            fraction of the inner split. If split_folds is not None, split_frac will be ignored.
+            fraction of the inner split. If split_folds is not None (split_folds > 1), split_frac will be ignored.
             Value must be between 0 and 1.
         split_strategie : str
             split strategie to use. Either 'user_based' or 'item_based'.
