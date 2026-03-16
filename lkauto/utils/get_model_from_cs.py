@@ -48,7 +48,6 @@ def get_model_from_cs(cs: ConfigurationSpace,
 
     # get algorithm name
     algo_name = cs.get('algo')
-    # config = {key.replace("{}:".format(algo_name), ""): value for key, value in cs.items()} #changed : to ; in .replace
     config = {
         key.replace(f"{algo_name}:", "").replace(f"{algo_name};", ""): value
         for key, value in cs.items()
@@ -76,6 +75,7 @@ def get_model_from_cs(cs: ConfigurationSpace,
             'item': float(config.get('item_damping', 5.0))  # default 5
         }
         model = BiasedSVDScorer(**damping_dict)
+
     # ALSBiasedMF
     elif algo_name == 'ALSBiasedMF':
         reg = UIPair(
@@ -86,11 +86,16 @@ def get_model_from_cs(cs: ConfigurationSpace,
         model = BiasedMFScorer(cfg)
     # Biased
     elif algo_name == 'Bias':
-        user_damping = float(config.get('user_damping'))
-        item_damping = float(config.get('item_damping'))
+        # Build damping dict only if parameters are provided in config
+        # If not provided, BiasScorer will use LensKit's default (0.0)
+        damping_dict = {}
+        if 'user_damping' in config:
+            damping_dict['user'] = float(config['user_damping'])
+        if 'item_damping' in config:
+            damping_dict['item'] = float(config['item_damping'])
 
         # New API: pass as dict instead of tuple
-        damping_dict = {'user': user_damping, 'item': item_damping}
+        damping_dict = {'user': damping_dict['user'], 'item': damping_dict['item']}
         cfg = BiasConfig(damping=damping_dict)
         model = BiasScorer(cfg)
     # ImplicitMF
