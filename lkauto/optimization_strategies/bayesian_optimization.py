@@ -2,8 +2,6 @@ import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
 from lenskit import Pipeline
 
-# from smac.facade.smac_hpo_facade import SMAC4HPO
-# from smac.scenario.scenario import Scenario
 
 from smac import HyperparameterOptimizationFacade
 from smac.initial_design import RandomInitialDesign
