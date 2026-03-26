@@ -169,12 +169,13 @@ class Filer:
             The model to be saved
         """
         model_name = model.__class__.__name__
-        timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
-        file_name = "Trained_" + model_name + "_" + timestamp + '.pkl'
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d-%H%M%S')
+        file_name = f"Trained_{model_name}_{timestamp}.pkl"
 
         output_path = Path(self.output_directory_path)
 
-        pickle.dump(model, open(output_path / file_name, 'wb'))
+        with open(output_path / file_name, 'wb') as f:
+            pickle.dump(model, f)
 
     def save_incumbent(self, incumbent):
         """
@@ -185,9 +186,10 @@ class Filer:
         incumbent
                     The incumbent to be saved
         """
-        timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
-        file_name = "incumbent _" + timestamp + '.pkl'
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d-%H%M%S')
+        file_name = f"incumbent_{timestamp}.pkl"
 
         output_path = Path(self.output_directory_path)
 
-        pickle.dump(incumbent, open(output_path / file_name, 'wb'))
+        with open(output_path / file_name, 'wb') as f:
+            pickle.dump(incumbent, f)

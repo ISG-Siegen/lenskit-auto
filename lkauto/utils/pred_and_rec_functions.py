@@ -44,4 +44,7 @@ def recommend(model, test_split: ItemListCollection):
     -------
 
     """
-    return lk_recommend(model, test_split)
+    if isinstance(model, Pipeline):
+        return lk_recommend(model, test_split)
+    else:
+        raise TypeError("model for recommendation must be a Pipeline")
