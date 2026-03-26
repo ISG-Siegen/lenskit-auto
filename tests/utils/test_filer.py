@@ -179,7 +179,8 @@ class TestFiler(unittest.TestCase):
 
         self.assertEqual(len(pkl_files), 1)
 
-        loaded = pickle.load(open(os.path.join(self.output_path, pkl_files[0]), "rb"))
+        with open(os.path.join(self.output_path, pkl_files[0]), "rb") as f:
+            loaded = pickle.load(f)
 
         self.assertIsInstance(loaded, DummyModel)
 
@@ -194,7 +195,8 @@ class TestFiler(unittest.TestCase):
 
         self.assertEqual(len(pkl_files), 1)
 
-        loaded = pickle.load(open(os.path.join(self.output_path, pkl_files[0]), "rb"))
+        with open(os.path.join(self.output_path, pkl_files[0]), "rb") as f:
+            loaded = pickle.load(f)
 
         self.assertEqual(loaded, incumbent)
 
