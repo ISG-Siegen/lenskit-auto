@@ -168,8 +168,8 @@ class Filer:
             The model to be saved
         """
         model_name = model.__class__.__name__
-        timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
-        file_name = "Trained_" + model_name + "_" + timestamp + '.pkl'
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d-%H%M%S')
+        file_name = f"Trained_{model_name}_{timestamp}.pkl"
 
         output_path = Path(self.output_directory_path)
 
@@ -185,8 +185,8 @@ class Filer:
         incumbent
                     The incumbent to be saved
         """
-        timestamp = pd.Timestamp.now().strftime('%d.%m.%Y-%H:%M')
-        file_name = "incumbent_" + timestamp + '.pkl'
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d-%H%M%S')
+        file_name = f"incumbent_{timestamp}.pkl"
 
         output_path = Path(self.output_directory_path)
 
