@@ -18,7 +18,11 @@ from lkauto.utils.get_default_configuration_space import get_default_configurati
 from typing import Tuple, Optional
 import logging
 
-from lkauto.utils.visualizer import Visualizer
+# Make Visualizer import optional for Python 3.10+ compatibility (deepcave is not available for Python 3.10+)
+try:
+    from lkauto.utils.visualizer import Visualizer
+except (ImportError, ModuleNotFoundError):
+    Visualizer = None
 
 
 def bayesian_optimization(train: Dataset,
@@ -166,7 +170,7 @@ def bayesian_optimization(train: Dataset,
 
     logger.info('--End Bayesian Optimization--')
 
-    if visualization:
+    if visualization and Visualizer is not None:
         visualizer = Visualizer()
         visualizer.save_visualization_figures(scenario.output_directory)
 
