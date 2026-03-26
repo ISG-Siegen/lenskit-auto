@@ -1,10 +1,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
 import pandas as pd
+import multiprocessing
 
 from ConfigSpace import ConfigurationSpace, Categorical
 
-from lkauto.optimization_strategies.random_search import random_search
+from lkauto.optimization_strategies.random_search import random_search, evaler_worker_function
 
 
 class TestRandomSearch(unittest.TestCase):
@@ -61,12 +62,12 @@ class TestRandomSearch(unittest.TestCase):
         mock_evaler_instance.evaluate.return_value = (0.9, MagicMock())
         mock_evaler_instance.top_n_runs = pd.DataFrame()
         mock_get_defaults.return_value = []
-        
+
         # Mock the queue
         mock_queue_instance = MagicMock()
         mock_queue.return_value = mock_queue_instance
         mock_queue_instance.get.return_value = {'best': True, 'error': 0.9, 'config': MagicMock(), 'model': MagicMock()}
-        
+
         # Mock the process
         mock_process_instance = MagicMock()
         mock_process.return_value = mock_process_instance
@@ -104,12 +105,12 @@ class TestRandomSearch(unittest.TestCase):
         mock_evaler.return_value = mock_evaler_instance
         mock_evaler_instance.evaluate.return_value = (0.9, MagicMock())
         mock_get_defaults.return_value = []
-        
+
         # Mock the queue
         mock_queue_instance = MagicMock()
         mock_queue.return_value = mock_queue_instance
         mock_queue_instance.get.return_value = {'best': True, 'error': 0.9, 'config': MagicMock(), 'model': MagicMock()}
-        
+
         # Mock the process
         mock_process_instance = MagicMock()
         mock_process.return_value = mock_process_instance
@@ -155,12 +156,12 @@ class TestRandomSearch(unittest.TestCase):
         )
         mock_get_cs.return_value = default_cs
         mock_get_defaults.return_value = []
-        
+
         # Mock the queue
         mock_queue_instance = MagicMock()
         mock_queue.return_value = mock_queue_instance
         mock_queue_instance.get.return_value = {'best': True, 'error': 0.5, 'config': MagicMock(), 'model': MagicMock()}
-        
+
         # Mock the process
         mock_process_instance = MagicMock()
         mock_process.return_value = mock_process_instance
@@ -201,12 +202,12 @@ class TestRandomSearch(unittest.TestCase):
         # mock for implicit evaler
         config1 = MagicMock()
         mock_get_defaults.return_value = [config1]
-        
+
         # Mock the queue
         mock_queue_instance = MagicMock()
         mock_queue.return_value = mock_queue_instance
         mock_queue_instance.get.return_value = {'best': True, 'error': 0.7, 'config': config1, 'model': MagicMock()}
-        
+
         # Mock the process
         mock_process_instance = MagicMock()
         mock_process.return_value = mock_process_instance
@@ -299,12 +300,12 @@ class TestRandomSearch(unittest.TestCase):
         # mock configuration space
         mock_cs = MagicMock()
         mock_cs.sample_configuration.return_value = config1
-        
+
         # Mock the queue
         mock_queue_instance = MagicMock()
         mock_queue.return_value = mock_queue_instance
         mock_queue_instance.get.return_value = {'best': True, 'error': 0.5, 'config': config1, 'model': MagicMock()}
-        
+
         # Mock the process
         mock_process_instance = MagicMock()
         mock_process.return_value = mock_process_instance
@@ -325,4 +326,169 @@ class TestRandomSearch(unittest.TestCase):
         )
 
         # check if the function completes successfully
+        self.assertIsNotNone(best_config)
+
+    def test_evaler_workerFunction_givenBetterError_marksBest(self):
+        """evaler_worker_function marks result as best when minimizing and error is smaller"""
+        mock_evaler = MagicMock()
+        mock_evaler.evaluate.return_value = (0.5, 'm')
+        q = multiprocessing.Queue()
+
+        evaler_worker_function(mock_evaler, config={'a': 1}, minimize_error_metric_val=True, best_error_score=0.8, queue=q)
+        res = q.get(timeout=1)
+        self.assertTrue(res['best'])
+        self.assertEqual(res['error'], 0.5)
+
+    def test_evaler_workerFunction_givenWorseError_marksNotBest(self):
+        """evaler_worker_function marks result as not best when maximizing and error is smaller"""
+        mock_evaler = MagicMock()
+        mock_evaler.evaluate.return_value = (0.4, 'm')
+        q = multiprocessing.Queue()
+
+        evaler_worker_function(mock_evaler, config={'a': 2}, minimize_error_metric_val=False, best_error_score=0.8, queue=q)
+        res = q.get(timeout=1)
+        self.assertFalse(res['best'])
+
+    @patch('lkauto.optimization_strategies.random_search.multiprocessing.Process')
+    @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
+    @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
+    def test_randomSearch_givenWorkerExecution_minimizeReturnsConfig(self, mock_get_defaults, mock_evaler, mock_process):
+        """Run worker target synchronously by mocking Process.start to call the target directly so evaler_worker_function lines are executed."""
+        mock_evaler_instance = MagicMock()
+        # make evaluate return a value that will be marked as best for minimize=True
+        mock_evaler_instance.evaluate.return_value = (0.1, 'model')
+        mock_evaler.return_value = mock_evaler_instance
+
+        config1 = (('algo', 'ItemItem'), ('id', 1))
+        mock_get_defaults.return_value = [config1]
+
+        # Create a fake Process that calls the target synchronously on start()
+        def fake_process_factory(target, args, name=None):
+            class FakeProcess:
+                def __init__(self, target, args):
+                    self._target = target
+                    self._args = args
+
+                def start(self):
+                    self._target(*self._args)
+
+                def join(self, timeout=None):
+                    return
+
+                def is_alive(self):
+                    return False
+
+                def terminate(self):
+                    pass
+            return FakeProcess(target, args)
+
+        mock_process.side_effect = fake_process_factory
+
+        # Run random_search
+        best_config, best_model, top_n = random_search(
+            train=self.train,
+            user_feedback='explicit',
+            validation=self.validation,
+            cs=self.cs,
+            optimization_metric=self.optimization_metric,
+            filer=self.filer,
+            num_evaluations=1,
+            time_limit_in_sec=10,
+            minimize_error_metric_val=True,
+            random_state=42
+        )
+
+        # the synchronous execution should have produced a best_config
+        self.assertIsNotNone(best_config)
+
+    @patch('lkauto.optimization_strategies.random_search.multiprocessing.Process')
+    @patch('lkauto.optimization_strategies.random_search.multiprocessing.Queue')
+    @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
+    @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
+    def test_randomSearch_givenQueueEmpty_terminatesProcess(self, mock_get_defaults, mock_evaler, mock_queue, mock_process):
+        """Test handling of queue.Empty exception when process times out."""
+        mock_evaler_instance = MagicMock()
+        mock_evaler_instance.evaluate.return_value = (0.5, MagicMock())
+        mock_evaler_instance.top_n_runs = pd.DataFrame()
+        mock_evaler.return_value = mock_evaler_instance
+
+        config1 = (('algo', 'ItemItem'), ('id', 1))
+        mock_get_defaults.return_value = [config1]
+
+        # Mock queue to raise Empty exception
+        mock_queue_instance = MagicMock()
+        mock_queue.return_value = mock_queue_instance
+        mock_queue_instance.get.side_effect = multiprocessing.queues.Empty()
+
+        # Mock process
+        mock_process_instance = MagicMock()
+        mock_process_instance.is_alive.return_value = True
+        mock_process.return_value = mock_process_instance
+
+        best_config, best_model, top_n = random_search(
+            train=self.train,
+            user_feedback='explicit',
+            validation=self.validation,
+            cs=self.cs,
+            optimization_metric=self.optimization_metric,
+            filer=self.filer,
+            num_evaluations=1,
+            time_limit_in_sec=10,
+            minimize_error_metric_val=True,
+            random_state=42
+        )
+
+        # Verify the process was terminated due to timeout
+        mock_process_instance.terminate.assert_called()
+
+    @patch('lkauto.optimization_strategies.random_search.multiprocessing.Process')
+    @patch('lkauto.optimization_strategies.random_search.ExplicitEvaler')
+    @patch('lkauto.optimization_strategies.random_search.get_default_configurations')
+    def test_randomSearch_givenWorkerExecutionMaximize_maximizeReturnsConfig(self, mock_get_defaults, mock_evaler, mock_process):
+        """Test worker execution with maximize branch to cover additional code paths."""
+        mock_evaler_instance = MagicMock()
+        # make evaluate return a high value that will be marked as best for minimize=False
+        mock_evaler_instance.evaluate.return_value = (0.9, 'model')
+        mock_evaler.return_value = mock_evaler_instance
+
+        config1 = (('algo', 'ItemItem'), ('id', 1))
+        mock_get_defaults.return_value = [config1]
+
+        # Create a fake Process that calls the target synchronously on start()
+        def fake_process_factory(target, args, name=None):
+            class FakeProcess:
+                def __init__(self, target, args):
+                    self._target = target
+                    self._args = args
+
+                def start(self):
+                    self._target(*self._args)
+
+                def join(self, timeout=None):
+                    return
+
+                def is_alive(self):
+                    return False
+
+                def terminate(self):
+                    pass
+            return FakeProcess(target, args)
+
+        mock_process.side_effect = fake_process_factory
+
+        # Run random_search with minimize=False
+        best_config, best_model, top_n = random_search(
+            train=self.train,
+            user_feedback='explicit',
+            validation=self.validation,
+            cs=self.cs,
+            optimization_metric=self.optimization_metric,
+            filer=self.filer,
+            num_evaluations=1,
+            time_limit_in_sec=10,
+            minimize_error_metric_val=False,
+            random_state=42
+        )
+
+        # check that the function completes successfully and returns a best_config
         self.assertIsNotNone(best_config)
