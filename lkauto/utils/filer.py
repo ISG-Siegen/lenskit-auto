@@ -173,7 +173,8 @@ class Filer:
 
         output_path = Path(self.output_directory_path)
 
-        pickle.dump(model, open(output_path / file_name, 'wb'))
+        with open(output_path / file_name, 'wb') as f:
+            pickle.dump(model, f)
 
     def save_incumbent(self, incumbent):
         """
@@ -189,4 +190,5 @@ class Filer:
 
         output_path = Path(self.output_directory_path)
 
-        pickle.dump(incumbent, open(output_path / file_name, 'wb'))
+        with open(output_path / file_name, 'wb') as f:
+            pickle.dump(incumbent, f)
