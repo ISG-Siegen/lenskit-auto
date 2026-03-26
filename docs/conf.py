@@ -23,12 +23,16 @@ source_suffix = ['.rst', '.md']
 pygments_style = 'sphinx'
 highlight_language = 'python3'
 
-html_theme = 'sphinx_rtd_theme'
+# Theme Configuration
 
+# Furo Theme
+html_theme = 'furo'
 html_theme_options = {
-    'github_user': 'tvnte',
-    'github_repo': 'lenskit-auto',
+    "source_repository": "https://github.com/ISG-Siegen/lenskit-auto/",
+    "source_branch": "main",
+    "source_directory": "docs/",
 }
+
 templates_path = ['_templates']
 
 intersphinx_mapping = {
