@@ -44,6 +44,20 @@ pip install lenskit-auto
 
 > **Tip:** You can replace `lenskit-auto-env` with any environment name you prefer.
 
+## Installing the DeepCave package
+DeepCave is a tool to visualize the runs LensKit-Auto takes.
+LensKit-Auto uses a newer Pyhon version than DeepCave,
+however, in our experience DeepCave still works with the newer version.
+But due to the version differences, we need to install DeepCave manually.
+For this we use these two commands:
+```bash
+pip install deepcave --no-deps
+pip install matplotlib=3.10.3
+```
+The first command installs the DeepCave package and ignores its Python version requirements.
+During the DeepCave installation, our installed matplotlib package version is downgraded, so we manually
+need to reinstall the correct version again with the second command.
+
 
 ## Getting Started
 
