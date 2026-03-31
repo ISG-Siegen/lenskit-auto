@@ -8,8 +8,7 @@ from lkauto.optimization_strategies.random_search import random_search
 from lkauto.utils.filer import Filer
 from lkauto.ensemble.ensemble_builder import build_ensemble
 from lkauto.preprocessing.preprocessing import preprocess_data
-from lkauto.utils.logging import get_logger
-
+from lkauto.utils.logging_utils import get_logger
 
 from lenskit.metrics import RMSE, NDCG
 from lenskit.pipeline import Component
@@ -42,7 +41,8 @@ def get_best_prediction_model(train: Dataset,
                               include_timestamp: bool = True,
                               log_level: str = 'INFO',
                               filer: Filer = None,
-                              save: bool = True) -> Tuple[Component, dict]:
+                              save: bool = True,
+                              visualization: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Predictor found in the defined search time
 
@@ -113,6 +113,8 @@ def get_best_prediction_model(train: Dataset,
             filer to manage LensKit-Auto output
         save : bool
             If set to True, the model and incumbent are saved as a pickle
+        visualization : bool
+            If set to True, figures that visualize the bayesian_optimization run are saved
 
         Returns
         -------
@@ -180,7 +182,8 @@ def get_best_prediction_model(train: Dataset,
                                                              ensemble_size=ensemble_size,
                                                              minimize_error_metric_val=minimize_error_metric_val,
                                                              filer=filer,
-                                                             predict_mode=True)
+                                                             predict_mode=True,
+                                                             visualization=visualization)
     elif optimization_strategie == 'random_search':
         incumbent, model, top_n_runs = random_search(train=train,
                                                      cs=cs,
@@ -204,7 +207,8 @@ def get_best_prediction_model(train: Dataset,
     filer.save_dataframe_as_csv(top_n_runs, '', 'top_n_runs')
 
     logger.info('--Start Postrprocessing--')
-    if ensemble_size > 1:
+    print("!!! top n runs: ", top_n_runs)
+    if ensemble_size > 1 and not top_n_runs.empty:
         model, incumbent = build_ensemble(train=train,
                                           top_n_runs=top_n_runs,
                                           filer=filer,
@@ -255,7 +259,8 @@ def get_best_recommender_model(train: Dataset,
                                include_timestamp: bool = True,
                                log_level: str = 'INFO',
                                filer: Filer = None,
-                               save: bool = True) -> Tuple[Component, dict]:
+                               save: bool = True,
+                               visualization: bool = True) -> Tuple[Component, dict]:
     """
         returns the best Recommender found in the defined search time
 
@@ -292,7 +297,7 @@ def get_best_recommender_model(train: Dataset,
         split_folds : int
             number of folds of the inner split
         split_frac : float
-            fraction of the inner split. If split_folds is not None, split_frac will be ignored.
+            fraction of the inner split. If split_folds is not None (split_folds > 1), split_frac will be ignored.
             Value must be between 0 and 1.
         split_strategie : str
             split strategie to use. Either 'user_based' or 'item_based'.
@@ -325,6 +330,8 @@ def get_best_recommender_model(train: Dataset,
             filer to manage LensKit-Auto output
         save : bool
             If set to True, the model and incumbent are saved as a pickle
+        visualization : bool
+            If set to True, figures that visualize the bayesian_optimization run are saved
 
         Returns
         -------
@@ -392,7 +399,8 @@ def get_best_recommender_model(train: Dataset,
                                                              minimize_error_metric_val=minimize_error_metric_val,
                                                              num_recommendations=num_recommendations,
                                                              filer=filer,
-                                                             predict_mode=False)
+                                                             predict_mode=False,
+                                                             visualization=visualization)
     elif optimization_strategie == 'random_search':
         incumbent, model, top_n_runs = random_search(train=train,
                                                      validation=validation,

@@ -8,15 +8,12 @@
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
 recommender-system library. It automates algorithm selection and hyper parameter optimization an can build ensemble
 models based on the LensKit models.
-<!-- 
-> **Note:** LensKit-Auto is currently developed and tested only on Linux systems.
--->
 
 ## Resources
 
 - Documentation: [LensKit-Auto Documentation](https://lenskit-auto.readthedocs.io/en/latest/index.html)
-- RecSys23 Demo: [RecSys23 Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys23-Demo.html)
 - RecSys23 Demo Video: [RecSys23 Demo Video](https://youtu.be/OTZAb8E_IZI)
+- RecSys Demo: [RecSys Demo](https://lenskit-auto.readthedocs.io/en/latest/RecSys-Demo.html)
 
 ## Installation
 
@@ -26,53 +23,40 @@ Install it and all dependencies with:
 ```bash
 pip install lenskit-auto
 ```
+
 ## Recommended Environment Setup
-<!-- uncomment this when lenskit-auto is availbale in conda-forge
-You can use either **conda** or Python’s built-in **venv**.
--->
-You can use Python’s built-in **venv**.
 
-## On Linux: 
-
-### Using venv (built-in Python)
+### On Linux:
 
 ```bash
 python3 -m venv lenskit-auto-env
 source lenskit-auto-env/bin/activate
 pip install lenskit-auto
 ```
-<!-- uncomment this when lenskit-auto is availbale in conda-forge
-### Using conda
 
-```bash
-conda create -n lenskit-auto-env python=3.12
-conda activate lenskit-auto-env
-conda install -c conda-forge lenskit-auto
-```
--->
-
-## On Windows: 
-
-### Using venv (built-in Python)
+### On Windows:
 
 ```bash
 py -3.12 -m venv lenskit-auto-env
 lenskit-auto-env\Scripts\activate
 pip install lenskit-auto
 ```
-<!-- uncomment this when lenskit-auto is availbale in conda-forge
-### Using conda
-
-```bash
-conda create -n lenskit-auto-env python=3.12
-conda activate lenskit-auto-env
-conda install -c conda-forge lenskit-auto
-```
--->
-
-
 
 > **Tip:** You can replace `lenskit-auto-env` with any environment name you prefer.
+
+## Installing the DeepCave package
+DeepCave is a tool to visualize the runs LensKit-Auto takes.
+LensKit-Auto uses a newer Pyhon version than DeepCave,
+however, in our experience DeepCave still works with the newer version.
+But due to the version differences, we need to install DeepCave manually.
+For this we use these two commands:
+```bash
+pip install deepcave --no-deps
+pip install matplotlib=3.10.3
+```
+The first command installs the DeepCave package and ignores its Python version requirements.
+During the DeepCave installation, our installed matplotlib package version is downgraded, so we manually
+need to reinstall the correct version again with the second command.
 
 
 ## Getting Started
@@ -80,8 +64,6 @@ conda install -c conda-forge lenskit-auto
 LensKit-Auto is built as a wrapper around the Python [LensKit](https://lkpy.readthedocs.io/en/stable/)
 recommender-system library. It automates algorithm selection and hyper parameter optimization and can build ensemble
 models based on LensKit models.
-
-
 
 ### Standard use-case
 
@@ -91,7 +73,7 @@ is either
 ```python
 from lkauto.lkauto import get_best_recommender_model
 
-get_best_recommender_model()(train=train_split)
+get_best_recommender_model(train=train_split)
 ```
 
 for the recommendation use-case or
@@ -110,11 +92,9 @@ LensKit-Auto allows three application scenarios:
 
 Note: All application scenarios apply to Top-N ranking prediction and rating prediction use-cases.
 
-* **Scenario 1:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a given
-  dataset.
+* **Scenario 1:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a given dataset.
 * **Scenario 2:** LensKit-Auto performs hyperparameter optimization on a single algorithm for a given dataset.
-* **Scenario 3:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a specified set
-  of algorithms and/or different hyperparameter ranges for the provided dataset.
+* **Scenario 3:** LensKit-Auto performs combined algorithm selection and hyperparameter optimization for a specified set of algorithms and/or different hyperparameter ranges for the provided dataset.
 
 In order to take advantage of LensKit-Auto, a developer needs to read in a dataset.
 The ``load_movielens()`` function can be used to load a MovieLens dataset for example.
@@ -139,28 +119,28 @@ First, we need to split the data in a train and test split to evaluate our model
 based on data rows or user data. For the rating prediction example we are splitting the data based on user data.
 
 ```python
-from lkauto.utils.pred_and_rec_functions import recommend
 from lenskit.splitting import crossfold_users, SampleN
+from lenskit.batch import recommend
 from lenskit.metrics import RunAnalysis, NDCG
-from lenskit.pipeline import topn_pipeline
 from lkauto.lkauto import get_best_recommender_model
 
 # User based data-split
 for split in crossfold_users(ml100k, 2, SampleN(5)):
     train_split = split.train
     test_split = split.test
-    
-    # Fixme: INSERT SECENARIO CODE HERE
 
-    #recommend
-    recs = recommend(model, test_split)
+    # INSERT SCENARIO CODE HERE
+    # See Scenario 1, 2, and 3 sections below
 
-    # create run analysis
-    rla = RunAnalysis()
-    rla.add_metric(NDCG)
-    scores = rla.measure(recs, test_split)
+    # recommend
+    recs = recommend(model, test_split.keys())
 
-    print("Scores:\n", scores)
+    # initialize analysis
+    analysis = RunAnalysis()
+    # add ndcg metric
+    analysis.add_metric(NDCG())
+    # evaluate recommendations against the test interactions
+    scores = analysis.measure(recs, test_split)
 ```
 
 ### Rating Prediction
@@ -170,23 +150,37 @@ based on data rows or user data. For the rating prediction example we are splitt
 Top-N ranking predicion example showcases the data-split based on user data.
 
 ```python
-from lkauto.utils.pred_and_rec_functions import predict
-from lenskit.metrics import RMSE, RunAnalysis
 from lenskit.splitting import sample_records
-from lenskit.pipeline import predict_pipeline
+from lenskit.metrics import RunAnalysis, RMSE
 from lkauto.lkauto import get_best_prediction_model
+from lkauto.utils.pred_and_rec_functions import predict
 
-tt_split = sample_records(ml100k, 1000)
-train_split = tt_split.train
-test_split = tt_split.test
+# random split: hold out 25% of interactions for testing
+test_size = int(ml100k.interaction_count * 0.25)
+split = sample_records(ml100k, size=test_size)
+train_split = split.train
+test_split = split.test
 
-# Fixme: INSERT SCENARIO CODE HERE
+# INSERT SCENARIO CODE HERE
+# See Scenario 1, 2, and 3 sections below
 
-preds = predict(model, test_split)
-print("Predictions:\n", preds)
+# generate rating predictions for the held-out interactions
+# here we need to use the wrapper predict() and not the lenskit.batch.predict()
+predictions = predict(model, test_split)
+
+# initialize analysis
+analysis = RunAnalysis()
+# add rmse metric
+analysis.add_metric(RMSE())
+# evaluate recommendations against the test interactions
+scores = analysis.measure(predictions, test_split)
 ```
 
-#### Scenario 1
+### Application Scenarios
+
+The following scenarios can be used in both Top-N ranking prediction and rating prediction use cases. Simply insert the scenario code where indicated by `# INSERT SCENARIO CODE HERE` in the examples above.
+
+#### Scenario 1: Fully Automated Model Selection & Hyperparameter Optimization
 
 Scenario 1 describes the fully automated combined algorithm selection and hyperparameter optimization (CASH problem).
 This scenario is recommended for inexperienced developers who have no or little experience in model selection.
@@ -194,22 +188,21 @@ This scenario is recommended for inexperienced developers who have no or little 
 LensKit-Auto performs the combined algorithm selection and hyperparameter optimization with a single function call.
 
 ```python
-model, config = get_best_recommender_model(train=train_split, filer=filer, save=True)
+model, config = get_best_recommender_model(train=train_split, filer=filer)
 ```
 
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
 predictor instead of a recommender, replace the function call with *get_best_prediction_model()*
 
-The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing model,
-with tuned hyperparameters and a configuration dictionary that contains all information about the model. In the Scenario
-1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default  
-hyperparameter range. We can use the model in the exact same way like a regular LensKit model.
+The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing model, with tuned hyperparameters and a configuration dictionary that contains the best configuration found during the optimization. In the Scenario 1 use-case the model is chosen out of all LensKit algorithms with hyperparameters within the LensKit-Auto default hyperparameter range. 
+
+We can use the model in the exact same way like a regular LensKit model. For rating prediction with ensemble models, use the *predict()* wrapper function from *lkauto.utils.pred_and_rec_functions* instead of *lenskit.batch.predict()* directly (as shown in the Rating Prediction example above). 
 
 Setting the `save` parameter to `True` enables lenskit-auto to save the trained model and configuration to the ouput
 directory specified by the `filer`. The default value of `save` is `True`, so that we only have to set it to `False` if
 we do not want to save the model and configuration.
 
-#### Scenario 2
+#### Scenario 2: Single-Algorithm Hyperparameter Optimization
 
 In Scenario 2 we are going to perform hyperparameter optimization on a single algorithm. First we need to define our
 custom configuration space with just a single algorithm included.
@@ -220,22 +213,22 @@ from lkauto.algorithms.item_knn import ItemItem
 
 # initialize ItemItem ConfigurationSpace
 cs = ItemItem.get_default_configspace()
-cs.add(Constant(name="algo", value="ItemItem"))
+# add algorithm name as a constant (in this case ItemItem algorithm)
+cs.add([Constant("algo", "ItemItem")])
 # set a random seed for reproducible results
 cs.seed(42)
 
 # Provide the ItemItem ConfigurationSpace to the get_best_recommender_model function.
-model, config = get_best_recommender_model(train_split, test_split, cs=cs)
+model, config = get_best_recommender_model(train=train_split, filer=filer, cs=cs)
 ```
 
 Note: As described above, the *get_best_recommender_model()* is used for Top-N ranking prediction. If you want to find a
 predictor instead of a recommender, replace the function call with *get_best_prediction_model()*
 
 The *get_best_recommender_model()* or *get_best_prediction_model()* function call will return the best performing
-ItemItem model. Besides the model, the *get_best_recommender_model()* function returns a configuration dictionary with
-all information about the model.
+ItemItem model. Besides the model, the *get_best_recommender_model()* function returns a configuration dictionary with the best configuration found during the optimization.
 
-#### Scenario 3
+#### Scenario 3: Custom Search Space Model Selection & Hyperparameter Optimization
 
 Scenario 3 describes the automated combined algorithm selection and hyperparameter optimization of a custom
 configuration space. A developer that wants to use Scenario 3 needs to provide hyperparameter ranges for the
@@ -245,14 +238,14 @@ First, a parent-ConfigurationSpace needs to be initialized. All algorithm names 
 parent-ConfigurationSpace categorical *algo* hyperparameter.
 
 ```python
-from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter
+from ConfigSpace import ConfigurationSpace, Categorical
 
-# initialize ItemItem ConfigurationSpace
+# initialize parent ConfigurationSpace
 parent_cs = ConfigurationSpace()
 # set a random seed for reproducible results
 parent_cs.seed(42)
 # add algorithm names as a constant
-parent_cs.add([CategoricalHyperparameter("algo", ["ItemItem", "UserUser"])])
+parent_cs.add([Categorical("algo", ["ItemItem", "UserUser"])])
 ```
 
 Afterward, we need to build the *ItemItem* and *UserUser* sub-ConfigurationSpace.

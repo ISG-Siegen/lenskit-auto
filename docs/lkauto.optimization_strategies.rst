@@ -20,10 +20,3 @@ lkauto.optimization\_strategies.random\_search module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: lkauto.optimization_strategies
-   :members:
-   :undoc-members:
-   :show-inheritance:

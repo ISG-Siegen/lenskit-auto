@@ -7,7 +7,7 @@ from typing import List, Union
 import numpy as np
 import pandas as pd
 
-from lenskit.data import Dataset, ItemList, ItemListCollection
+from lenskit.data import Dataset, ItemList, ItemListCollection, UserIDKey
 from lenskit.batch import predict
 
 
@@ -73,15 +73,15 @@ class EnsembleSelection:
         """
         bm_preds = [predict(bm, x_data) for bm in self.base_models]
 
-        ens_predictions = self.ensemble_predict([np.array(bm_pred.to_df()) for bm_pred in bm_preds])
+        # Convert each base model's predictions to a DataFrame for ensemble_predict
+        bm_pred_dfs = [bm_pred.to_df() for bm_pred in bm_preds]
+        ens_predictions = self.ensemble_predict([np.array(predictions) for predictions in bm_pred_dfs])
 
-        predictions = bm_preds[0].to_df().copy()
-
+        # Build result DataFrame with ensemble scores and convert to ItemListCollection
+        predictions = bm_pred_dfs[0].copy()
         predictions["score"] = ens_predictions
 
-        predictions_il = ItemListCollection.from_df(predictions, key="user_id")
-
-        return predictions_il
+        return ItemListCollection.from_df(predictions, UserIDKey)
 
     def ensemble_fit(self, predictions: List[np.ndarray], labels: np.ndarray):
         self.ensemble_size = int(self.ensemble_size)

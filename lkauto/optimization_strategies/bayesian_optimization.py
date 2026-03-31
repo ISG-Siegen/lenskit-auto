@@ -2,8 +2,6 @@ import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
 from lenskit import Pipeline
 
-# from smac.facade.smac_hpo_facade import SMAC4HPO
-# from smac.scenario.scenario import Scenario
 
 from smac import HyperparameterOptimizationFacade
 from smac.initial_design import RandomInitialDesign
@@ -19,6 +17,12 @@ from lkauto.utils.get_default_configuration_space import get_default_configurati
 
 from typing import Tuple, Optional
 import logging
+
+# Make Visualizer import optional for Python 3.10+ compatibility (deepcave is not available for Python 3.10+)
+try:
+    from lkauto.utils.visualizer import Visualizer
+except (ImportError, ModuleNotFoundError):
+    Visualizer = None
 
 
 def bayesian_optimization(train: Dataset,
@@ -36,7 +40,8 @@ def bayesian_optimization(train: Dataset,
                           num_recommendations: int = 10,
                           minimize_error_metric_val: bool = True,
                           predict_mode: bool = True,
-                          filer: Filer = None) -> Tuple[Configuration, Optional[Pipeline], Optional[pd.DataFrame]]:
+                          filer: Filer = None,
+                          visualization: bool = True) -> Tuple[Configuration, Optional[Pipeline], Optional[pd.DataFrame]]:
     """
         returns the best configuration found by bayesian optimization.
         The bayesian_optimization method will use SMAC3 to find the best
@@ -164,6 +169,10 @@ def bayesian_optimization(train: Dataset,
     incumbent = smac.optimize()
 
     logger.info('--End Bayesian Optimization--')
+
+    if visualization and Visualizer is not None:
+        visualizer = Visualizer()
+        visualizer.save_visualization_figures(scenario.output_directory)
 
     # return best model configuration
     if user_feedback == 'explicit':
