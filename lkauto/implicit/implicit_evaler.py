@@ -83,11 +83,13 @@ class ImplicitEvaler:
         self.run_id = 0
         # create validation split
         if self.validation is None:
-            self.val_fold_indices = validation_split(data=self.train,
-                                                     strategy=self.split_strategy,
-                                                     num_folds=self.split_folds,
-                                                     frac=self.split_frac,
-                                                     random_state=self.random_state)
+            self.val_fold_indices = list(
+                validation_split(data=self.train,
+                                 strategy=self.split_strategy,
+                                 num_folds=self.split_folds,
+                                 frac=self.split_frac,
+                                 random_state=self.random_state)
+            )
         else:
             self.val_fold_indices = None
 
@@ -115,6 +117,7 @@ class ImplicitEvaler:
 
         best_mean = -float('inf')
         best_model = None
+        last_summary = None
 
         # get model form configuration space
         model = get_model_from_cs(config_space, feedback='implicit')
@@ -158,7 +161,7 @@ class ImplicitEvaler:
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 # the first (index 0) column should contain the means for the metrics (rows)
                 metric_scores = np.append(metric_scores, error_results_mean)
-            last_summary = summary
+                last_summary = summary
         else:
             for fold in range(self.split_folds):
                 validation_train = self.train
@@ -197,7 +200,13 @@ class ImplicitEvaler:
                 # store data
                 validation_data = pd.concat([validation_data, recs.to_df()], axis=0)
                 metric_scores = np.append(metric_scores, error_results_mean)
-            last_summary = summary
+                last_summary = summary
+
+        if last_summary is None:
+            raise RuntimeError(
+                "Implicit evaluation produced no validation folds. "
+                "Check the validation split configuration and dataset."
+            )
 
         # save validation data
         self.filer.save_validataion_data(config_space=config_space,

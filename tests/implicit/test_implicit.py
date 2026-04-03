@@ -230,3 +230,47 @@ def test_external_validation_dataset(mocks):
 
     assert error == pytest.approx(-0.1)
     assert best_model is pipeline
+
+
+def test_internal_validation_splits_can_be_reused_across_evaluations(mocks):
+    train = MagicMock()
+    filer = MagicMock()
+
+    fold = MagicMock()
+    fold.train = "train_data"
+    fold.test = "test_data"
+    mocks["validation_split"].return_value = iter([fold])
+    mocks["get_model"].return_value = MagicMock()
+
+    pipeline1 = MagicMock()
+    pipeline1.clone.return_value = pipeline1
+    pipeline2 = MagicMock()
+    pipeline2.clone.return_value = pipeline2
+    mocks["predict_pipeline"].side_effect = [pipeline1, pipeline2]
+
+    recs = MagicMock()
+    recs.to_df.return_value = pd.DataFrame(
+        {"user": [1], "item": [42], "score": [0.9]}
+    )
+    mocks["predict"].return_value = recs
+
+    run_analysis = MagicMock()
+    run_analysis.measure.return_value.list_summary.return_value = \
+        pd.DataFrame({"mean": [0.8]}, index=["ndcg"])
+    mocks["run_analysis_cls"].return_value = run_analysis
+
+    evaler = ImplicitEvaler(
+        train=train,
+        optimization_metric=ndcg,
+        filer=filer,
+        split_folds=1,
+        predict_mode=True
+    )
+
+    first_error, first_model = evaler.evaluate(DummyConfig(algo="Algo"))
+    second_error, second_model = evaler.evaluate(DummyConfig(algo="Algo"))
+
+    assert first_error == pytest.approx(-0.2)
+    assert second_error == pytest.approx(-0.2)
+    assert first_model is pipeline1
+    assert second_model is pipeline2
