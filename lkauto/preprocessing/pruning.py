@@ -1,5 +1,4 @@
-from lenskit.data import Dataset, from_interactions_df
-from lenskit.data.builder import DatasetBuilder
+from lenskit.data import Dataset, DatasetBuilder, from_interactions_df
 
 
 def _dataset_from_filtered_interactions(interactions):
